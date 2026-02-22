@@ -1,51 +1,52 @@
 "use client"
 
-import { ArrowRight, BrainCircuit, Workflow, Cpu, Bot, Zap } from "lucide-react"
+import { ArrowRight } from "lucide-react"
 
 export function Hero() {
   return (
-    <section className="relative px-4 pt-8 pb-6 text-center overflow-hidden min-h-[100dvh] flex flex-col items-center justify-between bg-black/95 backdrop-blur-md">
+    <section className="relative px-6 pt-32 pb-20 md:pt-44 md:pb-32 text-center overflow-hidden min-h-[100dvh] flex flex-col items-center bg-black">
       
-      {/* 1. Ultra-Subtle Background Grid */}
+      {/* 1. Optimized Background Grid - Responsive Density */}
       <div className="absolute inset-0 z-0 pointer-events-none">
         <div 
-          className="absolute inset-0 opacity-[0.02]" // Dropped even further for elegance
+          className="absolute inset-0 opacity-[0.03] md:opacity-[0.02]" 
           style={{ 
             backgroundImage: `linear-gradient(to right, #ffffff 1px, transparent 1px), linear-gradient(to bottom, #ffffff 1px, transparent 1px)`,
-            backgroundSize: '120px 120px',
-            maskImage: 'radial-gradient(ellipse 50% 50% at 50% 50%, #000 20%, transparent 100%)',
-            WebkitMaskImage: 'radial-gradient(ellipse 50% 50% at 50% 50%, #000 20%, transparent 100%)'
+            backgroundSize: '80px 80px', // Smaller grid for mobile feel
+            maskImage: 'radial-gradient(ellipse 60% 60% at 50% 50%, #000 10%, transparent 100%)',
+            WebkitMaskImage: 'radial-gradient(ellipse 60% 60% at 50% 50%, #000 10%, transparent 100%)'
           }} 
         />
-        <div className="absolute inset-0 backdrop-blur-[1px]" />
       </div>
 
-      {/* 2. Main Content Area */}
-      <div className="relative z-10 w-full max-w-[1600px] mx-auto flex flex-col items-center mt-32">
-        {/* Tag: Switched from purple to muted slate */}
-        <div className="mb-6 px-5 py-1.5 rounded-full border border-white/5 bg-white/[0.02] backdrop-blur-md">
-          <span className="text-[10px] md:text-[11px] uppercase tracking-[0.5em] text-slate-400 font-medium">
+      {/* 2. Content Container */}
+      <div className="relative z-10 w-full max-w-5xl mx-auto flex flex-col items-center">
+        
+        {/* Tag: Increased touch target feel and centered tracking */}
+        <div className="mb-8 px-4 py-2 rounded-full border border-white/10 bg-white/[0.03] backdrop-blur-md">
+          <span className="text-[9px] md:text-[11px] uppercase tracking-[0.3em] md:tracking-[0.5em] text-slate-400 font-semibold">
             Intelligence at the Speed of Light
           </span>
         </div>
 
-        <h1 className="text-[clamp(1.8rem,5vw,3.8rem)] font-semibold tracking-tight text-white leading-[1.2] mb-6 max-w-4xl">
-          Automate the <span className="text-white">Routine.</span>{" "}
-          <span className="text-slate-400">
+        {/* Headline: Adjusted leading and clamp for mobile readability */}
+        <h1 className="text-[2.5rem] leading-[1.1] md:text-[clamp(2rem,5vw,3.8rem)] font-semibold tracking-tight text-white md:leading-[1.2] mb-6 max-w-4xl">
+          Automate the <span className="text-white">Routine.</span><br className="md:hidden" />{" "}
+          <span className="text-slate-500">
             Scale the Reality.
           </span>
         </h1>
 
-        <p className="text-gray-500 text-sm md:text-base max-w-[650px] leading-relaxed font-normal mb-10 opacity-70">
+        {/* Body: Improved contrast for small screens */}
+        <p className="text-gray-400 text-sm md:text-base max-w-[500px] leading-relaxed mb-12 px-2 md:px-0">
           Manual operations are the ceiling to your growth. We build autonomous AI agents 
-          and custom logic systems that eliminate friction and reclaim your team's time in 72 hours.
+          that reclaim your team's time in <span className="text-white font-medium">72 hours.</span>
         </p>
 
-        {/* Button: Switched to the high-contrast matte white style */}
-        <div className="relative group">
-          <div className="absolute -inset-2 bg-white/5 rounded-full blur-lg opacity-0 group-hover:opacity-100 transition duration-500" />
-          <button className="relative flex items-center gap-3 px-8 py-3.5 rounded-full bg-white text-black hover:bg-gray-200 transition-all duration-300 shadow-xl shadow-white/5">
-            <span className="text-[11px] font-bold tracking-[0.2em] uppercase">
+        {/* Button: Full width on very small screens, centered on others */}
+        <div className="w-full sm:w-auto px-4 sm:px-0">
+          <button className="group relative flex items-center justify-center gap-3 w-full sm:w-fit px-10 py-5 rounded-full bg-white text-black hover:bg-slate-200 transition-all duration-300 shadow-2xl shadow-white/5 active:scale-95">
+            <span className="text-[11px] font-black tracking-[0.2em] uppercase">
               Audit My Workflows
             </span>
             <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
@@ -53,19 +54,13 @@ export function Hero() {
         </div>
       </div>
 
-      {/* 5. Subdued Ambient Glows */}
+      {/* 3. Mobile-Specific Ambient Glow (Centered on text) */}
       <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-[15%] left-1/2 -translate-x-1/2 w-[40%] h-[15%] rounded-full bg-slate-500/5 blur-[120px]" />
+        <div className="absolute top-[20%] left-1/2 -translate-x-1/2 w-[80%] h-[30%] rounded-full bg-slate-500/10 blur-[80px] md:blur-[120px]" />
       </div>
 
-      {/* 3. The Cinematic Arc - Now Silver/Slate instead of Neon */}
-      <div className="hidden md:block absolute -bottom-24 w-full md:h-[250px] lg:h-[350px] pointer-events-none z-20 overflow-visible translate-y-12">
-        <style>{`
-          @keyframes pulse-subtle {
-            0%, 100% { opacity: 0.3; }
-            50% { opacity: 0.5; }
-          }
-        `}</style>
+      {/* 4. The Cinematic Arc - Adjusted for Mobile Aspect Ratios */}
+      <div className="absolute -bottom-12 md:-bottom-24 w-full h-[150px] md:h-[350px] pointer-events-none z-20">
         <svg
           width="100%"
           height="100%"
@@ -73,23 +68,20 @@ export function Hero() {
           fill="none"
           xmlns="http://www.w3.org/2000/svg"
           preserveAspectRatio="none"
-          className="overflow-visible"
         >
+          <path
+            d="M-100 300 Q 720 50 1540 300" // Shallower curve for mobile
+            stroke="url(#heroArcGradientMobile)"
+            strokeWidth="20" // Thinner for elegance
+            className="opacity-40 md:opacity-100 blur-[4px] md:blur-[8px]" 
+          />
           <defs>
-            <linearGradient id="heroArcGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-              <stop offset="0%" stopColor="#64748b" stopOpacity="0" />
-              <stop offset="25%" stopColor="#94a3b8" stopOpacity="0.1" />
-              <stop offset="50%" stopColor="#ffffff" stopOpacity="0.3" />
-              <stop offset="75%" stopColor="#94a3b8" stopOpacity="0.1" />
-              <stop offset="100%" stopColor="#64748b" stopOpacity="0" />
+            <linearGradient id="heroArcGradientMobile" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" stopColor="#ffffff" stopOpacity="0" />
+              <stop offset="50%" stopColor="#ffffff" stopOpacity="0.4" />
+              <stop offset="100%" stopColor="#ffffff" stopOpacity="0" />
             </linearGradient>
           </defs>
-          <path
-            d="M-300 220 Q 720 -50 1740 220"
-            stroke="url(#heroArcGradient)"
-            strokeWidth="40"
-            className="opacity-100 blur-[8px] animate-[pulse-subtle_6s_ease-in-out_infinite]" 
-          />
         </svg>
       </div>
     </section>
