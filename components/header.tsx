@@ -1,15 +1,14 @@
 "use client"
 
 import { useState } from "react"
-import { Menu, X } from "lucide-react"
-import { Button } from "@/components/ui/button"
+import { Menu, X, ArrowRight } from "lucide-react"
 
 const navItems = [
-  { label: "Preview", href: "#hero" },
-  { label: "Pricing", href: "#pricing" },
+  { label: "Home", href: "#hero" },
+  { label: "Engine", href: "#stats" },
   { label: "Portfolio", href: "#projects" },
+  { label: "Pricing", href: "#pricing" },
   { label: "Process", href: "#phases" },
-  { label: "Features", href: "#stats" },
 ]
 
 export function Header() {
@@ -24,72 +23,77 @@ export function Header() {
   }
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 px-6 py-4 bg-[#08080f]/80 backdrop-blur-md border-b border-white/5">
+    <header className="fixed top-0 left-0 right-0 z-[100] px-6 py-5 bg-black/95">
       <div className="max-w-7xl mx-auto flex items-center justify-between">
         
-        {/* Logo Section */}
-        <div className="flex items-center gap-3">
-          <img 
-            src="/logo.svg" 
-            alt="StellarCode Logo" 
-            className="w-7 h-7 object-contain"
-          />
-          <span className="font-semibold text-lg tracking-tight text-white">
+        {/* Brand Section */}
+        <div className="flex items-center gap-3 group cursor-pointer" onClick={() => scrollToSection("#hero")}>
+          <div className="p-1.5 rounded-lg">
+            <img 
+              src="/logo.svg" 
+              alt="StellarCode Logo" 
+              className="w-5 h-5 object-contain opacity-90"
+            />
+          </div>
+          <span className="font-semibold text-sm tracking-[0.2em] text-white uppercase">
             StellarCode
           </span>
         </div>
 
-        {/* Desktop Navigation - Glass Pill */}
-        <nav className="hidden md:flex items-center gap-1 bg-white/5 backdrop-blur-sm rounded-full px-2 py-1 border border-white/10">
+        {/* Desktop Navigation - Slate Pill */}
+        <nav className="hidden md:flex items-center gap-1 bg-black/40 backdrop-blur-xl rounded-full px-1.5 py-1.5 border border-white/[0.08] shadow-2xl shadow-black">
           {navItems.map((item) => (
             <button
               key={item.label}
               onClick={() => scrollToSection(item.href)}
-              className="px-4 py-2 text-sm text-gray-300 hover:text-white transition-colors rounded-full hover:bg-white/5"
+              className="px-5 py-2 text-[11px] font-bold uppercase tracking-[0.15em] text-slate-500 hover:text-white transition-all duration-300 rounded-full hover:bg-white/[0.05]"
             >
               {item.label}
             </button>
           ))}
         </nav>
 
-        {/* Desktop Actions */}
-        <div className="hidden md:flex items-center gap-3">
-          <button className="px-4 py-2 text-sm font-medium text-gray-300 hover:text-white transition-colors bg-white/5 hover:bg-white/10 rounded-full border border-white/5">
-            Log In
+        {/* Action Button - High Contrast */}
+        <div className="hidden md:block">
+          <button 
+            onClick={() => scrollToSection("#contact")}
+            className="flex items-center gap-2 px-5 py-2.5 bg-white text-black rounded-full text-[10px] font-bold uppercase tracking-widest hover:bg-slate-200 transition-all active:scale-95"
+          >
+            Start Audit
+            <ArrowRight className="w-3 h-3" />
           </button>
-          <Button className="bg-white hover:bg-gray-200 text-black font-semibold rounded-full px-6 h-9 transition-all active:scale-95">
-            Sign Up
-          </Button>
         </div>
 
-        {/* Mobile Menu Button */}
-        <button className="md:hidden p-2 text-white" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
-          {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-        </button>
+        {/* Mobile Toggle */}
+        <div className="flex items-center md:hidden">
+          <button 
+            className="p-2.5 bg-white/[0.03] border border-white/10 rounded-xl text-white" 
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+          >
+            {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+          </button>
+        </div>
       </div>
 
-      {/* Mobile Menu */}
+      {/* Mobile Menu - Matte Overlay */}
       {mobileMenuOpen && (
-        <div className="md:hidden absolute top-full left-0 right-0 bg-[#08080f]/95 backdrop-blur-xl border-t border-white/10 p-6 shadow-2xl">
-          <nav className="flex flex-col gap-2">
+        <div className="md:hidden absolute top-full left-6 right-6 mt-4 bg-black/95 backdrop-blur-2xl border border-white/10 p-8 rounded-[2rem] shadow-2xl animate-in fade-in zoom-in-95 duration-300">
+          <nav className="flex flex-col gap-4">
             {navItems.map((item) => (
               <button
                 key={item.label}
                 onClick={() => scrollToSection(item.href)}
-                className="px-4 py-3 text-sm text-gray-300 hover:text-white hover:bg-white/5 rounded-lg text-left transition-colors"
+                className="px-6 py-4 text-xs font-bold uppercase tracking-widest text-slate-400 hover:text-white hover:bg-white/[0.03] rounded-2xl text-left transition-all border border-transparent hover:border-white/5"
               >
                 {item.label}
               </button>
             ))}
-            <div className="h-px bg-white/10 my-4" />
-            <div className="flex flex-col gap-3">
-              <button className="px-4 py-3 text-sm text-gray-300 hover:text-white text-left bg-white/5 rounded-lg">
-                Log In
-              </button>
-              <Button className="bg-white text-black hover:bg-gray-200 rounded-lg py-6 font-bold">
-                Sign Up
-              </Button>
-            </div>
+            <button 
+               onClick={() => scrollToSection("#contact")}
+               className="mt-4 w-full py-5 bg-white text-black rounded-2xl text-[10px] font-bold uppercase tracking-widest text-center"
+            >
+              Free AI Audit
+            </button>
           </nav>
         </div>
       )}

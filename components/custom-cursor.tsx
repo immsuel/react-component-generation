@@ -46,39 +46,39 @@ export function CustomCursor() {
     }
   }, [])
 
-  // Don't render on touch devices
   if (typeof window !== "undefined" && window.matchMedia("(pointer: coarse)").matches) {
     return null
   }
 
   return (
     <>
-      {/* Outer ring */}
+      {/* Outer ring - Industrial Matte Style */}
       <div
-        className={`fixed pointer-events-none z-[9999] rounded-full border transition-[width,height,border-color,opacity] duration-200 ease-out ${
-          isPointer ? "w-12 h-12 border-purple-400/60" : "w-8 h-8 border-white/40"
-        } ${isClicking ? "scale-90" : "scale-100"} ${isVisible ? "opacity-100" : "opacity-0"}`}
+        className={`fixed pointer-events-none z-[9999] rounded-full border transition-all duration-300 ease-out ${
+          isPointer 
+            ? "w-14 h-14 border-white/20 bg-white/[0.03] backdrop-blur-[2px]" 
+            : "w-8 h-8 border-white/10 bg-transparent"
+        } ${isVisible ? "opacity-100" : "opacity-0"}`}
         style={{
           left: position.x,
           top: position.y,
-          transform: `translate(-50%, -50%) ${isClicking ? "scale(0.9)" : "scale(1)"}`,
-          transition: "transform 0.1s ease-out, width 0.2s ease-out, height 0.2s ease-out, border-color 0.2s ease-out, opacity 0.2s ease-out",
+          transform: `translate(-50%, -50%) ${isClicking ? "scale(0.85)" : "scale(1)"}`,
           boxShadow: isPointer
-            ? "0 0 20px rgba(168, 85, 247, 0.4), inset 0 0 10px rgba(168, 85, 247, 0.1)"
-            : "0 0 15px rgba(255, 255, 255, 0.15)",
+            ? "0 0 30px rgba(255, 255, 255, 0.05)"
+            : "none",
         }}
       />
-      {/* Inner dot */}
+      
+      {/* Inner dot - Precision Point */}
       <div
-        className={`fixed pointer-events-none z-[9999] rounded-full transition-[width,height,background-color,opacity] duration-100 ease-out ${
-          isPointer ? "w-2 h-2 bg-purple-400" : "w-1.5 h-1.5 bg-white"
+        className={`fixed pointer-events-none z-[9999] rounded-full transition-all duration-150 ease-out ${
+          isPointer ? "w-1 h-1 bg-white" : "w-1.5 h-1.5 bg-slate-400"
         } ${isVisible ? "opacity-100" : "opacity-0"}`}
         style={{
           left: position.x,
           top: position.y,
           transform: "translate(-50%, -50%)",
-          transition: "transform 0.05s linear, width 0.1s ease-out, height 0.1s ease-out, background-color 0.2s ease-out, opacity 0.1s ease-out",
-          boxShadow: isPointer ? "0 0 10px rgba(168, 85, 247, 0.8)" : "0 0 8px rgba(255, 255, 255, 0.5)",
+          boxShadow: isPointer ? "0 0 10px rgba(255, 255, 255, 0.8)" : "none",
         }}
       />
     </>

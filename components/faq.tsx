@@ -1,33 +1,33 @@
 "use client"
 
 import { useState } from "react"
-import { ChevronDown } from "lucide-react"
+import { ChevronDown, HelpCircle } from "lucide-react"
 
 const faqs = [
   {
-    question: "How is a 72 Hour turnaround even possible?",
+    question: "How is a 72-hour turnaround for AI possible?",
     answer:
-      "Our streamlined process, expert team, and powerful tooling allow us to move from concept to deployment in record time without sacrificing quality.",
+      "We don't start from zero. We use our proprietary library of pre-built automation logic and API middleware. This allows us to focus 100% of the time on your specific data mapping and agent prompting rather than basic infrastructure.",
   },
   {
-    question: "Is the final website actually custom-coded?",
+    question: "Is my data secure when using your AI agents?",
     answer:
-      "Yes, every website we build is hand-coded with modern technologies like Next.js and Tailwind CSS for optimal performance and maintainability.",
+      "Absolutely. We primarily build using Enterprise-grade APIs from OpenAI and Anthropic that do not train on your business data. We also implement custom encryption layers for any sensitive API handshakes.",
   },
   {
-    question: "What happens if I don't like the initial preview?",
+    question: "What exactly do I 'own' after the 72 hours?",
     answer:
-      "We offer unlimited revisions to ensure you're completely satisfied with the final result. Your vision is our priority.",
+      "You own the full logic architecture. Whether we build it in a custom Next.js environment or an automation platform like Make.com, you have full administrative control and ownership of the accounts and code.",
   },
   {
-    question: "Can you handle complex integrations like e-commerce or SaaS dashboards?",
+    question: "Can your automations handle complex legacy systems?",
     answer:
-      "Absolutely. We specialize in complex web applications including e-commerce platforms, SaaS dashboards, and custom integrations.",
+      "Yes. If your software has an API, we can connect to it. If it doesn't, we can often use browser-based automation or custom webhooks to bridge the gap between your old tools and new AI logic.",
   },
   {
-    question: "Do you work with clients outside of my time zone?",
+    question: "What happens if the AI makes a mistake?",
     answer:
-      "Yes, we work with clients globally and have experience managing projects across different time zones seamlessly.",
+      "We build 'Human-in-the-loop' systems for sensitive tasks. You can set confidence thresholds where the AI will flag a task for your approval rather than executing it autonomously, ensuring 100% oversight.",
   },
 ]
 
@@ -35,29 +35,58 @@ export function FAQ() {
   const [openIndex, setOpenIndex] = useState<number | null>(null)
 
   return (
-    <section className="px-4 py-20">
+    <section className="px-4 py-24 relative bg-black/95 backdrop-blur-md border-t border-white/[0.02]">
       <div className="max-w-3xl mx-auto">
-        <h2 className="text-3xl md:text-4xl font-bold text-center mb-4">Navigating the Unknown</h2>
-        <p className="text-gray-400 text-center mb-12">
-          Answers to your questions about our 72-hour delivery, custom architecture, and the technology that makes it
-          all possible.
+        
+        {/* Minimalist Header Icon */}
+        <div className="flex justify-center mb-8">
+            <div className="p-3 rounded-2xl bg-white/[0.03] border border-white/10">
+                <HelpCircle className="w-5 h-5 text-slate-400 opacity-80" />
+            </div>
+        </div>
+        
+        <h2 className="text-3xl md:text-4xl font-semibold text-center mb-4 text-white tracking-tight">
+          System <span className="text-slate-500">Architecture</span> FAQs
+        </h2>
+        <p className="text-gray-500 text-center mb-16 text-sm md:text-base max-w-xl mx-auto">
+          Technical insights into our 72-hour delivery, data security protocols, and the autonomous logic layers we deploy.
         </p>
 
         <div className="space-y-3">
           {faqs.map((faq, index) => (
-            <div key={index} className="border border-white/10 rounded-xl overflow-hidden">
+            <div 
+              key={index} 
+              className={`transition-all duration-500 rounded-[1.5rem] overflow-hidden border ${
+                openIndex === index 
+                  ? "border-white/20 bg-white/[0.04] shadow-2xl shadow-white/5" 
+                  : "border-white/5 bg-white/[0.01] hover:bg-white/[0.03]"
+              }`}
+            >
               <button
-                className="w-full flex items-center justify-between p-5 text-left hover:bg-white/5 transition-colors"
+                className="w-full flex items-center justify-between p-7 text-left transition-colors"
                 onClick={() => setOpenIndex(openIndex === index ? null : index)}
               >
-                <span className="font-medium pr-4">{faq.question}</span>
+                <span className={`text-sm md:text-base font-medium transition-colors duration-300 ${
+                  openIndex === index ? "text-white" : "text-slate-400 group-hover:text-slate-200"
+                }`}>
+                  {faq.question}
+                </span>
                 <ChevronDown
-                  className={`w-5 h-5 text-gray-400 shrink-0 transition-transform ${
-                    openIndex === index ? "rotate-180" : ""
+                  className={`w-4 h-4 text-slate-500 shrink-0 transition-transform duration-500 ${
+                    openIndex === index ? "rotate-180 text-white" : ""
                   }`}
                 />
               </button>
-              {openIndex === index && <div className="px-5 pb-5 text-gray-400">{faq.answer}</div>}
+              
+              <div 
+                className={`transition-all duration-500 ease-in-out ${
+                    openIndex === index ? "max-h-[300px] opacity-100" : "max-h-0 opacity-0"
+                }`}
+              >
+                <div className="px-7 pb-7 text-gray-500 text-sm leading-relaxed border-t border-white/5 pt-5 mt-1">
+                  {faq.answer}
+                </div>
+              </div>
             </div>
           ))}
         </div>

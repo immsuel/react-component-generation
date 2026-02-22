@@ -1,12 +1,22 @@
 "use client"
 
 import type React from "react"
-
 import { useState } from "react"
-import { Send, User, Mail, MessageSquare, Briefcase } from "lucide-react"
+import { Send, User, Mail, MessageSquare, Briefcase, Loader2, Sparkles } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
+const SERVICE_OPTIONS = [
+  "Handle Customer Chats",
+  "Automate Repetitive Tasks",
+  "Sales & Lead Follow-up",
+  "Connect My Current Apps",
+  "Data Reports & Insights",
+  "Custom AI Strategy"
+]
+
 export function ContactForm() {
+  const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle")
+  const [selectedServices, setSelectedServices] = useState<string[]>([])
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -14,99 +24,147 @@ export function ContactForm() {
     message: "",
   })
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const toggleService = (service: string) => {
+    setSelectedServices(prev => 
+      prev.includes(service) 
+        ? prev.filter(s => s !== service) 
+        : [...prev, service]
+    )
+  }
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    // Handle form submission
-    console.log("Form submitted:", formData)
+    setStatus("loading")
+
+    const submissionData = {
+      ...formData,
+      needs: selectedServices.join(", "),
+    }
+
+    try {
+      const response = await fetch("https://formspree.io/f/mjgeazya", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Accept: "application/json" },
+        body: JSON.stringify(submissionData),
+      })
+
+      if (response.ok) {
+        setStatus("success")
+        setFormData({ name: "", email: "", company: "", message: "" })
+        setSelectedServices([])
+        setTimeout(() => setStatus("idle"), 5000)
+      } else {
+        setStatus("error")
+      }
+    } catch (error) {
+      setStatus("error")
+    }
   }
 
   return (
-    <section id="contact" className="px-4 py-20 relative">
-      <div className="absolute inset-0 bg-gradient-to-b from-transparent via-purple-900/10 to-transparent pointer-events-none" />
-
+    <section id="contact" className="px-4 py-24 relative bg-black/95 backdrop-blur-md">
       <div className="max-w-2xl mx-auto relative z-10">
-        <h2 className="text-3xl md:text-4xl font-bold text-center mb-4">
-          Let&apos;s Build Something <span className="text-purple-400">Stellar</span>
-        </h2>
-        <p className="text-gray-400 text-center max-w-xl mx-auto mb-12">
-          Ready to transform your vision into reality? Get in touch and we&apos;ll respond within 24 hours.
-        </p>
+        <div className="text-center mb-12">
+          <h2 className="text-3xl md:text-4xl font-semibold mb-4 text-white tracking-tight">
+            Let’s Put Your Business on <span className="text-slate-500">Autopilot</span>
+          </h2>
+          <p className="text-gray-500 max-w-xl mx-auto text-sm md:text-base">
+            Tell us what's slowing you down. We'll show you how AI can handle it in 72 hours.
+          </p>
+        </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Name Field */}
             <div className="relative">
-              <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
+              <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
               <input
                 type="text"
                 placeholder="Your Name"
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                className="w-full bg-white/5 border border-white/10 rounded-xl pl-12 pr-4 py-4 text-white placeholder:text-gray-500 focus:outline-none focus:border-purple-500/50 focus:bg-white/[0.07] transition-all"
+                className="w-full bg-white/[0.03] border border-white/5 rounded-2xl pl-12 pr-4 py-4 text-white placeholder:text-gray-600 focus:outline-none focus:border-white/20 transition-all text-sm"
                 required
               />
             </div>
 
-            {/* Email Field */}
             <div className="relative">
-              <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
+              <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
               <input
                 type="email"
-                placeholder="Your Email"
+                placeholder="Work Email"
                 value={formData.email}
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                className="w-full bg-white/5 border border-white/10 rounded-xl pl-12 pr-4 py-4 text-white placeholder:text-gray-500 focus:outline-none focus:border-purple-500/50 focus:bg-white/[0.07] transition-all"
+                className="w-full bg-white/[0.03] border border-white/5 rounded-2xl pl-12 pr-4 py-4 text-white placeholder:text-gray-600 focus:outline-none focus:border-white/20 transition-all text-sm"
                 required
               />
             </div>
           </div>
 
-          {/* Company Field */}
           <div className="relative">
-            <Briefcase className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
+            <Briefcase className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
             <input
               type="text"
-              placeholder="Company / Project Name"
+              placeholder="Business Name"
               value={formData.company}
               onChange={(e) => setFormData({ ...formData, company: e.target.value })}
-              className="w-full bg-white/5 border border-white/10 rounded-xl pl-12 pr-4 py-4 text-white placeholder:text-gray-500 focus:outline-none focus:border-purple-500/50 focus:bg-white/[0.07] transition-all"
+              className="w-full bg-white/[0.03] border border-white/5 rounded-2xl pl-12 pr-4 py-4 text-white placeholder:text-gray-600 focus:outline-none focus:border-white/20 transition-all text-sm"
             />
           </div>
 
-          {/* Message Field */}
+          {/* Service Selection: Re-styled as matte chips */}
+          <div className="space-y-4">
+            <label className="text-[10px] font-bold text-slate-500 flex items-center gap-2 ml-1 uppercase tracking-[0.2em]">
+              <Sparkles className="w-3 h-3" />
+              Primary Automation Goals
+            </label>
+            <div className="grid grid-cols-2 gap-3">
+              {SERVICE_OPTIONS.map((service) => (
+                <button
+                  key={service}
+                  type="button"
+                  onClick={() => toggleService(service)}
+                  className={`py-4 px-3 rounded-2xl border text-[11px] font-semibold tracking-tight transition-all duration-300 ${
+                    selectedServices.includes(service)
+                      ? "bg-white text-black border-white shadow-xl shadow-white/5"
+                      : "bg-white/[0.02] border-white/5 text-gray-500 hover:border-white/10"
+                  }`}
+                >
+                  {service}
+                </button>
+              ))}
+            </div>
+          </div>
+
           <div className="relative">
-            <MessageSquare className="absolute left-4 top-4 w-5 h-5 text-gray-500" />
+            <MessageSquare className="absolute left-4 top-4 w-4 h-4 text-slate-500" />
             <textarea
-              placeholder="Tell us about your project..."
+              placeholder="Tell us about the biggest bottleneck in your company..."
               value={formData.message}
               onChange={(e) => setFormData({ ...formData, message: e.target.value })}
-              rows={5}
-              className="w-full bg-white/5 border border-white/10 rounded-xl pl-12 pr-4 py-4 text-white placeholder:text-gray-500 focus:outline-none focus:border-purple-500/50 focus:bg-white/[0.07] transition-all resize-none"
+              rows={4}
+              className="w-full bg-white/[0.03] border border-white/5 rounded-2xl pl-12 pr-4 py-4 text-white placeholder:text-gray-600 focus:outline-none focus:border-white/20 transition-all resize-none text-sm"
               required
             />
           </div>
 
-          {/* Submit Button */}
           <Button
             type="submit"
-            className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white rounded-xl py-6 text-lg font-semibold group shadow-lg shadow-purple-500/25 transition-all hover:shadow-purple-500/40"
+            disabled={status === "loading"}
+            className={`w-full py-8 rounded-2xl text-xs font-bold uppercase tracking-[0.2em] transition-all duration-500 ${
+                status === "success" 
+                ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/20" 
+                : "bg-white text-black hover:bg-slate-200"
+            }`}
           >
-            Send Message
-            <Send className="ml-2 w-5 h-5 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
+            {status === "loading" ? (
+              <Loader2 className="w-5 h-5 animate-spin" />
+            ) : status === "success" ? (
+              "Message Logged"
+            ) : (
+              "Request Free AI Audit"
+            )}
           </Button>
         </form>
-
-        {/* Trust Indicators */}
-        <div className="mt-8 flex flex-wrap justify-center gap-6 text-sm text-gray-500">
-          <div className="flex items-center gap-2">
-            <div className="w-2 h-2 rounded-full bg-green-500" />
-            <span>Usually responds within 24 hours</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="w-2 h-2 rounded-full bg-purple-500" />
-            <span>No commitment required</span>
-          </div>
-        </div>
       </div>
     </section>
   )

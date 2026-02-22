@@ -1,59 +1,77 @@
 "use client"
 
+import { useEffect, useState } from "react"
+
 export function CosmicBackground() {
+  const [mounted, setMounted] = useState(false)
+
+  // Ensure hydration matches server by only rendering random values on client
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  if (!mounted) return null
+
   return (
-    <div className="fixed inset-0 pointer-events-none overflow-hidden">
-      {/* Stars */}
+    <div className="fixed inset-0 pointer-events-none overflow-hidden bg-[#020202] -z-10">
+      {/* Dynamic Star Field */}
       <div className="absolute inset-0">
-        {/* Small stars */}
-        {[...Array(50)].map((_, i) => (
+        {/* Small Dim Stars */}
+        {[...Array(60)].map((_, i) => (
           <div
-            key={`star-${i}`}
-            className="absolute w-[2px] h-[2px] bg-white rounded-full animate-pulse"
+            key={`star-sm-${i}`}
+            className="absolute w-[1px] h-[1px] bg-white rounded-full animate-pulse"
             style={{
               top: `${Math.random() * 100}%`,
               left: `${Math.random() * 100}%`,
-              opacity: Math.random() * 0.7 + 0.3,
-              animationDelay: `${Math.random() * 3}s`,
-              animationDuration: `${2 + Math.random() * 3}s`,
+              opacity: Math.random() * 0.5,
+              animationDuration: `${3 + Math.random() * 4}s`,
             }}
           />
         ))}
-        {/* Medium stars */}
-        {[...Array(20)].map((_, i) => (
+
+        {/* Medium Purple-Tinted Stars */}
+        {[...Array(25)].map((_, i) => (
           <div
             key={`star-md-${i}`}
-            className="absolute w-[3px] h-[3px] bg-white rounded-full"
+            className="absolute w-[2px] h-[2px] bg-purple-200 rounded-full"
             style={{
               top: `${Math.random() * 100}%`,
               left: `${Math.random() * 100}%`,
-              opacity: Math.random() * 0.5 + 0.2,
-              boxShadow: "0 0 4px 1px rgba(255,255,255,0.3)",
+              opacity: Math.random() * 0.4 + 0.1,
+              boxShadow: "0 0 3px 1px rgba(168, 85, 247, 0.2)",
             }}
           />
         ))}
-        {/* Larger bright stars */}
-        {[...Array(8)].map((_, i) => (
+
+        {/* Large "Engine" Stars */}
+        {[...Array(10)].map((_, i) => (
           <div
             key={`star-lg-${i}`}
             className="absolute w-1 h-1 bg-white rounded-full animate-pulse"
             style={{
               top: `${Math.random() * 100}%`,
               left: `${Math.random() * 100}%`,
-              opacity: 0.8,
-              boxShadow: "0 0 8px 2px rgba(168, 85, 247, 0.5)",
-              animationDelay: `${Math.random() * 2}s`,
-              animationDuration: `${3 + Math.random() * 2}s`,
+              opacity: 0.6,
+              boxShadow: "0 0 10px 2px rgba(168, 85, 247, 0.4)",
+              animationDuration: `${2 + Math.random() * 2}s`,
             }}
           />
         ))}
       </div>
 
-      {/* Main Arc SVG - positioned to span across hero to testimonials */}
+      {/* Atmospheric AI Glows */}
+      {/* Top Hero Glow */}
+      <div className="absolute top-[-10%] left-1/2 -translate-x-1/2 w-[100vw] h-[60vh] bg-purple-600/10 blur-[120px] rounded-full opacity-50" />
       
-      {/* Ambient gradient glows */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1200px] h-[800px] bg-purple-600/10 blur-[150px] rounded-full" />
-      <div className="absolute top-[2800px] left-1/2 -translate-x-1/2 w-[1000px] h-[600px] bg-purple-600/15 blur-[120px] rounded-full" />
+      {/* Mid-Page Logic Glow (Phases/Stats area) */}
+      <div className="absolute top-[150vh] right-[-10%] w-[50vw] h-[50vh] bg-blue-600/5 blur-[100px] rounded-full" />
+      
+      {/* Bottom Conversion Glow (Pricing/Testimonials) */}
+      <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[80vw] h-[40vh] bg-purple-900/20 blur-[150px] rounded-t-full" />
+
+      {/* Optional: Static Grid Overlay for "Digital" feel */}
+      <div className="absolute inset-0 bg-[linear-gradient(to_right,#8080800a_1px,transparent_1px),linear-gradient(to_bottom,#8080800a_1px,transparent_1px)] bg-[size:40px_40px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)]" />
     </div>
   )
 }

@@ -1,57 +1,71 @@
 "use client"
 
-import { ArrowRight, Zap, Layers, Cpu, Database, Globe } from "lucide-react"
+import { ArrowRight, BrainCircuit, Workflow, Cpu, Bot, Zap } from "lucide-react"
 
 export function Hero() {
   return (
-    <section className="relative px-4 pt-16 pb-12 text-center overflow-hidden min-h-[100dvh] flex flex-col items-center justify-between">
-      {/* 1. Background Grid & Stars */}
+    <section className="relative px-4 pt-8 pb-6 text-center overflow-hidden min-h-[100dvh] flex flex-col items-center justify-between bg-black/95 backdrop-blur-md">
+      
+      {/* 1. Ultra-Subtle Background Grid */}
       <div className="absolute inset-0 z-0 pointer-events-none">
         <div 
-          className="absolute inset-0 opacity-[0.05]" 
+          className="absolute inset-0 opacity-[0.02]" // Dropped even further for elegance
           style={{ 
             backgroundImage: `linear-gradient(to right, #ffffff 1px, transparent 1px), linear-gradient(to bottom, #ffffff 1px, transparent 1px)`,
-            backgroundSize: '80px 80px',
-            maskImage: 'radial-gradient(ellipse 60% 50% at 50% 50%, #000 40%, transparent 100%)'
+            backgroundSize: '120px 120px',
+            maskImage: 'radial-gradient(ellipse 50% 50% at 50% 50%, #000 20%, transparent 100%)',
+            WebkitMaskImage: 'radial-gradient(ellipse 50% 50% at 50% 50%, #000 20%, transparent 100%)'
           }} 
         />
+        <div className="absolute inset-0 backdrop-blur-[1px]" />
       </div>
 
       {/* 2. Main Content Area */}
-      <div className="relative z-10 w-full max-w-[1600px] mx-auto flex flex-col items-center mt-12">
-        <div className="mb-8 px-6 py-2 rounded-full border border-white/10 bg-white/[0.02] backdrop-blur-md">
-          <span className="text-[10px] uppercase tracking-[0.4em] text-gray-400 font-semibold">
-            Design at the Speed of Light
+      <div className="relative z-10 w-full max-w-[1600px] mx-auto flex flex-col items-center mt-32">
+        {/* Tag: Switched from purple to muted slate */}
+        <div className="mb-6 px-5 py-1.5 rounded-full border border-white/5 bg-white/[0.02] backdrop-blur-md">
+          <span className="text-[10px] md:text-[11px] uppercase tracking-[0.5em] text-slate-400 font-medium">
+            Intelligence at the Speed of Light
           </span>
         </div>
 
-        <h1 className="text-[clamp(2.2rem,8vw,5.5rem)] font-bold tracking-tighter text-white leading-[1.1] md:leading-none mb-8 max-w-[90vw] md:max-w-none md:whitespace-nowrap">
-          See the <span className="text-white">Magic.</span>{" "}
-          <span className="bg-gradient-to-r from-[#8b5cf6] via-[#d946ef] to-[#3b82f6] bg-clip-text text-transparent">
-            Own the Reality.
+        <h1 className="text-[clamp(1.8rem,5vw,3.8rem)] font-semibold tracking-tight text-white leading-[1.2] mb-6 max-w-4xl">
+          Automate the <span className="text-white">Routine.</span>{" "}
+          <span className="text-slate-400">
+            Scale the Reality.
           </span>
         </h1>
 
-        <p className="text-gray-400 text-base md:text-lg max-w-[850px] leading-relaxed font-normal mb-10 opacity-80">
-          Traditional agencies take months. We bridge the gap between imagination and reality, delivering
-          high-performance, custom-coded sites in record time.
+        <p className="text-gray-500 text-sm md:text-base max-w-[650px] leading-relaxed font-normal mb-10 opacity-70">
+          Manual operations are the ceiling to your growth. We build autonomous AI agents 
+          and custom logic systems that eliminate friction and reclaim your team's time in 72 hours.
         </p>
 
-        <button className="group flex items-center gap-3 px-7 py-3 rounded-md border border-white/20 bg-white/[0.03] hover:bg-white/10 transition-all duration-300">
-          <span className="text-[10px] font-bold tracking-[0.2em] uppercase text-white">
-            Start Your Design
-          </span>
-          <ArrowRight className="w-3.5 h-3.5 text-white transition-transform group-hover:translate-x-1" />
-        </button>
+        {/* Button: Switched to the high-contrast matte white style */}
+        <div className="relative group">
+          <div className="absolute -inset-2 bg-white/5 rounded-full blur-lg opacity-0 group-hover:opacity-100 transition duration-500" />
+          <button className="relative flex items-center gap-3 px-8 py-3.5 rounded-full bg-white text-black hover:bg-gray-200 transition-all duration-300 shadow-xl shadow-white/5">
+            <span className="text-[11px] font-bold tracking-[0.2em] uppercase">
+              Audit My Workflows
+            </span>
+            <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
+          </button>
+        </div>
       </div>
 
-      {/* 5. Ambient Background Glows */}
+      {/* 5. Subdued Ambient Glows */}
       <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-[20%] left-1/2 -translate-x-1/2 w-[50%] h-[20%] rounded-full bg-[#d946ef] opacity-[0.2] blur-[100px]" />
+        <div className="absolute top-[15%] left-1/2 -translate-x-1/2 w-[40%] h-[15%] rounded-full bg-slate-500/5 blur-[120px]" />
       </div>
 
-      {/* 3. The Cinematic Arc - HIDDEN ON MOBILE (hidden), VISIBLE ON DESKTOP (md:block) */}
-      <div className="hidden md:block absolute bottom-0 w-full h-[400px] pointer-events-none z-20 overflow-visible">
+      {/* 3. The Cinematic Arc - Now Silver/Slate instead of Neon */}
+      <div className="hidden md:block absolute -bottom-24 w-full md:h-[250px] lg:h-[350px] pointer-events-none z-20 overflow-visible translate-y-12">
+        <style>{`
+          @keyframes pulse-subtle {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 0.5; }
+          }
+        `}</style>
         <svg
           width="100%"
           height="100%"
@@ -63,66 +77,21 @@ export function Hero() {
         >
           <defs>
             <linearGradient id="heroArcGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-              <stop offset="0%" stopColor="#8B5CF6" stopOpacity="0" />
-              <stop offset="25%" stopColor="#d946ef" stopOpacity="0.6" />
-              <stop offset="50%" stopColor="#fff" stopOpacity="1" />
-              <stop offset="75%" stopColor="#3B82F6" stopOpacity="0.6" />
-              <stop offset="100%" stopColor="#3B82F6" stopOpacity="0" />
+              <stop offset="0%" stopColor="#64748b" stopOpacity="0" />
+              <stop offset="25%" stopColor="#94a3b8" stopOpacity="0.1" />
+              <stop offset="50%" stopColor="#ffffff" stopOpacity="0.3" />
+              <stop offset="75%" stopColor="#94a3b8" stopOpacity="0.1" />
+              <stop offset="100%" stopColor="#64748b" stopOpacity="0" />
             </linearGradient>
           </defs>
-          
           <path
             d="M-300 220 Q 720 -50 1740 220"
             stroke="url(#heroArcGradient)"
-            strokeWidth="180" 
-            className="opacity-20 blur-[20px]"
-          />
-          
-          <path
-            d="M-300 220 Q 720 -50 1740 220"
-            stroke="url(#heroArcGradient)"
-            strokeWidth="80"
-            className="opacity-30 blur-[20px]"
-          />
-
-          <path
-            d="M-300 220 Q 720 -50 1740 220"
-            stroke="url(#heroArcGradient)"
-            strokeWidth="60"
-            className="opacity-100 blur-[5px]" 
-          />
-
-          <path
-            d="M-300 220 Q 720 -50 1740 220"
-            stroke="white"
-            strokeWidth="15"
-            className="opacity-30 blur-[10px]"
+            strokeWidth="40"
+            className="opacity-100 blur-[8px] animate-[pulse-subtle_6s_ease-in-out_infinite]" 
           />
         </svg>
       </div>
-
-      {/* 4. Trusted By Section */}
-      <div className="relative z-30 w-full flex flex-col items-center gap-8 pb-8 md:pb-4">
-        <p className="text-white/40 text-[11px] font-bold uppercase tracking-[0.2em]">
-          Powering The Next Generation
-        </p>
-        <div className="flex flex-wrap justify-center gap-8 md:gap-20 opacity-30 grayscale px-4">
-          <TechItem icon={<Zap className="w-4 h-4" />} label="Next.js" />
-          <TechItem icon={<Layers className="w-4 h-4" />} label="Tailwind" />
-          <TechItem icon={<Cpu className="w-4 h-4" />} label="TypeScript" />
-          <TechItem icon={<Database className="w-4 h-4" />} label="Supabase" />
-          <TechItem icon={<Globe className="w-4 h-4" />} label="Vercel" />
-        </div>
-      </div>
     </section>
-  )
-}
-
-function TechItem({ icon, label }: { icon: React.ReactNode; label: string }) {
-  return (
-    <div className="flex items-center gap-2">
-      <div className="text-white">{icon}</div>
-      <span className="text-white font-medium text-xs tracking-tight">{label}</span>
-    </div>
   )
 }
