@@ -6,8 +6,9 @@ import { Button } from "@/components/ui/button"
 const plans = [
   {
     name: "Workflow Starter",
-    price: "$1,500pm",
-    description: "Perfect for small teams looking to eliminate repetitive manual tasks.",
+    price: "R 6,250",
+    period: "pm",
+    description: "Perfect for local SMEs looking to eliminate repetitive manual tasks.",
     features: [
       "2 Custom Zapier/Make Automations",
       "Lead Capture & CRM Integration",
@@ -18,7 +19,8 @@ const plans = [
   },
   {
     name: "AI Scaling Partner",
-    price: "$3,500pm",
+    price: "R 16,500",
+    period: "pm",
     description: "Deep AI integration to handle customer service and internal operations.",
     features: [
       "Custom Trained AI Chatbot (GPT-4o)",
@@ -31,7 +33,8 @@ const plans = [
   },
   {
     name: "Enterprise Intelligence",
-    price: "$7,000pm",
+    price: "R 32,000",
+    period: "pm",
     description: "Full-scale AI transformation for data-heavy organizations.",
     features: [
       "Custom LLM Fine-tuning",
@@ -74,7 +77,7 @@ export function Pricing() {
               key={index}
               className={`flex flex-col rounded-[2.5rem] p-10 backdrop-blur-md transition-all duration-500 ${
                 plan.highlighted
-                  ? "bg-white/[0.04] border border-white/20 shadow-2xl shadow-white/5 relative z-20 scale-105"
+                  ? "bg-white/[0.04] border border-white/20 shadow-2xl shadow-white/5 relative z-20 md:scale-105"
                   : "bg-white/[0.02] border border-white/5 opacity-80"
               }`}
             >
@@ -88,6 +91,7 @@ export function Pricing() {
                 <h3 className="font-medium text-slate-400 text-sm uppercase tracking-[0.2em] mb-4">{plan.name}</h3>
                 <div className="flex items-baseline gap-1 mb-4">
                   <span className="text-4xl font-bold text-white tracking-tighter">{plan.price}</span>
+                  <span className="text-gray-600 text-xs font-semibold">{plan.period}</span>
                 </div>
                 <p className="text-xs text-gray-500 leading-relaxed min-h-[40px]">
                   {plan.description}
@@ -120,6 +124,13 @@ export function Pricing() {
               </Button>
             </div>
           ))}
+        </div>
+        
+        {/* Value Add for SA Context */}
+        <div className="mt-12 text-center">
+          <p className="text-[10px] text-gray-600 uppercase tracking-widest italic">
+            * All prices are billed monthly. No long-term lock-in. Cancel any time.
+          </p>
         </div>
       </div>
     </section>

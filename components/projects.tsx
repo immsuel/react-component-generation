@@ -2,11 +2,13 @@
 
 import { useState } from "react"
 import { ExternalLink, CheckCircle2 } from "lucide-react"
+import Link from "next/link" // Import Link for navigation
 
 const projects = [
   {
     id: "VELARI",
     title: "VELARI",
+    slug: "/velaricasestudy", // Added the path to your new file
     type: "Autonomous Support Ecosystem",
     year: "2026",
     image: "/Velari.jpg",
@@ -16,6 +18,7 @@ const projects = [
   {
     id: "FAIRPAY",
     title: "FAIRPAY",
+    slug: "/fairpay-case-study",
     type: "Predictive Billing Logic",
     year: "2025",
     image: "/Fairpay.jpg",
@@ -25,6 +28,7 @@ const projects = [
   {
     id: "MYM CONSULTING",
     title: "MYM CONSULTING",
+    slug: "/mym-case-study",
     type: "Lead Intelligence System",
     year: "2025",
     image: "/MYM.jpg",
@@ -63,8 +67,8 @@ export function Projects() {
                   className="group cursor-pointer"
                   onMouseEnter={() => setActiveIndex(index)}
                 >
-                  <div className="flex items-center gap-6">
-                    {/* The Active Line: Switched from purple to slate/white */}
+                  {/* Clicking the name now also takes you to the case study */}
+                  <Link href={project.slug} className="flex items-center gap-6">
                     <div className={`h-[1px] transition-all duration-700 bg-gradient-to-r from-slate-400 to-transparent ${
                       activeIndex === index ? "w-12 opacity-100" : "w-0 opacity-0"
                     }`} />
@@ -76,7 +80,7 @@ export function Projects() {
                     >
                       {project.title}
                     </span>
-                  </div>
+                  </Link>
                   
                   {activeIndex === index && (
                     <div className="ml-20 mt-3 text-slate-500 text-[10px] font-medium uppercase tracking-[0.2em] animate-in fade-in slide-in-from-left-4 duration-500">
@@ -95,7 +99,6 @@ export function Projects() {
             </div>
             
             <div className="relative group">
-              {/* Decorative Glow: Neutralized and softened */}
               <div className="absolute -inset-8 bg-slate-500/5 blur-[100px] rounded-[3rem] transition-opacity duration-1000 group-hover:opacity-100 opacity-40 pointer-events-none" />
               
               <div className="relative bg-[#050505] border border-white/5 rounded-[2.5rem] overflow-hidden backdrop-blur-md transition-all duration-500 group-hover:border-white/10">
@@ -120,13 +123,16 @@ export function Projects() {
                     {projects[activeIndex].description}
                   </p>
                   
-                  <button className="flex items-center gap-2 text-white text-[10px] font-bold uppercase tracking-[0.2em] group/btn transition-colors hover:text-slate-300">
+                  {/* Updated Button to Link */}
+                  <Link 
+                    href={projects[activeIndex].slug}
+                    className="inline-flex items-center gap-2 text-white text-[10px] font-bold uppercase tracking-[0.2em] group/btn transition-colors hover:text-slate-300"
+                  >
                     Technical Breakdown 
                     <ExternalLink className="w-3 h-3 opacity-60 transition-transform group-hover/btn:-translate-y-0.5 group-hover/btn:translate-x-0.5" />
-                  </button>
+                  </Link>
                 </div>
 
-                {/* Badge: Monochrome/Matte instead of Purple */}
                 <div className="absolute top-6 right-6 px-4 py-1.5 bg-white/10 backdrop-blur-xl rounded-full text-[9px] font-bold text-white border border-white/20 tracking-[0.1em]">
                   SYSTEM LIVE
                 </div>

@@ -7,21 +7,21 @@ const testimonials = [
   {
     title: "No more manual data entry",
     content:
-      "We were drowning in Google Sheets and Zapier errors every morning. Immanuel came in and basically rebuilt our entire backend logic. Now, leads just flow into our CRM and Slack without anyone touching a keyboard.",
+      "Immanuel came in and basically rebuilt our entire backend logic. Now, leads just flow into our CRM and Airtable without anyone touching a keyboard.",
     author: "Martin",
     role: "MD at PNP",
   },
   {
-    title: "Actually helpful AI",
+    title: "Actually helpful ai",
     content:
-      "I was skeptical about AI chatbots because most of them are useless. But these guys built us a bot that actually reads our technical docs and answers customers correctly. Our support team finally has some breathing room.",
+      "I wasnt sure about ai chatbots because most of them are useless, but these guys built us a bot that reads our technical docs and answers customers correctly",
     author: "Nic H",
     role: "Founder",
   },
   {
-    title: "Ridiculously fast turnaround",
+    title: "Fast delivery",
     content:
-      "I needed an automated system to score our incoming leads before the sales team called them. I expected a month-long project, but they had a working prototype in 72 hours. It's not just fast; it actually works exactly how we discussed.",
+      "We needed a system to score our incoming leads before sales called them. I expected a month long project, but they had a working prototype in 72 hours. And its not just fast, it actually works exactly how we discussed.",
     author: "Rene H",
     role: "Founder, MYM Consultancy",
   },
