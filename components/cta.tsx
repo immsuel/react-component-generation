@@ -92,10 +92,6 @@ export function CTA() {
                   <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
                 </Button>
                 
-                <div className="flex items-center justify-center gap-2 text-gray-600">
-                  <Zap className="w-3 h-3 fill-current opacity-40" />
-                  <p className="text-[9px] uppercase tracking-widest font-mono opacity-60 italic">Based on 85% automated task recovery</p>
-                </div>
               </div>
             </div>
           </div>

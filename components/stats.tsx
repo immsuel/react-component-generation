@@ -45,7 +45,7 @@ const stats = [
 ]
 
 const bottomStats = [
-  { value: "500k+", label: "Tasks Automated", sublabel: "Manual actions eliminated for our clients", icon: Zap },
+  { value: "5k+", label: "Tasks Automated", sublabel: "Manual actions eliminated for our clients", icon: Zap },
   { value: "24/7", label: "Autonomous Uptime", sublabel: "Systems that never sleep or fatigue", icon: Cpu },
 ]
 

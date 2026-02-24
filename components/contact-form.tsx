@@ -114,7 +114,7 @@ export function ContactForm() {
           {/* Service Selection: Re-styled as matte chips */}
           <div className="space-y-4">
             <label className="text-[10px] font-bold text-slate-500 flex items-center gap-2 ml-1 uppercase tracking-[0.2em]">
-              <Sparkles className="w-3 h-3" />
+             
               Primary Automation Goals
             </label>
             <div className="grid grid-cols-2 gap-3">

@@ -2,36 +2,62 @@
 
 import { useState } from "react"
 import { ExternalLink, CheckCircle2 } from "lucide-react"
-import Link from "next/link" // Import Link for navigation
+import Link from "next/link"
 
 const projects = [
   {
     id: "VELARI",
     title: "VELARI",
-    slug: "/velaricasestudy", // Added the path to your new file
+    slug: "/velaricasestudy",
     type: "Autonomous Support Ecosystem",
     year: "2026",
-    image: "/Velari.jpg",
+    // Logic "blueprint" for the preview
+    code: `class SupportAgent {
+  async process(ticket) {
+    const context = await vectorDB.query(ticket.query);
+    const response = await openai.generate({
+      system: "Identify intent & resolve",
+      context: context
+    });
+    return response.autoReply();
+  }
+}`,
     tags: ["OpenAI", "Vector DB", "Real-time Sync"],
     description: "Built a fully autonomous support layer that reduced human ticket volume by 72% within the first month.",
   },
   {
     id: "FAIRPAY",
     title: "FAIRPAY",
-    slug: "/fairpay-case-study",
+    slug: "/fairpaycasestudy",
     type: "Predictive Billing Logic",
     year: "2025",
-    image: "/Fairpay.jpg",
+    code: `function predictChurn(user) {
+  const score = models.regression.analyze({
+    activity: user.last30Days,
+    payments: user.history
+  });
+  
+  if (score > 0.85) {
+    triggerRecoverySequence(user.id);
+  }
+}`,
     tags: ["Regression Models", "Stripe API", "Node.js"],
     description: "Developed a custom billing engine that predicts churn risks and automates recovery sequences.",
   },
   {
     id: "MYM CONSULTING",
     title: "MYM CONSULTING",
-    slug: "/mym-case-study",
+    slug: "/mymcasestudy",
     type: "Lead Intelligence System",
     year: "2025",
-    image: "/MYM.jpg",
+    code: `export const leadFlow = {
+  trigger: "new_webhook",
+  steps: [
+    enrichData("Apollo.io"),
+    scoreLead({ criteria: "ICP" }),
+    notifyChannel("#sales-leads")
+  ]
+};`,
     tags: ["Make.com", "Enrichment API", "Slack"],
     description: "Automated the entire lead scoring process, delivering enriched profiles directly to the sales team.",
   },
@@ -67,7 +93,6 @@ export function Projects() {
                   className="group cursor-pointer"
                   onMouseEnter={() => setActiveIndex(index)}
                 >
-                  {/* Clicking the name now also takes you to the case study */}
                   <Link href={project.slug} className="flex items-center gap-6">
                     <div className={`h-[1px] transition-all duration-700 bg-gradient-to-r from-slate-400 to-transparent ${
                       activeIndex === index ? "w-12 opacity-100" : "w-0 opacity-0"
@@ -92,22 +117,37 @@ export function Projects() {
             </div>
           </div>
 
-          {/* Right Side: Project Preview */}
+          {/* Right Side: Code Preview */}
           <div className="relative lg:sticky lg:top-24">
             <div className="absolute -top-10 right-0 text-gray-700 font-medium text-[9px] tracking-[0.4em] uppercase">
-              Project Archive // {projects[activeIndex].year}
+              Core Engine // {projects[activeIndex].year}
             </div>
             
             <div className="relative group">
-              <div className="absolute -inset-8 bg-slate-500/5 blur-[100px] rounded-[3rem] transition-opacity duration-1000 group-hover:opacity-100 opacity-40 pointer-events-none" />
+              <div className="absolute -inset-8 bg-blue-500/5 blur-[100px] rounded-[3rem] transition-opacity duration-1000 group-hover:opacity-100 opacity-40 pointer-events-none" />
               
-              <div className="relative bg-[#050505] border border-white/5 rounded-[2.5rem] overflow-hidden backdrop-blur-md transition-all duration-500 group-hover:border-white/10">
-                <div className="aspect-[4/3] overflow-hidden">
-                  <img
-                    src={projects[activeIndex].image}
-                    alt={projects[activeIndex].title}
-                    className="w-full h-full object-cover transition-transform duration-1000 scale-[1.01] group-hover:scale-105 opacity-80 group-hover:opacity-100"
-                  />
+              <div className="relative bg-[#080808] border border-white/5 rounded-[2.5rem] overflow-hidden backdrop-blur-md transition-all duration-500 group-hover:border-white/10">
+                {/* Code Window Header */}
+                <div className="flex items-center gap-1.5 px-6 py-4 border-b border-white/5 bg-white/[0.02]">
+                  <div className="w-2 h-2 rounded-full bg-red-500/20" />
+                  <div className="w-2 h-2 rounded-full bg-orange-500/20" />
+                  <div className="w-2 h-2 rounded-full bg-green-500/20" />
+                  <span className="ml-2 text-[10px] text-slate-600 font-mono uppercase tracking-widest">engine.ts</span>
+                </div>
+
+                <div className="aspect-[4/3] overflow-hidden p-8 font-mono text-sm leading-relaxed">
+                  <pre className="text-slate-400">
+                    <code className="block whitespace-pre-wrap">
+                      {projects[activeIndex].code.split('\n').map((line, i) => (
+                        <div key={i} className="flex gap-4">
+                          <span className="text-slate-700 w-4 text-right select-none">{i + 1}</span>
+                          <span className={line.includes('class') || line.includes('function') ? 'text-blue-400' : 'text-slate-400'}>
+                            {line}
+                          </span>
+                        </div>
+                      ))}
+                    </code>
+                  </pre>
                 </div>
                 
                 <div className="p-10 bg-gradient-to-b from-white/[0.02] to-transparent">
@@ -123,7 +163,6 @@ export function Projects() {
                     {projects[activeIndex].description}
                   </p>
                   
-                  {/* Updated Button to Link */}
                   <Link 
                     href={projects[activeIndex].slug}
                     className="inline-flex items-center gap-2 text-white text-[10px] font-bold uppercase tracking-[0.2em] group/btn transition-colors hover:text-slate-300"
@@ -133,8 +172,8 @@ export function Projects() {
                   </Link>
                 </div>
 
-                <div className="absolute top-6 right-6 px-4 py-1.5 bg-white/10 backdrop-blur-xl rounded-full text-[9px] font-bold text-white border border-white/20 tracking-[0.1em]">
-                  SYSTEM LIVE
+                <div className="absolute top-16 right-6 px-4 py-1.5 bg-green-500/10 backdrop-blur-xl rounded-full text-[9px] font-bold text-green-500/80 border border-green-500/20 tracking-[0.1em]">
+                  NODE_ACTIVE
                 </div>
               </div>
             </div>

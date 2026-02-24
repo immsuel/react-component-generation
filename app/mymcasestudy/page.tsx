@@ -1,16 +1,16 @@
 "use client"
 
-import { ArrowLeft, BarChart3, Fingerprint, Globe, Layers, Zap, CheckCircle, ChevronRight, User } from "lucide-react"
+import { ArrowLeft, BarChart3, Fingerprint, Globe, Layers, Zap, CheckCircle, Search, MessageSquare, Send } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 
 const metrics = [
-  { label: "Manual Input Reduced", value: "92%", icon: Zap },
-  { label: "Processing Speed", value: "14x", icon: BarChart3 },
-  { label: "Data Accuracy", value: "100%", icon: Fingerprint },
+  { label: "Lead Scoring Accuracy", value: "98%", icon: Fingerprint },
+  { label: "Sales Prep Time", value: "-85%", icon: Zap },
+  { label: "Enriched Data Points", value: "40+", icon: BarChart3 },
 ]
 
-export default function VelariaCaseStudy() {
+export default function MYMCaseStudy() {
   return (
     <main className="min-h-screen bg-black text-white selection:bg-white/10 font-sans">
       {/* Navigation Briefing */}
@@ -21,7 +21,7 @@ export default function VelariaCaseStudy() {
             <span className="text-[10px] uppercase tracking-[0.3em] font-bold">Back to Terminal</span>
           </Link>
           <div className="hidden md:block text-[10px] uppercase tracking-[0.3em] text-slate-500">
-            Project Ref: <span className="text-white">VEL_092_SA</span>
+            Project Ref: <span className="text-white">MYM_2025_INTEL</span>
           </div>
         </div>
       </nav>
@@ -30,17 +30,17 @@ export default function VelariaCaseStudy() {
       <section className="pt-32 pb-20 px-6">
         <div className="max-w-5xl mx-auto">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-slate-400 text-[10px] font-bold uppercase tracking-widest mb-8">
-            <Globe className="w-3 h-3" />
-            E-Commerce Logistics
+            <Search className="w-3 h-3" />
+            B2B Lead Intelligence
           </div>
           
           <h1 className="text-5xl md:text-7xl font-semibold tracking-tighter mb-8 leading-[0.9]">
-            Velari <br />
-            <span className="text-slate-500">Autonomous Supply.</span>
+            MYM Consulting <br />
+            <span className="text-slate-500">Lead Intelligence.</span>
           </h1>
 
           <p className="text-xl text-gray-400 max-w-2xl leading-relaxed mb-12">
-            Scaling a luxury furniture brand across South Africa meant managing 400+ custom orders weekly. We replaced their manual dispatch team with a self-correcting AI logic engine.
+            Sales teams shouldn&apos;t spend hours researching prospects on LinkedIn. We built an autonomous enrichment engine that delivers deep prospect intelligence directly to their inbox the second a lead hits the CRM.
           </p>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -63,60 +63,58 @@ export default function VelariaCaseStudy() {
               <div>
                 <h3 className="text-[10px] uppercase tracking-[0.4em] text-slate-500 font-bold mb-4">The Friction</h3>
                 <p className="text-gray-400 leading-relaxed">
-                  Velari’s staff spent 6 hours a day manually typing shipping labels and cross-referencing inventory in Excel. Human error led to a 4% mis-shipment rate, costing roughly $3,000 in monthly logistics overhead.
+                  MYM&apos;s consultants were manually vetting 50+ leads a day, checking company sizes, funding rounds, and tech stacks. This bottleneck meant high-value prospects were waiting up to 24 hours for a response, leading to a significant drop in conversion rates.
                 </p>
               </div>
               <div>
                 <h3 className="text-[10px] uppercase tracking-[0.4em] text-slate-500 font-bold mb-4">The Logic</h3>
                 <p className="text-gray-400 leading-relaxed">
-                  We deployed a multi-stage **Make.com pipeline** combined with **GPT-4o data cleaning**. The system now intercepts Shopify orders, validates the postal codes, assigns a local courier based on weight, and notifies the warehouse without a single human click.
+                  We built a **Make.com ecosystem** that triggers on form submission. It pulls data from **Apollo.io and Clearbit**, calculates a custom "ICP Fit" score using a weighted logic gate, and pushes a summarized "Battlecard" to the Slack #sales-leads channel instantly.
                 </p>
               </div>
             </div>
 
             {/* System Visualizer */}
             <div className="relative aspect-square bg-[#050505] border border-white/10 rounded-[3rem] overflow-hidden group p-8 flex flex-col justify-center space-y-4">
-              <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-blue-500/5 via-transparent to-transparent opacity-50" />
+              <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-blue-400/5 via-transparent to-transparent opacity-50" />
               
-              {/* Step 1 */}
+              {/* Step 1: Lead In */}
               <div className="relative flex items-center gap-4 bg-white/[0.03] border border-white/5 p-4 rounded-2xl group-hover:border-white/20 transition-all">
                 <div className="w-8 h-8 rounded-lg bg-blue-500/20 flex items-center justify-center">
-                  <Zap className="w-4 h-4 text-blue-400" />
+                  <Send className="w-4 h-4 text-blue-400" />
                 </div>
                 <div className="flex-1">
-                  <div className="h-1.5 w-24 bg-white/10 rounded-full overflow-hidden">
-                    <div className="h-full bg-blue-500 w-full animate-progress-fast" />
+                  <p className="text-[10px] font-bold text-white uppercase tracking-tighter">Inbound Webhook</p>
+                  <p className="text-[8px] font-mono text-slate-500">source: typeform_api_v3</p>
+                </div>
+              </div>
+
+              {/* Step 2: Enrich */}
+              <div className="relative flex items-center gap-4 bg-white/[0.03] border border-white/5 p-4 rounded-2xl group-hover:border-white/20 transition-all ml-6">
+                <div className="w-8 h-8 rounded-lg bg-amber-500/20 flex items-center justify-center">
+                  <Layers className="w-4 h-4 text-amber-400" />
+                </div>
+                <div className="flex-1">
+                  <div className="h-1.5 w-32 bg-white/10 rounded-full overflow-hidden">
+                    <div className="h-full bg-amber-500 w-full animate-pulse" />
                   </div>
-                  <p className="text-[8px] font-mono text-slate-500 mt-2 uppercase">Order Ingress // Validating</p>
+                  <p className="text-[8px] font-mono text-slate-500 mt-2 uppercase">Enriching // Apollo + LinkedIn</p>
+                </div>
+              </div>
+
+              {/* Step 3: Slack Alert */}
+              <div className="relative flex items-center gap-4 bg-white/[0.03] border border-white/5 p-4 rounded-2xl group-hover:border-white/20 transition-all ml-12">
+                <div className="w-8 h-8 rounded-lg bg-green-500/20 flex items-center justify-center">
+                  <MessageSquare className="w-4 h-4 text-green-400" />
+                </div>
+                <div className="flex-1">
+                  <p className="text-[10px] font-bold text-white uppercase tracking-tighter">Slack Pushed</p>
+                  <p className="text-[8px] font-mono text-green-500/70">#sales-leads // Battlecard Sent</p>
                 </div>
                 <CheckCircle className="w-4 h-4 text-green-500 opacity-50" />
               </div>
 
-              {/* Step 2 */}
-              <div className="relative flex items-center gap-4 bg-white/[0.03] border border-white/5 p-4 rounded-2xl group-hover:border-white/20 transition-all ml-6">
-                <div className="w-8 h-8 rounded-lg bg-purple-500/20 flex items-center justify-center">
-                  <Layers className="w-4 h-4 text-purple-400" />
-                </div>
-                <div className="flex-1">
-                  <div className="h-1.5 w-32 bg-white/10 rounded-full overflow-hidden">
-                    <div className="h-full bg-purple-500 w-2/3 animate-pulse" />
-                  </div>
-                  <p className="text-[8px] font-mono text-slate-500 mt-2 uppercase">GPT-4o // Formatting Address</p>
-                </div>
-              </div>
-
-              {/* Step 3 */}
-              <div className="relative flex items-center gap-4 bg-white/[0.03] border border-white/5 p-4 rounded-2xl group-hover:border-white/20 transition-all ml-12">
-                <div className="w-8 h-8 rounded-lg bg-green-500/20 flex items-center justify-center">
-                  <ChevronRight className="w-4 h-4 text-green-400" />
-                </div>
-                <div className="flex-1">
-                  <p className="text-[10px] font-bold text-white uppercase tracking-tighter">Courier Assigned</p>
-                  <p className="text-[8px] font-mono text-green-500/70">Manifest Generated #8829-ZA</p>
-                </div>
-              </div>
-
-              {/* Background Grid */}
+              {/* Background Grid Lines */}
               <div className="absolute inset-0 opacity-[0.03] pointer-events-none bg-[url('https://grainy-gradients.vercel.app/noise.svg')] bg-repeat" />
             </div>
           </div>
@@ -127,10 +125,10 @@ export default function VelariaCaseStudy() {
       <section className="py-32 px-6 text-center">
         <div className="max-w-3xl mx-auto">
           <h2 className="text-2xl md:text-3xl font-medium mb-12 tracking-tight leading-snug italic text-slate-200">
-            "We didn't just save time; we regained the ability to scale without adding more salary overhead. StellarCode fixed the foundation."
+            "We are closing deals faster now as we know exactly who we are talking to before the first call. The lead scoring is very accurate, it feels like cheating."
           </h2>
           <div className="flex flex-col items-center">
-            <p className="text-[10px] text-slate-500 uppercase tracking-[0.2em] mt-1">Head of Logistics, Velari</p>
+            <p className="text-[10px] text-slate-500 uppercase tracking-[0.2em] mt-1">Managing Director, MYM Consulting</p>
           </div>
         </div>
       </section>
@@ -139,8 +137,8 @@ export default function VelariaCaseStudy() {
       <footer className="py-20 border-t border-white/5 px-6 bg-black">
         <div className="max-w-5xl mx-auto flex flex-col md:flex-row justify-between items-center gap-8">
           <div>
-            <h4 className="text-white font-bold text-lg mb-1">Ready to automate?</h4>
-            <p className="text-slate-500 text-sm">See how logic can replace your manual bottlenecks.</p>
+            <h4 className="text-white font-bold text-lg mb-1">Scale your sales.</h4>
+            <p className="text-slate-500 text-sm">Automate your prospecting and focus on closing.</p>
           </div>
           <Link href="/#contact">
             <Button className="bg-white text-black hover:bg-slate-200 rounded-full px-10 py-7 text-[10px] font-black uppercase tracking-[0.2em] transition-transform hover:scale-105 active:scale-95">

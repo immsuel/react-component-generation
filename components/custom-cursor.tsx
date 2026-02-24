@@ -6,7 +6,6 @@ export function CustomCursor() {
   const cursorRef = useRef<HTMLDivElement>(null)
   const dotRef = useRef<HTMLDivElement>(null)
   
-  // Keep boolean states in React for conditional styling (low frequency)
   const [isPointer, setIsPointer] = useState(false)
   const [isVisible, setIsVisible] = useState(false)
   const [isClicking, setIsClicking] = useState(false)
@@ -16,19 +15,15 @@ export function CustomCursor() {
     const dot = dotRef.current
     if (!cursor || !dot) return
 
-    // Use refs for high-frequency position tracking
-    const mousePos = { x: 0, y: 0 }
-    const delayedPos = { x: 0, y: 0 }
+    const mousePos = { x: -100, y: -100 }
+    const delayedPos = { x: -100, y: -100 }
 
     const updatePosition = (e: MouseEvent) => {
       mousePos.x = e.clientX
       mousePos.y = e.clientY
-      if (!isVisible) setIsVisible(true)
-
+      
       const target = e.target as HTMLElement
-      const isClickable = Boolean(
-        target.tagName === "BUTTON" ||
-        target.tagName === "A" ||
+      const isClickable = !!(
         target.closest("button") ||
         target.closest("a") ||
         window.getComputedStyle(target).cursor === "pointer"
@@ -36,18 +31,18 @@ export function CustomCursor() {
       setIsPointer(isClickable)
     }
 
-    // Animation loop for ultra-smooth movement
     const animate = () => {
-      // Direct DOM manipulation bypasses React Re-renders
-      // 0.2 factor adds that "weighted" high-end feel
-      delayedPos.x += (mousePos.x - delayedPos.x) * 0.2
-      delayedPos.y += (mousePos.y - delayedPos.y) * 0.2
+      // 0.15 provides a smoother, slightly more delayed "weight"
+      delayedPos.x += (mousePos.x - delayedPos.x) * 0.15
+      delayedPos.y += (mousePos.y - delayedPos.y) * 0.15
 
+      // Use transform directly
       cursor.style.transform = `translate3d(${delayedPos.x}px, ${delayedPos.y}px, 0) translate(-50%, -50%)`
       dot.style.transform = `translate3d(${mousePos.x}px, ${mousePos.y}px, 0) translate(-50%, -50%)`
 
       requestAnimationFrame(animate)
     }
+
     const rafId = requestAnimationFrame(animate)
 
     const handleMouseDown = () => setIsClicking(true)
@@ -58,18 +53,18 @@ export function CustomCursor() {
     window.addEventListener("mousemove", updatePosition)
     window.addEventListener("mousedown", handleMouseDown)
     window.addEventListener("mouseup", handleMouseUp)
-    document.body.addEventListener("mouseleave", handleMouseLeave)
-    document.body.addEventListener("mouseenter", handleMouseEnter)
+    document.addEventListener("mouseleave", handleMouseLeave)
+    document.addEventListener("mouseenter", handleMouseEnter)
 
     return () => {
       cancelAnimationFrame(rafId)
       window.removeEventListener("mousemove", updatePosition)
       window.removeEventListener("mousedown", handleMouseDown)
       window.removeEventListener("mouseup", handleMouseUp)
-      document.body.removeEventListener("mouseleave", handleMouseLeave)
-      document.body.removeEventListener("mouseenter", handleMouseEnter)
+      document.removeEventListener("mouseleave", handleMouseLeave)
+      document.removeEventListener("mouseenter", handleMouseEnter)
     }
-  }, [isVisible])
+  }, []) // Removed isVisible dependency to prevent loop restarts
 
   if (typeof window !== "undefined" && window.matchMedia("(pointer: coarse)").matches) {
     return null
@@ -81,18 +76,29 @@ export function CustomCursor() {
         ref={cursorRef}
         className={`fixed top-0 left-0 pointer-events-none z-[9999] rounded-full border transition-[width,height,border-color,background-color,opacity] duration-300 ease-out ${
           isPointer 
-            ? "w-14 h-14 border-white/20 bg-white/[0.03] backdrop-blur-[2px]" 
-            : "w-8 h-8 border-white/10 bg-transparent"
-        } ${isVisible ? "opacity-100" : "opacity-0"} ${isClicking ? "scale-90" : "scale-100"}`}
+            ? "w-12 h-12 border-white/40 bg-white/[0.05] backdrop-blur-[1px]" 
+            : "w-6 h-6 border-white/20 bg-transparent"
+        } ${isVisible ? "opacity-100" : "opacity-0"}`}
         style={{ willChange: "transform" }}
-      />
+      >
+        {/* We move the scaling logic to an inner div to avoid transform conflicts */}
+        <div className={`w-full h-full rounded-full transition-transform duration-200 ${isClicking ? "scale-75" : "scale-100"}`} />
+      </div>
+
       <div
         ref={dotRef}
-        className={`fixed top-0 left-0 pointer-events-none z-[9999] rounded-full transition-[width,height,opacity] duration-150 ease-out ${
-          isPointer ? "w-1 h-1 bg-white" : "w-1.5 h-1.5 bg-slate-400"
+        className={`fixed top-0 left-0 pointer-events-none z-[9999] rounded-full transition-[width,height,opacity,background-color] duration-200 ${
+          isPointer ? "w-1 h-1 bg-white" : "w-1.5 h-1.5 bg-white/60"
         } ${isVisible ? "opacity-100" : "opacity-0"}`}
         style={{ willChange: "transform" }}
       />
+      
+      {/* Hide the real cursor */}
+      <style jsx global>{`
+        html, body, * {
+          cursor: none !important;
+        }
+      `}</style>
     </>
   )
 }

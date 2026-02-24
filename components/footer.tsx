@@ -1,6 +1,7 @@
 "use client"
 
 import { Star } from "lucide-react"
+import Link from "next/link" // Import Link for internal routing
 
 const footerLinks = {
   main: [
@@ -12,7 +13,7 @@ const footerLinks = {
   ],
   secondary: [
     { label: "About Us", href: "#" },
-    { label: "Team", href: "#" },
+    { label: "Team", href: "/team" }, // This remains /team
     { label: "Careers", href: "#" },
     { label: "Contact", href: "#contact" },
   ],
@@ -24,11 +25,38 @@ const footerLinks = {
 
 export function Footer() {
   const scrollToSection = (href: string) => {
-    if (href === "#") return
+    // If it's a real path (like /team), we don't handle it with JS scroll
+    if (href === "#" || href.startsWith('/')) return 
+    
     const element = document.querySelector(href)
     if (element) {
       element.scrollIntoView({ behavior: "smooth" })
     }
+  }
+
+  // Helper to render the correct tag (Link for paths, button for anchors)
+  const FooterLink = ({ link }: { link: { label: string, href: string } }) => {
+    const isInternalPage = link.href.startsWith('/')
+
+    if (isInternalPage) {
+      return (
+        <Link
+          href={link.href}
+          className="text-xs text-gray-500 hover:text-white transition-colors text-left w-fit"
+        >
+          {link.label}
+        </Link>
+      )
+    }
+
+    return (
+      <button
+        onClick={() => scrollToSection(link.href)}
+        className="text-xs text-gray-500 hover:text-white transition-colors text-left w-fit"
+      >
+        {link.label}
+      </button>
+    )
   }
 
   return (
@@ -39,7 +67,7 @@ export function Footer() {
           {/* Brand Column */}
           <div className="space-y-4">
             <div className="flex items-center gap-3">
-              <div className="p-1.5 rounded-lg bg-white/[0.03] border border-white/10">
+              <div className="p-0 ">
                 <img 
                   src="/logo.svg" 
                   alt="StellarCode Logo" 
@@ -61,13 +89,7 @@ export function Footer() {
             <div className="flex flex-col gap-4">
               <span className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em] mb-2">Navigation</span>
               {footerLinks.main.map((link) => (
-                <button
-                  key={link.label}
-                  onClick={() => scrollToSection(link.href)}
-                  className="text-xs text-gray-500 hover:text-white transition-colors text-left w-fit"
-                >
-                  {link.label}
-                </button>
+                <FooterLink key={link.label} link={link} />
               ))}
             </div>
 
@@ -75,13 +97,7 @@ export function Footer() {
             <div className="flex flex-col gap-4">
               <span className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em] mb-2">Company</span>
               {footerLinks.secondary.map((link) => (
-                <button
-                  key={link.label}
-                  onClick={() => scrollToSection(link.href)}
-                  className="text-xs text-gray-500 hover:text-white transition-colors text-left w-fit"
-                >
-                  {link.label}
-                </button>
+                <FooterLink key={link.label} link={link} />
               ))}
             </div>
 
@@ -89,13 +105,7 @@ export function Footer() {
             <div className="flex flex-col gap-4">
               <span className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em] mb-2">Legal</span>
               {footerLinks.legal.map((link) => (
-                <button
-                  key={link.label}
-                  onClick={() => scrollToSection(link.href)}
-                  className="text-xs text-gray-500 hover:text-white transition-colors text-left w-fit"
-                >
-                  {link.label}
-                </button>
+                <FooterLink key={link.label} link={link} />
               ))}
             </div>
           </div>
