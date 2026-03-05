@@ -63,8 +63,8 @@ export default function ProjectScope() {
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-px bg-white/10 border border-white/10 mb-16 overflow-hidden rounded-xl">
           {[
             { label: "Classification", value: "Autonomous Ops" },
-            { label: "Dev Cost", value: "R30,000.00" },
-            { label: "Retainer", value: "R3,000.00/mo" }
+            { label: "Dev Cost", value: "R50,000.00" },
+            { label: "Retainer", value: "R5,000.00/mo" }
           ].map((item, i) => (
             <div key={i} className="bg-black p-5 md:p-8">
               <p className="text-[8px] uppercase tracking-[0.2em] text-slate-500 font-bold mb-1">{item.label}</p>
