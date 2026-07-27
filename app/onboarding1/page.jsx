@@ -375,7 +375,7 @@ export default function StellarCodeOnboarding() {
   // Step 7 — Branding & Post-NaTIS Google Reviews
   const [branding, setBranding] = useState({
     brandColor: "#1a2e4a",
-    logoFile: null,
+    logoFile: null,           // Stores Base64 file metadata object
     aiTone: "friendly",
     languages: ["English"],
     googleReviews: "yes",     // Trigger automated Google Review WhatsApp post-pass
@@ -433,6 +433,28 @@ export default function StellarCodeOnboarding() {
     }));
   };
 
+  // ── Logo File Reader to Base64 ─────────────────────────────────────────────
+  const handleLogoChange = (e) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setBranding((b) => ({
+          ...b,
+          logoFile: {
+            name: file.name,
+            type: file.type,
+            size: file.size,
+            base64: reader.result,
+          }
+        }));
+      };
+      reader.readAsDataURL(file);
+    } else {
+      setBranding((b) => ({ ...b, logoFile: null }));
+    }
+  };
+
   // ── Language helpers ───────────────────────────────────────────────────────
   const toggleLanguage = (lang) => {
     setBranding((prev) => ({
@@ -459,22 +481,25 @@ export default function StellarCodeOnboarding() {
     setSubmitting(true);
     setSubmitError(false);
 
+    // Mapped cleanly with flat, logical property names matching all user requirements
     const payload = {
       submittedAt: new Date().toISOString(),
-      business: {
-        schoolName: business.schoolName,
-        ownerName: business.ownerName,
-        whatsappNumber: business.whatsapp,
-        email: business.email,
-        address: business.address,
-        city: business.city,
-        googleProfile: business.googleProfile,
-        targetSuburbs: business.targetSuburbs,
-        domainPreference: business.domainPreference,
-        domainName: business.domainName,
-        socialInstagram: business.socialInstagram,
-        socialFacebook: business.socialFacebook,
-      },
+      
+      // Step 1 — Business & SEO
+      schoolName: business.schoolName,
+      ownerName: business.ownerName,
+      whatsappNumber: business.whatsapp,
+      email: business.email,
+      address: business.address,
+      townOrRegion: business.city,
+      targetSuburbsOrTowns: business.targetSuburbs,
+      domainPreference: business.domainPreference,
+      preferredDomainName: business.domainName,
+      googleBusinessProfileLink: business.googleProfile,
+      instagramHandle: business.socialInstagram,
+      socialFacebook: business.socialFacebook,
+
+      // Step 2 — Instructors
       instructors: instructors.map((ins, i) => ({
         index: i + 1,
         firstName: ins.firstName,
@@ -485,6 +510,8 @@ export default function StellarCodeOnboarding() {
         workingDays: ins.workingDays,
         assignedVehicle: ins.assignedVehicle,
       })),
+
+      // Step 3 — Vehicles & Fleet
       vehicles: vehicles.map((veh, i) => ({
         index: i + 1,
         makeModel: veh.makeModel,
@@ -492,6 +519,8 @@ export default function StellarCodeOnboarding() {
         expiryDate: veh.expiryDate,
         fuelCard: veh.fuelCard,
       })),
+
+      // Step 4 — Packages & Pricing
       packages: packages.map((pkg, i) => ({
         index: i + 1,
         name: pkg.name,
@@ -499,34 +528,35 @@ export default function StellarCodeOnboarding() {
         duration: pkg.duration,
         licenseType: pkg.licenseType,
       })),
-      bookingPreferences: {
-        hoursStart: booking.hoursStart,
-        hoursEnd: booking.hoursEnd,
-        bufferTime: booking.bufferTime,
-        advanceBooking: booking.advanceBooking,
-        reminderTimings: booking.reminderTimings,
-        schedulingNotes: booking.schedulingNotes,
-        manualLedgerDeduction: booking.manualLedgerDeduction,
-        cancellationBroadcasts: booking.cancellationBroadcasts,
-      },
-      paymentAndFinance: {
-        methods: payment.methods,
-        bankingDetails: payment.bankingDetails,
-        gateway: payment.gateway,
-        merchantId: payment.merchantId,
-        timing: payment.timing,
-        aiAuditBankName: payment.aiAuditBankName,
-        aiReceiptLogging: payment.aiReceiptLogging,
-        manualExpenseCategories: payment.manualExpenseCategories,
-      },
-      brandingAndReviews: {
-        brandColor: branding.brandColor,
-        aiTone: branding.aiTone,
-        languages: branding.languages,
-        googleReviewsEnabled: branding.googleReviews,
-        natisReviewMessage: branding.natisReviewMessage,
-        extraNotes: branding.extraNotes,
-      },
+
+      // Step 5 — Booking Preferences
+      hoursStart: booking.hoursStart,
+      hoursEnd: booking.hoursEnd,
+      bufferTime: booking.bufferTime,
+      advanceBooking: booking.advanceBooking,
+      reminderTiming: booking.reminderTimings,
+      schedulingNotes: booking.schedulingNotes,
+      lessonLedgerDeductionRule: booking.manualLedgerDeduction,
+      privacyFirstCancellationAlerts: booking.cancellationBroadcasts,
+
+      // Step 6 — Payment, AI Audit & Financial Analytics
+      paymentMethods: payment.methods,
+      bankingDetails: payment.bankingDetails,
+      aiAuditBankName: payment.aiAuditBankName,
+      paymentGateway: payment.gateway,
+      merchantId: payment.merchantId,
+      paymentTiming: payment.timing,
+      automaticExpenseAuditing: payment.aiReceiptLogging,
+      manualExpenseCategoriesToPrepopulate: payment.manualExpenseCategories,
+
+      // Step 7 — Branding & Reviews
+      brandColor: branding.brandColor,
+      logoFile: branding.logoFile, // Base64 Object { name, type, size, base64 }
+      aiTone: branding.aiTone,
+      languages: branding.languages,
+      enableGoogleReviewTriggers: branding.googleReviews,
+      postNatisWhatsappMessageTemplate: branding.natisReviewMessage,
+      extraNotes: branding.extraNotes,
     };
 
     try {
@@ -1042,15 +1072,13 @@ export default function StellarCodeOnboarding() {
                   className="field-input color-input"
                 />
               </FieldGroup>
-              <FieldGroup label="Logo (if available)" hint="PNG or JPG, any dimensions.">
+              <FieldGroup label="Logo (if available)" hint="PNG or JPG, converts automatically for database transmission.">
                 <input
                   type="file"
                   id="logo-file"
                   accept="image/*"
                   className="field-input file-input"
-                  onChange={(e) =>
-                    setBranding((b) => ({ ...b, logoFile: e.target.files[0] ?? null }))
-                  }
+                  onChange={handleLogoChange}
                 />
               </FieldGroup>
             </div>
