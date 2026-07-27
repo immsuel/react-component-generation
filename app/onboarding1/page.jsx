@@ -4,10 +4,16 @@ import { useState, useCallback } from "react";
 
 // ─── Constants ───────────────────────────────────────────────────────────────
 
-const LICENSE_TYPES = ["Code 8 Manual", "Code 8 Auto", "Code 10", "Code 14"];
+const LICENSE_TYPES = [
+  "Code B Manual",
+  "Code B Auto",
+  "Code C (Code 10)",
+  "Code EC (Code 14)",
+  "Other"
+];
 const WORKING_DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
 const LANGUAGES = ["English", "Afrikaans", "Zulu", "Xhosa", "Sotho", "Other"];
-const TOTAL_STEPS = 6;
+const TOTAL_STEPS = 7;
 const WEBHOOK_URL = "https://hook.eu1.make.com/dpym6dzyl0z3gpb7wjfk5ntorwsf2x11";
 
 const makeInstructor = (index) => ({
@@ -18,6 +24,15 @@ const makeInstructor = (index) => ({
   email: "",
   licenseTypes: [],
   workingDays: [],
+  assignedVehicle: "", // Connected to fleet management
+});
+
+const makeVehicle = (index) => ({
+  id: Date.now() + index,
+  makeModel: "",       // e.g. VW Polo
+  plateNumber: "",     // e.g. CA 123-456
+  expiryDate: "",      // NaTIS registration disk expiry
+  fuelCard: "",        // Optional: Fuel card details/monthly allocation
 });
 
 const makePackage = (index) => ({
@@ -193,6 +208,12 @@ function InstructorEntry({ instructor, index, onChange, onRemove, showRemove }) 
         </FieldGroup>
       </div>
 
+      <div className="field-row">
+        <FieldGroup label="Assigned Vehicle (Optional)" hint="Connects this instructor to an active vehicle in your fleet tracking system.">
+          <TextInput placeholder="e.g. VW Polo (CA 123-456)" value={instructor.assignedVehicle} onChange={update("assignedVehicle")} />
+        </FieldGroup>
+      </div>
+
       <FieldGroup label="License Types" required>
         <div className="checkbox-group">
           {LICENSE_TYPES.map((lt) => (
@@ -222,6 +243,41 @@ function InstructorEntry({ instructor, index, onChange, onRemove, showRemove }) 
   );
 }
 
+// ─── Vehicle Entry ────────────────────────────────────────────────────────────
+
+function VehicleEntry({ vehicle, index, onChange, onRemove, showRemove }) {
+  const update = (field) => (value) => onChange(vehicle.id, field, value);
+
+  return (
+    <div className="instructor-entry">
+      <div className="entry-number">Vehicle {index + 1}</div>
+      {showRemove && (
+        <button type="button" className="remove-btn" onClick={() => onRemove(vehicle.id)}>
+          Remove
+        </button>
+      )}
+
+      <div className="field-row">
+        <FieldGroup label="Vehicle Make & Model" required>
+          <TextInput placeholder="e.g. Volkswagen Polo" value={vehicle.makeModel} onChange={update("makeModel")} />
+        </FieldGroup>
+        <FieldGroup label="License Plate / Registration" required>
+          <TextInput placeholder="e.g. CA 123-456" value={vehicle.plateNumber} onChange={update("plateNumber")} />
+        </FieldGroup>
+      </div>
+
+      <div className="field-row">
+        <FieldGroup label="NaTIS Disk Expiry Date" required hint="Used to schedule automated WhatsApp NaTIS renewal alerts 1 month in advance.">
+          <TextInput type="date" value={vehicle.expiryDate} onChange={update("expiryDate")} />
+        </FieldGroup>
+        <FieldGroup label="Fuel Card details / Monthly Budget" hint="Allows matching with fuel spend analytics.">
+          <TextInput placeholder="e.g. Absa Fuel Card (R5,000 monthly cap)" value={vehicle.fuelCard} onChange={update("fuelCard")} />
+        </FieldGroup>
+      </div>
+    </div>
+  );
+}
+
 // ─── Package Entry ────────────────────────────────────────────────────────────
 
 function PackageEntry({ pkg, index, onChange, onRemove, showRemove }) {
@@ -238,7 +294,7 @@ function PackageEntry({ pkg, index, onChange, onRemove, showRemove }) {
 
       <div className="field-row">
         <FieldGroup label="Package Name" required>
-          <TextInput placeholder="e.g. Code 8 Manual — 1 Hour" value={pkg.name} onChange={update("name")} />
+          <TextInput placeholder="e.g. Code B Manual — 1 Hour" value={pkg.name} onChange={update("name")} />
         </FieldGroup>
         <FieldGroup label="Price (R)" required>
           <TextInput type="number" placeholder="e.g. 350" value={pkg.price} onChange={update("price")} />
@@ -247,10 +303,10 @@ function PackageEntry({ pkg, index, onChange, onRemove, showRemove }) {
 
       <div className="field-row">
         <FieldGroup label="Duration" required>
-          <TextInput placeholder="e.g. 1 hour, 90 minutes" value={pkg.duration} onChange={update("duration")} />
+          <TextInput placeholder="e.g. 1 hour, 10-lesson bundle" value={pkg.duration} onChange={update("duration")} />
         </FieldGroup>
         <FieldGroup label="License / Course Type" required>
-          <TextInput placeholder="e.g. Code 8 Manual, Code 10" value={pkg.licenseType} onChange={update("licenseType")} />
+          <TextInput placeholder="e.g. Code B Manual, Code C" value={pkg.licenseType} onChange={update("licenseType")} />
         </FieldGroup>
       </div>
     </div>
@@ -265,49 +321,63 @@ export default function StellarCodeOnboarding() {
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState(false);
 
-  // Step 1 — Business
+  // Step 1 — Business & SEO
   const [business, setBusiness] = useState({
     schoolName: "",
     ownerName: "",
-    whatsapp: "",
+    whatsapp: "", // Evolution API WhatsApp gateway target line
     email: "",
     address: "",
     city: "",
     googleProfile: "",
+    targetSuburbs: "",     // Target areas for Google search optimization
+    domainPreference: "register-new", // "register-new", "use-existing", or "none"
+    domainName: "",        // Preferred website domain name
+    socialInstagram: "",   // Instagram bio link compatibility
+    socialFacebook: "",
   });
 
   // Step 2 — Instructors
   const [instructors, setInstructors] = useState([makeInstructor(0)]);
 
-  // Step 3 — Packages
+  // Step 3 — Vehicles & Fleet (New Feature Sector)
+  const [vehicles, setVehicles] = useState([makeVehicle(0)]);
+
+  // Step 4 — Packages
   const [packages, setPackages] = useState([makePackage(0)]);
 
-  // Step 4 — Booking Preferences
+  // Step 5 — Booking & Communications
   const [booking, setBooking] = useState({
     hoursStart: "08:00",
     hoursEnd: "17:00",
-    bufferTime: "0",
+    bufferTime: "15",
     advanceBooking: "2 days in advance",
-    reminderTimings: ["Morning of lesson"],
+    reminderTimings: ["Morning of lesson", "24 hours before"],
     schedulingNotes: "",
+    manualLedgerDeduction: "manual", // "manual" (Part 2.2: verified by instructor/admin) or "automatic" (time-based)
+    cancellationBroadcasts: "individual-opt-in", // "individual-opt-in" (Part 2.3: privacy-first direct messaging alerts) or "none"
   });
 
-  // Step 5 — Payment
+  // Step 6 — Payment & AI Finance Setup
   const [payment, setPayment] = useState({
     methods: [],
     bankingDetails: "",
     gateway: "",
     merchantId: "",
-    timing: "",
+    timing: "upfront",
+    aiAuditBankName: "",      // The specific bank format Gemini will audit against (FNB, Standard Bank, etc.)
+    aiReceiptLogging: "enabled", // WhatsApp receipt scanning for fuel & maintenance under Part 2.1
+    manualExpenseCategories: "Rent, Salaries, Marketing, Insurance", // Pre-populated custom fields
   });
 
-  // Step 6 — Branding
+  // Step 7 — Branding & Post-NaTIS Google Reviews
   const [branding, setBranding] = useState({
     brandColor: "#1a2e4a",
     logoFile: null,
-    aiTone: "",
+    aiTone: "friendly",
     languages: ["English"],
-    googleReviews: "yes",
+    googleReviews: "yes",     // Trigger automated Google Review WhatsApp post-pass
+    natisReviewMessage: "Congratulations on passing your NaTIS test! 🎉 We are incredibly proud of your milestone. Could you spare 30 seconds to support us with a Google review? Click the link to share your experience: [google_profile_link]",
     extraNotes: "",
   });
 
@@ -320,6 +390,16 @@ export default function StellarCodeOnboarding() {
 
   const addInstructor = () => setInstructors((prev) => [...prev, makeInstructor(prev.length)]);
   const removeInstructor = (id) => setInstructors((prev) => prev.filter((ins) => ins.id !== id));
+
+  // ── Vehicle helpers ─────────────────────────────────────────────────────────
+  const updateVehicle = useCallback((id, field, value) => {
+    setVehicles((prev) =>
+      prev.map((veh) => (veh.id === id ? { ...veh, [field]: value } : veh))
+    );
+  }, []);
+
+  const addVehicle = () => setVehicles((prev) => [...prev, makeVehicle(prev.length)]);
+  const removeVehicle = (id) => setVehicles((prev) => prev.filter((veh) => veh.id !== id));
 
   // ── Package helpers ────────────────────────────────────────────────────────
   const updatePackage = useCallback((id, field, value) => {
@@ -387,6 +467,11 @@ export default function StellarCodeOnboarding() {
         address: business.address,
         city: business.city,
         googleProfile: business.googleProfile,
+        targetSuburbs: business.targetSuburbs,
+        domainPreference: business.domainPreference,
+        domainName: business.domainName,
+        socialInstagram: business.socialInstagram,
+        socialFacebook: business.socialFacebook,
       },
       instructors: instructors.map((ins, i) => ({
         index: i + 1,
@@ -396,6 +481,14 @@ export default function StellarCodeOnboarding() {
         email: ins.email,
         licenseTypes: ins.licenseTypes,
         workingDays: ins.workingDays,
+        assignedVehicle: ins.assignedVehicle,
+      })),
+      vehicles: vehicles.map((veh, i) => ({
+        index: i + 1,
+        makeModel: veh.makeModel,
+        plateNumber: veh.plateNumber,
+        expiryDate: veh.expiryDate,
+        fuelCard: veh.fuelCard,
       })),
       packages: packages.map((pkg, i) => ({
         index: i + 1,
@@ -411,22 +504,26 @@ export default function StellarCodeOnboarding() {
         advanceBooking: booking.advanceBooking,
         reminderTimings: booking.reminderTimings,
         schedulingNotes: booking.schedulingNotes,
+        manualLedgerDeduction: booking.manualLedgerDeduction,
+        cancellationBroadcasts: booking.cancellationBroadcasts,
       },
-      payment: {
+      paymentAndFinance: {
         methods: payment.methods,
         bankingDetails: payment.bankingDetails,
         gateway: payment.gateway,
         merchantId: payment.merchantId,
         timing: payment.timing,
+        aiAuditBankName: payment.aiAuditBankName,
+        aiReceiptLogging: payment.aiReceiptLogging,
+        manualExpenseCategories: payment.manualExpenseCategories,
       },
-      branding: {
+      brandingAndReviews: {
         brandColor: branding.brandColor,
         aiTone: branding.aiTone,
         languages: branding.languages,
-        googleReviews: branding.googleReviews,
+        googleReviewsEnabled: branding.googleReviews,
+        natisReviewMessage: branding.natisReviewMessage,
         extraNotes: branding.extraNotes,
-        // Note: logo file upload should be handled via a separate
-        // multipart/form-data endpoint or a file storage service
       },
     };
 
@@ -464,7 +561,7 @@ export default function StellarCodeOnboarding() {
       <header className="hero">
         <div className="logo">StellarCode</div>
         <h1>Let&rsquo;s get your school set up.</h1>
-        <p>Fill in the details below and we&rsquo;ll handle everything from here. This takes about 5 minutes.</p>
+        <p>Fill in the operational details below. We will use this information to configure your platform assets, automated pipelines, and analytics databases.</p>
         <div className="progress-bar" role="progressbar" aria-valuenow={currentStep} aria-valuemax={TOTAL_STEPS}>
           {Array.from({ length: TOTAL_STEPS }, (_, i) => (
             <div key={i} className={`progress-step ${stepStatus(i + 1)}`} />
@@ -477,13 +574,13 @@ export default function StellarCodeOnboarding() {
 
       <main className="form-container">
 
-        {/* ── Step 1: Business Details ───────────────────────────────────── */}
+        {/* ── Step 1: Business & Web SEO Presence ───────────────────────────── */}
         {currentStep === 1 && (
           <section className="section active">
             <div className="section-header">
-              <div className="section-number">01 — Business Details</div>
-              <h2>Tell us about your school</h2>
-              <p>Basic information we need to set everything up in your name.</p>
+              <div className="section-number">01 — Business &amp; SEO</div>
+              <h2>School Profiles &amp; Web SEO Details</h2>
+              <p>Essential details to register your Evolution API WhatsApp gateway and optimize your Google search web presence.</p>
             </div>
 
             <div className="field-row">
@@ -506,7 +603,7 @@ export default function StellarCodeOnboarding() {
             </div>
 
             <div className="field-row">
-              <FieldGroup label="WhatsApp Number" required hint="This is the number students will message.">
+              <FieldGroup label="WhatsApp Business Line" required hint="Used to link the Evolution API WhatsApp Gateway using the QR scanner.">
                 <TextInput
                   id="whatsapp-number"
                   type="tel"
@@ -545,15 +642,56 @@ export default function StellarCodeOnboarding() {
               </FieldGroup>
             </div>
 
-            <FieldGroup label="Google Business Profile Link" hint="Paste your Google Maps listing URL if you have one.">
-              <TextInput
-                id="google-profile"
-                type="url"
-                placeholder="https://maps.app.goo.gl/..."
-                value={business.googleProfile}
-                onChange={(v) => setBusiness((b) => ({ ...b, googleProfile: v }))}
+            <FieldGroup label="Target Suburbs / Service Areas (SEO)" required hint="Comma-separated areas we should optimize your Google search visibility for (e.g. Bellville, Durbanville, Brackenfell).">
+              <Textarea
+                id="target-suburbs"
+                placeholder="List the specific suburbs where you pick up clients..."
+                value={business.targetSuburbs}
+                onChange={(v) => setBusiness((b) => ({ ...b, targetSuburbs: v }))}
               />
             </FieldGroup>
+
+            <div className="field-row">
+              <FieldGroup label="Domain Name Preference" required>
+                <SelectInput
+                  id="domain-preference"
+                  value={business.domainPreference}
+                  onChange={(v) => setBusiness((b) => ({ ...b, domainPreference: v }))}
+                >
+                  <option value="register-new">Register a new domain for me (.co.za / .com)</option>
+                  <option value="use-existing">I will link an existing domain I own</option>
+                  <option value="none">I do not need a custom domain</option>
+                </SelectInput>
+              </FieldGroup>
+              <FieldGroup label="Preferred Website Domain Address" hint="Leave blank if you don't have an option yet.">
+                <TextInput
+                  id="domain-name"
+                  placeholder="e.g. josiahsdrivingschool.co.za"
+                  value={business.domainName}
+                  onChange={(v) => setBusiness((b) => ({ ...b, domainName: v }))}
+                />
+              </FieldGroup>
+            </div>
+
+            <div className="field-row">
+              <FieldGroup label="Google Business Profile Link" hint="Used in the automated post-NaTIS Google Review System to link reviews directly.">
+                <TextInput
+                  id="google-profile"
+                  type="url"
+                  placeholder="https://maps.app.goo.gl/..."
+                  value={business.googleProfile}
+                  onChange={(v) => setBusiness((b) => ({ ...b, googleProfile: v }))}
+                />
+              </FieldGroup>
+              <FieldGroup label="Instagram Handle or Link" hint="We will link this on your Google SEO optimized page.">
+                <TextInput
+                  id="social-instagram"
+                  placeholder="e.g. @josiahsdrivingschool"
+                  value={business.socialInstagram}
+                  onChange={(v) => setBusiness((b) => ({ ...b, socialInstagram: v }))}
+                />
+              </FieldGroup>
+            </div>
 
             <NavRow onNext={goNext} />
           </section>
@@ -564,8 +702,8 @@ export default function StellarCodeOnboarding() {
           <section className="section active">
             <div className="section-header">
               <div className="section-number">02 — Instructors</div>
-              <h2>Your team</h2>
-              <p>Add each instructor — we use this to manage scheduling and send daily briefings.</p>
+              <h2>Your Team Configuration</h2>
+              <p>Add each instructor. Their assigned profiles govern live scheduling updates, lesson rosters, and direct alerts.</p>
             </div>
 
             {instructors.map((ins, i) => (
@@ -587,13 +725,41 @@ export default function StellarCodeOnboarding() {
           </section>
         )}
 
-        {/* ── Step 3: Packages ──────────────────────────────────────────── */}
+        {/* ── Step 3: Vehicles & Fleet ───────────────────────────────────── */}
         {currentStep === 3 && (
           <section className="section active">
             <div className="section-header">
-              <div className="section-number">03 — Packages &amp; Pricing</div>
-              <h2>What do you offer?</h2>
-              <p>List your lesson packages so students can choose when booking.</p>
+              <div className="section-number">03 — Fleet &amp; Vehicles</div>
+              <h2>Vehicle Roster &amp; Maintenance Logging</h2>
+              <p>Configure vehicles to track monthly fuel spend, automate NaTIS registration renewal reminders, and match receipts scanned via WhatsApp.</p>
+            </div>
+
+            {vehicles.map((veh, i) => (
+              <VehicleEntry
+                key={veh.id}
+                vehicle={veh}
+                index={i}
+                onChange={updateVehicle}
+                onRemove={removeVehicle}
+                showRemove={vehicles.length > 1}
+              />
+            ))}
+
+            <button type="button" className="add-btn" onClick={addVehicle}>
+              + Add another vehicle
+            </button>
+
+            <NavRow onBack={goBack} onNext={goNext} />
+          </section>
+        )}
+
+        {/* ── Step 4: Packages & Pricing ────────────────────────────────── */}
+        {currentStep === 4 && (
+          <section className="section active">
+            <div className="section-header">
+              <div className="section-number">04 — Packages &amp; Pricing</div>
+              <h2>What Packages Do You Offer?</h2>
+              <p>Specify packages that clients can book directly from your self-service portal.</p>
             </div>
 
             {packages.map((pkg, i) => (
@@ -615,13 +781,13 @@ export default function StellarCodeOnboarding() {
           </section>
         )}
 
-        {/* ── Step 4: Booking Preferences ───────────────────────────────── */}
-        {currentStep === 4 && (
+        {/* ── Step 5: Booking & Communication Preferences ───────────────── */}
+        {currentStep === 5 && (
           <section className="section active">
             <div className="section-header">
-              <div className="section-number">04 — Booking Preferences</div>
-              <h2>How do you run your day?</h2>
-              <p>We use this to set up your calendar and slot availability.</p>
+              <div className="section-number">05 — Booking Preferences</div>
+              <h2>Scheduling, Ledgers &amp; Notifications</h2>
+              <p>Tailor calendar buffer rules and active ledger deduction logic.</p>
             </div>
 
             <div className="field-row">
@@ -643,7 +809,7 @@ export default function StellarCodeOnboarding() {
               </FieldGroup>
             </div>
 
-            <FieldGroup label="Buffer Time Between Lessons" hint="Buffer time prevents back-to-back bookings with no gap.">
+            <FieldGroup label="Buffer Time Between Lessons" hint="Buffer time prevents back-to-back bookings with no travel gap.">
               <SelectInput
                 id="buffer-time"
                 value={booking.bufferTime}
@@ -670,6 +836,44 @@ export default function StellarCodeOnboarding() {
               </SelectInput>
             </FieldGroup>
 
+            <FieldGroup label="Lesson Ledger Deduction Rule" required hint="Determines how prepaid lesson hour balances are depleted.">
+              <div className="radio-group">
+                <RadioItem
+                  name="manual-ledger"
+                  value="manual"
+                  label="Manual Completion — Hour deductions remain intact until the instructor or admin manually records a finished lesson via the Portal (avoids early ledger deductions)."
+                  checked={booking.manualLedgerDeduction === "manual"}
+                  onChange={(v) => setBooking((b) => ({ ...b, manualLedgerDeduction: v }))}
+                />
+                <RadioItem
+                  name="manual-ledger"
+                  value="automatic"
+                  label="Automatic — Deduct hours automatically from student profiles when the scheduled lesson time has passed."
+                  checked={booking.manualLedgerDeduction === "automatic"}
+                  onChange={(v) => setBooking((b) => ({ ...b, manualLedgerDeduction: v }))}
+                />
+              </div>
+            </FieldGroup>
+
+            <FieldGroup label="Privacy-First Cancellation Alerts" required hint="When a slot opens up due to a last-minute cancellation.">
+              <div className="radio-group">
+                <RadioItem
+                  name="cancellation-alerts"
+                  value="individual-opt-in"
+                  label="Enabled — System will scan for active students with matching licenses and broadcast individual, personalized WhatsApp notifications to offer them the open slot."
+                  checked={booking.cancellationBroadcasts === "individual-opt-in"}
+                  onChange={(v) => setBooking((b) => ({ ...b, cancellationBroadcasts: v }))}
+                />
+                <RadioItem
+                  name="cancellation-alerts"
+                  value="none"
+                  label="Disabled — Do not broadcast open slots individually; let slots remain open for general self-service bookings."
+                  checked={booking.cancellationBroadcasts === "none"}
+                  onChange={(v) => setBooking((b) => ({ ...b, cancellationBroadcasts: v }))}
+                />
+              </div>
+            </FieldGroup>
+
             <FieldGroup label="Reminder Timing" required>
               <div className="checkbox-group">
                 {["Morning of lesson", "24 hours before", "48 hours before"].map((item) => (
@@ -686,7 +890,7 @@ export default function StellarCodeOnboarding() {
             <FieldGroup label="Any scheduling notes or special requirements?">
               <Textarea
                 id="scheduling-notes"
-                placeholder="e.g. No bookings on public holidays, instructors take lunch 12–1pm..."
+                placeholder="e.g. Instructors need a strict 12:00 - 13:00 lunch break, or no bookings on specific holidays..."
                 value={booking.schedulingNotes}
                 onChange={(v) => setBooking((b) => ({ ...b, schedulingNotes: v }))}
               />
@@ -696,18 +900,18 @@ export default function StellarCodeOnboarding() {
           </section>
         )}
 
-        {/* ── Step 5: Payment ───────────────────────────────────────────── */}
-        {currentStep === 5 && (
+        {/* ── Step 6: Payment, AI Audit & Financial Analytics ─────────────── */}
+        {currentStep === 6 && (
           <section className="section active">
             <div className="section-header">
-              <div className="section-number">05 — Payment</div>
-              <h2>How do students pay?</h2>
-              <p>We use this to set up your proof of payment flow and booking confirmation.</p>
+              <div className="section-number">06 — Payment &amp; Finance</div>
+              <h2>Invoicing, AI Audit Setup, &amp; Expense Tracking</h2>
+              <p>Configure payment methods, Proof of Payment (PoP) auditing guidelines, and custom expense tracking.</p>
             </div>
 
-            <FieldGroup label="Payment Method" required>
+            <FieldGroup label="Supported Payment Methods" required>
               <div className="checkbox-group">
-                {["EFT / Bank Transfer", "Cash", "Payment Gateway", "Monthly Account"].map((method) => (
+                {["EFT / Bank Transfer", "Cash", "Payment Gateway", "Monthly Account", "e-Wallet Transfer"].map((method) => (
                   <CheckboxItem
                     key={method}
                     label={method}
@@ -718,20 +922,30 @@ export default function StellarCodeOnboarding() {
               </div>
             </FieldGroup>
 
-            {payment.methods.includes("EFT / Bank Transfer") && (
-              <FieldGroup label="Banking Details" hint="Students will see this when making payment.">
-                <Textarea
-                  id="banking-details"
-                  placeholder="Bank name, account holder, account number, branch code..."
-                  value={payment.bankingDetails}
-                  onChange={(v) => setPayment((p) => ({ ...p, bankingDetails: v }))}
-                />
-              </FieldGroup>
+            {(payment.methods.includes("EFT / Bank Transfer") || payment.methods.includes("e-Wallet Transfer")) && (
+              <div className="field-row">
+                <FieldGroup label="Bank Accounts to Audit" required hint="Provide bank names (e.g., FNB, Standard Bank) to calibrate Google Gemini's Proof of Payment receipt verification.">
+                  <TextInput
+                    id="pop-bank-name"
+                    placeholder="e.g. FNB and Standard Bank"
+                    value={payment.aiAuditBankName}
+                    onChange={(v) => setPayment((p) => ({ ...p, aiAuditBankName: v }))}
+                  />
+                </FieldGroup>
+                <FieldGroup label="Banking Details for Clients" hint="Displayed to clients when making a manual transfer.">
+                  <TextInput
+                    id="banking-details"
+                    placeholder="e.g. Account Number, Branch Code..."
+                    value={payment.bankingDetails}
+                    onChange={(v) => setPayment((p) => ({ ...p, bankingDetails: v }))}
+                  />
+                </FieldGroup>
+              </div>
             )}
 
             {payment.methods.includes("Payment Gateway") && (
               <div className="field-group">
-                <label className="field-label">Payment Gateway</label>
+                <label className="field-label">Payment Gateway Integration</label>
                 <SelectInput
                   id="gateway-select"
                   value={payment.gateway}
@@ -756,11 +970,39 @@ export default function StellarCodeOnboarding() {
               </div>
             )}
 
+            <FieldGroup label="Automatic Expense Auditing (WhatsApp Receipt Scanning)" required hint="Under Part 2.1, instructors can snap & upload fuel or vehicle maintenance slips via WhatsApp to automatically record expenses.">
+              <div className="radio-group">
+                <RadioItem
+                  name="expense-logging"
+                  value="enabled"
+                  label="Enabled — AI will parse fuel & maintenance receipts sent over WhatsApp and file them under the matching vehicle."
+                  checked={payment.aiReceiptLogging === "enabled"}
+                  onChange={(v) => setPayment((p) => ({ ...p, aiReceiptLogging: v }))}
+                />
+                <RadioItem
+                  name="expense-logging"
+                  value="disabled"
+                  label="Disabled"
+                  checked={payment.aiReceiptLogging === "disabled"}
+                  onChange={(v) => setPayment((p) => ({ ...p, aiReceiptLogging: v }))}
+                />
+              </div>
+            </FieldGroup>
+
+            <FieldGroup label="Manual Expense Categories to Prepopulate" hint="Custom expense headings you would like structured in your financial dashboard.">
+              <TextInput
+                id="manual-categories"
+                placeholder="e.g. Rent, Admin Salaries, Marketing, Fleet Insurance"
+                value={payment.manualExpenseCategories}
+                onChange={(v) => setPayment((p) => ({ ...p, manualExpenseCategories: v }))}
+              />
+            </FieldGroup>
+
             <FieldGroup label="When is payment required?" required>
               <div className="radio-group">
                 {[
-                  { value: "upfront", label: "Upfront before lesson" },
-                  { value: "month-end", label: "Month end" },
+                  { value: "upfront", label: "Upfront (Prior to lesson booking validation)" },
+                  { value: "month-end", label: "Month End Accounts" },
                   { value: "flexible", label: "Flexible" },
                 ].map(({ value, label }) => (
                   <RadioItem
@@ -779,17 +1021,17 @@ export default function StellarCodeOnboarding() {
           </section>
         )}
 
-        {/* ── Step 6: Branding ──────────────────────────────────────────── */}
-        {currentStep === 6 && !submitted && (
+        {/* ── Step 7: Branding & NaTIS Google Reviews ─────────────────────── */}
+        {currentStep === 7 && !submitted && (
           <section className="section active">
             <div className="section-header">
-              <div className="section-number">06 — Branding &amp; Final Details</div>
-              <h2>Make it yours</h2>
-              <p>We use this to match the system to your school&rsquo;s look and feel.</p>
+              <div className="section-number">07 — Branding &amp; Final Details</div>
+              <h2>Make It Yours &amp; Configure Post-NaTIS Prompts</h2>
+              <p>Personalize the customer interface and template your automated student success review prompts.</p>
             </div>
 
             <div className="field-row">
-              <FieldGroup label="Primary Brand Colour" hint="Used on your booking page and website.">
+              <FieldGroup label="Primary Brand Colour" hint="Used on your booking page and web header.">
                 <input
                   type="color"
                   id="brand-color"
@@ -798,12 +1040,7 @@ export default function StellarCodeOnboarding() {
                   className="field-input color-input"
                 />
               </FieldGroup>
-              <FieldGroup label="Logo (if available)" hint="PNG or JPG, any size.">
-                {/*
-                  Note: File inputs in React are uncontrolled.
-                  Store the file reference via onChange and send via
-                  FormData to a separate upload endpoint before submitting.
-                */}
+              <FieldGroup label="Logo (if available)" hint="PNG or JPG, any dimensions.">
                 <input
                   type="file"
                   id="logo-file"
@@ -816,12 +1053,12 @@ export default function StellarCodeOnboarding() {
               </FieldGroup>
             </div>
 
-            <FieldGroup label="Tone of your WhatsApp AI" required>
+            <FieldGroup label="Tone of your WhatsApp AI Chatbot" required>
               <div className="radio-group">
                 {[
-                  { value: "friendly", label: "Friendly and casual — feels like chatting with a person" },
-                  { value: "professional", label: "Professional and formal — business-like responses" },
-                  { value: "mixed", label: "Mix of both" },
+                  { value: "friendly", label: "Friendly and conversational — helpful and supportive voice" },
+                  { value: "professional", label: "Professional and formal — structural and precise responses" },
+                  { value: "mixed", label: "A balanced mix of warm and professional tones" },
                 ].map(({ value, label }) => (
                   <RadioItem
                     key={value}
@@ -835,7 +1072,7 @@ export default function StellarCodeOnboarding() {
               </div>
             </FieldGroup>
 
-            <FieldGroup label="Language(s) your students use">
+            <FieldGroup label="Languages Your Customers Prefer">
               <div className="checkbox-group">
                 {LANGUAGES.map((lang) => (
                   <CheckboxItem
@@ -848,12 +1085,12 @@ export default function StellarCodeOnboarding() {
               </div>
             </FieldGroup>
 
-            <FieldGroup label="Enable Google Review Requests?">
+            <FieldGroup label="Enable Google Review Triggers? (Post-NaTIS Pass)" required hint="When a student passes their test, changing status to 'Passed NaTIS' automatically sends a custom WhatsApp review prompt.">
               <div className="radio-group">
                 <RadioItem
                   name="reviews"
                   value="yes"
-                  label="Yes — automatically ask students for Google reviews after lessons"
+                  label="Yes — automatically dispatch a congratulations and review request to successful students"
                   checked={branding.googleReviews === "yes"}
                   onChange={(v) => setBranding((b) => ({ ...b, googleReviews: v }))}
                 />
@@ -867,10 +1104,20 @@ export default function StellarCodeOnboarding() {
               </div>
             </FieldGroup>
 
+            {branding.googleReviews === "yes" && (
+              <FieldGroup label="Post-NaTIS WhatsApp Message Template" hint="Customize the copy sent out to successful candidates. Make sure to keep the link prompt clear.">
+                <Textarea
+                  id="natis-review-message"
+                  value={branding.natisReviewMessage}
+                  onChange={(v) => setBranding((b) => ({ ...b, natisReviewMessage: v }))}
+                />
+              </FieldGroup>
+            )}
+
             <FieldGroup label="Anything else we should know?">
               <Textarea
                 id="extra-notes"
-                placeholder="Special requests, existing systems, anything you want us to keep in mind..."
+                placeholder="List any additional business guidelines, specific fuel card requirements, or customizations you need..."
                 value={branding.extraNotes}
                 onChange={(v) => setBranding((b) => ({ ...b, extraNotes: v }))}
               />
@@ -878,14 +1125,14 @@ export default function StellarCodeOnboarding() {
 
             {submitError && (
               <div className="error-msg" role="alert">
-                Something went wrong submitting your form. Please try again.
+                An issue occurred while submitting the form. Please review and try again.
               </div>
             )}
 
             <NavRow
               onBack={goBack}
               onNext={handleSubmit}
-              nextLabel="Submit →"
+              nextLabel="Submit Setup →"
               isSubmitting={submitting}
             />
           </section>
@@ -895,13 +1142,12 @@ export default function StellarCodeOnboarding() {
         {submitted && (
           <div className="success-screen" role="status">
             <div className="success-icon" aria-hidden="true">✓</div>
-            <h2>You&rsquo;re all set.</h2>
+            <h2>Setup Details Submitted.</h2>
             <p>
-              We&rsquo;ve received your details and will be in touch within 24 hours to confirm
-              your setup timeline. Your system will be live within a week.
+              We have processed your configuration requirements. Our team will structure your custom platform assets, API gateways, and analytical dashboards in line with the proposal.
             </p>
             <hr className="divider" style={{ maxWidth: 200, margin: "32px auto" }} />
-            <p style={{ fontSize: 13 }}>Questions? Message us on WhatsApp anytime.</p>
+            <p style={{ fontSize: 13 }}>We will update you on our progress shortly.</p>
           </div>
         )}
       </main>
@@ -1076,7 +1322,6 @@ const CSS = `
     margin-bottom: 8px;
     font-weight: 400;
     cursor: default;
-    /* Fix: labels are not wrapping inputs anymore, so pointer events are fine */
   }
 
   .req { color: var(--accent-bright); }
@@ -1157,7 +1402,7 @@ const CSS = `
     flex-shrink: 0;
     accent-color: var(--accent-bright);
     padding: 0;
-    pointer-events: none; /* clicks handled by parent div */
+    pointer-events: none;
   }
 
   .checkbox-item.checked,
