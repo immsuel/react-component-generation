@@ -7,12 +7,14 @@ import { useState, useCallback } from "react";
 const LICENSE_TYPES = [
   "Code B Manual",
   "Code B Auto",
-  "Code C (Code 10)",
-  "Code EC (Code 14)",
+  "Code C1",
+  "Code C",
+  "Code CE",
+  "Code BE",
   "Other"
 ];
 const WORKING_DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
-const LANGUAGES = ["English", "Afrikaans", "Zulu", "Xhosa", "Sotho", "Other"];
+const LANGUAGES = ["English", "Oshiwambo", "Afrikaans", "Damara/Nama", "Otjiherero", "German", "Other"];
 const TOTAL_STEPS = 7;
 const WEBHOOK_URL = "https://hook.eu1.make.com/dpym6dzyl0z3gpb7wjfk5ntorwsf2x11";
 
@@ -30,7 +32,7 @@ const makeInstructor = (index) => ({
 const makeVehicle = (index) => ({
   id: Date.now() + index,
   makeModel: "",       // e.g. VW Polo
-  plateNumber: "",     // e.g. CA 123-456
+  plateNumber: "",     // e.g. N 12345 W
   expiryDate: "",      // NaTIS registration disk expiry
   fuelCard: "",        // Optional: Fuel card details/monthly allocation
 });
@@ -201,16 +203,16 @@ function InstructorEntry({ instructor, index, onChange, onRemove, showRemove }) 
 
       <div className="field-row">
         <FieldGroup label="WhatsApp Number" required>
-          <TextInput type="tel" placeholder="+27 82 000 0000" value={instructor.whatsapp} onChange={update("whatsapp")} />
+          <TextInput type="tel" placeholder="+264 81 000 0000" value={instructor.whatsapp} onChange={update("whatsapp")} />
         </FieldGroup>
         <FieldGroup label="Email">
-          <TextInput type="email" placeholder="instructor@school.co.za" value={instructor.email} onChange={update("email")} />
+          <TextInput type="email" placeholder="instructor@school.com.na" value={instructor.email} onChange={update("email")} />
         </FieldGroup>
       </div>
 
       <div className="field-row">
         <FieldGroup label="Assigned Vehicle (Optional)" hint="Connects this instructor to an active vehicle in your fleet tracking system.">
-          <TextInput placeholder="e.g. VW Polo (CA 123-456)" value={instructor.assignedVehicle} onChange={update("assignedVehicle")} />
+          <TextInput placeholder="e.g. VW Polo (N 123-456 W)" value={instructor.assignedVehicle} onChange={update("assignedVehicle")} />
         </FieldGroup>
       </div>
 
@@ -262,7 +264,7 @@ function VehicleEntry({ vehicle, index, onChange, onRemove, showRemove }) {
           <TextInput placeholder="e.g. Volkswagen Polo" value={vehicle.makeModel} onChange={update("makeModel")} />
         </FieldGroup>
         <FieldGroup label="License Plate / Registration" required>
-          <TextInput placeholder="e.g. CA 123-456" value={vehicle.plateNumber} onChange={update("plateNumber")} />
+          <TextInput placeholder="e.g. N 12345 W" value={vehicle.plateNumber} onChange={update("plateNumber")} />
         </FieldGroup>
       </div>
 
@@ -271,7 +273,7 @@ function VehicleEntry({ vehicle, index, onChange, onRemove, showRemove }) {
           <TextInput type="date" value={vehicle.expiryDate} onChange={update("expiryDate")} />
         </FieldGroup>
         <FieldGroup label="Fuel Card details / Monthly Budget" hint="Allows matching with fuel spend analytics.">
-          <TextInput placeholder="e.g. Absa Fuel Card (R5,000 monthly cap)" value={vehicle.fuelCard} onChange={update("fuelCard")} />
+          <TextInput placeholder="e.g. Bank Windhoek Fuel Card (N$5,000 monthly cap)" value={vehicle.fuelCard} onChange={update("fuelCard")} />
         </FieldGroup>
       </div>
     </div>
@@ -296,7 +298,7 @@ function PackageEntry({ pkg, index, onChange, onRemove, showRemove }) {
         <FieldGroup label="Package Name" required>
           <TextInput placeholder="e.g. Code B Manual — 1 Hour" value={pkg.name} onChange={update("name")} />
         </FieldGroup>
-        <FieldGroup label="Price (R)" required>
+        <FieldGroup label="Price (N$)" required>
           <TextInput type="number" placeholder="e.g. 350" value={pkg.price} onChange={update("price")} />
         </FieldGroup>
       </div>
@@ -306,7 +308,7 @@ function PackageEntry({ pkg, index, onChange, onRemove, showRemove }) {
           <TextInput placeholder="e.g. 1 hour, 10-lesson bundle" value={pkg.duration} onChange={update("duration")} />
         </FieldGroup>
         <FieldGroup label="License / Course Type" required>
-          <TextInput placeholder="e.g. Code B Manual, Code C" value={pkg.licenseType} onChange={update("licenseType")} />
+          <TextInput placeholder="e.g. Code B Manual, Code C1" value={pkg.licenseType} onChange={update("licenseType")} />
         </FieldGroup>
       </div>
     </div>
@@ -328,7 +330,7 @@ export default function StellarCodeOnboarding() {
     whatsapp: "", // Evolution API WhatsApp gateway target line
     email: "",
     address: "",
-    city: "",
+    city: "", // town/city in Namibia
     googleProfile: "",
     targetSuburbs: "",     // Target areas for Google search optimization
     domainPreference: "register-new", // "register-new", "use-existing", or "none"
@@ -365,7 +367,7 @@ export default function StellarCodeOnboarding() {
     gateway: "",
     merchantId: "",
     timing: "upfront",
-    aiAuditBankName: "",      // The specific bank format Gemini will audit against (FNB, Standard Bank, etc.)
+    aiAuditBankName: "",      // The specific bank format Gemini will audit against (Bank Windhoek, FNB Namibia, etc.)
     aiReceiptLogging: "enabled", // WhatsApp receipt scanning for fuel & maintenance under Part 2.1
     manualExpenseCategories: "Rent, Salaries, Marketing, Insurance", // Pre-populated custom fields
   });
@@ -561,7 +563,7 @@ export default function StellarCodeOnboarding() {
       <header className="hero">
         <div className="logo">StellarCode</div>
         <h1>Let&rsquo;s get your school set up.</h1>
-        <p>Fill in the operational details below. We will use this information to configure your platform assets, automated pipelines, and analytics databases.</p>
+        <p>Fill in the operational details below. We will use this information to configure your platform assets, automated pipelines, and analytics databases in Namibia.</p>
         <div className="progress-bar" role="progressbar" aria-valuenow={currentStep} aria-valuemax={TOTAL_STEPS}>
           {Array.from({ length: TOTAL_STEPS }, (_, i) => (
             <div key={i} className={`progress-step ${stepStatus(i + 1)}`} />
@@ -587,7 +589,7 @@ export default function StellarCodeOnboarding() {
               <FieldGroup label="School Name" required>
                 <TextInput
                   id="school-name"
-                  placeholder="e.g. Josiah's Driving School"
+                  placeholder="e.g. Windhoek Driving Academy"
                   value={business.schoolName}
                   onChange={(v) => setBusiness((b) => ({ ...b, schoolName: v }))}
                 />
@@ -595,7 +597,7 @@ export default function StellarCodeOnboarding() {
               <FieldGroup label="Owner / Contact Name" required>
                 <TextInput
                   id="owner-name"
-                  placeholder="e.g. Josiah Petersen"
+                  placeholder="e.g. Johannes Ndara"
                   value={business.ownerName}
                   onChange={(v) => setBusiness((b) => ({ ...b, ownerName: v }))}
                 />
@@ -607,7 +609,7 @@ export default function StellarCodeOnboarding() {
                 <TextInput
                   id="whatsapp-number"
                   type="tel"
-                  placeholder="+27 82 000 0000"
+                  placeholder="+264 81 000 0000"
                   value={business.whatsapp}
                   onChange={(v) => setBusiness((b) => ({ ...b, whatsapp: v }))}
                 />
@@ -616,7 +618,7 @@ export default function StellarCodeOnboarding() {
                 <TextInput
                   id="email"
                   type="email"
-                  placeholder="you@school.co.za"
+                  placeholder="you@school.com.na"
                   value={business.email}
                   onChange={(v) => setBusiness((b) => ({ ...b, email: v }))}
                 />
@@ -627,25 +629,25 @@ export default function StellarCodeOnboarding() {
               <FieldGroup label="Physical Address" required>
                 <TextInput
                   id="address"
-                  placeholder="123 Main Street"
+                  placeholder="45 Independence Avenue"
                   value={business.address}
                   onChange={(v) => setBusiness((b) => ({ ...b, address: v }))}
                 />
               </FieldGroup>
-              <FieldGroup label="City / Province" required>
+              <FieldGroup label="Town / Region" required>
                 <TextInput
                   id="city"
-                  placeholder="e.g. Cape Town, Western Cape"
+                  placeholder="e.g. Windhoek, Khomas"
                   value={business.city}
                   onChange={(v) => setBusiness((b) => ({ ...b, city: v }))}
                 />
               </FieldGroup>
             </div>
 
-            <FieldGroup label="Target Suburbs / Service Areas (SEO)" required hint="Comma-separated areas we should optimize your Google search visibility for (e.g. Bellville, Durbanville, Brackenfell).">
+            <FieldGroup label="Target Suburbs / Towns (SEO)" required hint="Comma-separated areas we should optimize your Google search visibility for (e.g. Pioneerspark, Katutura, Klein Windhoek, Swakopmund).">
               <Textarea
                 id="target-suburbs"
-                placeholder="List the specific suburbs where you pick up clients..."
+                placeholder="List the specific suburbs or towns where you operate..."
                 value={business.targetSuburbs}
                 onChange={(v) => setBusiness((b) => ({ ...b, targetSuburbs: v }))}
               />
@@ -658,7 +660,7 @@ export default function StellarCodeOnboarding() {
                   value={business.domainPreference}
                   onChange={(v) => setBusiness((b) => ({ ...b, domainPreference: v }))}
                 >
-                  <option value="register-new">Register a new domain for me (.co.za / .com)</option>
+                  <option value="register-new">Register a new domain for me (.com.na / .na)</option>
                   <option value="use-existing">I will link an existing domain I own</option>
                   <option value="none">I do not need a custom domain</option>
                 </SelectInput>
@@ -666,7 +668,7 @@ export default function StellarCodeOnboarding() {
               <FieldGroup label="Preferred Website Domain Address" hint="Leave blank if you don't have an option yet.">
                 <TextInput
                   id="domain-name"
-                  placeholder="e.g. josiahsdrivingschool.co.za"
+                  placeholder="e.g. windhoekdriving.com.na"
                   value={business.domainName}
                   onChange={(v) => setBusiness((b) => ({ ...b, domainName: v }))}
                 />
@@ -686,7 +688,7 @@ export default function StellarCodeOnboarding() {
               <FieldGroup label="Instagram Handle or Link" hint="We will link this on your Google SEO optimized page.">
                 <TextInput
                   id="social-instagram"
-                  placeholder="e.g. @josiahsdrivingschool"
+                  placeholder="e.g. @windhoekdriving"
                   value={business.socialInstagram}
                   onChange={(v) => setBusiness((b) => ({ ...b, socialInstagram: v }))}
                 />
@@ -860,7 +862,7 @@ export default function StellarCodeOnboarding() {
                 <RadioItem
                   name="cancellation-alerts"
                   value="individual-opt-in"
-                  label="Enabled — System will scan for active students with matching licenses and broadcast individual, personalized WhatsApp notifications to offer them the open slot."
+                  label="Enabled — System will scan for active students with matching SADC licenses and broadcast individual, personalized WhatsApp notifications to offer them the open slot."
                   checked={booking.cancellationBroadcasts === "individual-opt-in"}
                   onChange={(v) => setBooking((b) => ({ ...b, cancellationBroadcasts: v }))}
                 />
@@ -890,7 +892,7 @@ export default function StellarCodeOnboarding() {
             <FieldGroup label="Any scheduling notes or special requirements?">
               <Textarea
                 id="scheduling-notes"
-                placeholder="e.g. Instructors need a strict 12:00 - 13:00 lunch break, or no bookings on specific holidays..."
+                placeholder="e.g. Instructors need a strict 13:00 - 14:00 lunch break, or no bookings on specific holidays..."
                 value={booking.schedulingNotes}
                 onChange={(v) => setBooking((b) => ({ ...b, schedulingNotes: v }))}
               />
@@ -906,12 +908,12 @@ export default function StellarCodeOnboarding() {
             <div className="section-header">
               <div className="section-number">06 — Payment &amp; Finance</div>
               <h2>Invoicing, AI Audit Setup, &amp; Expense Tracking</h2>
-              <p>Configure payment methods, Proof of Payment (PoP) auditing guidelines, and custom expense tracking.</p>
+              <p>Configure payment methods, Proof of Payment (PoP) auditing guidelines, and custom expense tracking in Namibian Dollar format.</p>
             </div>
 
             <FieldGroup label="Supported Payment Methods" required>
               <div className="checkbox-group">
-                {["EFT / Bank Transfer", "Cash", "Payment Gateway", "Monthly Account", "e-Wallet Transfer"].map((method) => (
+                {["EFT / Bank Transfer", "Cash", "Payment Gateway", "Monthly Account", "e-Wallet / EasyWallet Transfer"].map((method) => (
                   <CheckboxItem
                     key={method}
                     label={method}
@@ -922,12 +924,12 @@ export default function StellarCodeOnboarding() {
               </div>
             </FieldGroup>
 
-            {(payment.methods.includes("EFT / Bank Transfer") || payment.methods.includes("e-Wallet Transfer")) && (
+            {(payment.methods.includes("EFT / Bank Transfer") || payment.methods.includes("e-Wallet / EasyWallet Transfer")) && (
               <div className="field-row">
-                <FieldGroup label="Bank Accounts to Audit" required hint="Provide bank names (e.g., FNB, Standard Bank) to calibrate Google Gemini's Proof of Payment receipt verification.">
+                <FieldGroup label="Bank Accounts to Audit" required hint="Provide bank names (e.g., Bank Windhoek, FNB Namibia, Standard Bank Namibia, Nedbank Namibia) to calibrate Google Gemini's Proof of Payment receipt verification.">
                   <TextInput
                     id="pop-bank-name"
-                    placeholder="e.g. FNB and Standard Bank"
+                    placeholder="e.g. Bank Windhoek and FNB Namibia"
                     value={payment.aiAuditBankName}
                     onChange={(v) => setPayment((p) => ({ ...p, aiAuditBankName: v }))}
                   />
@@ -952,10 +954,10 @@ export default function StellarCodeOnboarding() {
                   onChange={(v) => setPayment((p) => ({ ...p, gateway: v }))}
                 >
                   <option value="">Select gateway</option>
-                  <option>PayFast</option>
+                  <option>PayToday</option>
+                  <option>DPO Group</option>
                   <option>Peach Payments</option>
-                  <option>PayGate</option>
-                  <option>Yoco</option>
+                  <option>Windhoek Bank Gateway</option>
                   <option>Other</option>
                 </SelectInput>
                 <div style={{ marginTop: 12 }}>
@@ -992,7 +994,7 @@ export default function StellarCodeOnboarding() {
             <FieldGroup label="Manual Expense Categories to Prepopulate" hint="Custom expense headings you would like structured in your financial dashboard.">
               <TextInput
                 id="manual-categories"
-                placeholder="e.g. Rent, Admin Salaries, Marketing, Fleet Insurance"
+                placeholder="e.g. Office Rent, Admin Salaries, Marketing, Fleet Insurance"
                 value={payment.manualExpenseCategories}
                 onChange={(v) => setPayment((p) => ({ ...p, manualExpenseCategories: v }))}
               />
@@ -1144,7 +1146,7 @@ export default function StellarCodeOnboarding() {
             <div className="success-icon" aria-hidden="true">✓</div>
             <h2>Setup Details Submitted.</h2>
             <p>
-              We have processed your configuration requirements. Our team will structure your custom platform assets, API gateways, and analytical dashboards in line with the proposal.
+              We have processed your configuration requirements. Our team will structure your custom platform assets, API gateways, and analytical databases in line with the proposal.
             </p>
             <hr className="divider" style={{ maxWidth: 200, margin: "32px auto" }} />
             <p style={{ fontSize: 13 }}>We will update you on our progress shortly.</p>
