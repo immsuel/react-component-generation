@@ -1174,7 +1174,7 @@ export default function StellarCodeOnboarding() {
             <div className="success-icon" aria-hidden="true">✓</div>
             <h2>Setup Details Submitted.</h2>
             <p>
-              We have processed your configuration requirements. Our team will structure your custom platform assets, API gateways, and analytical databases in line with the proposal.
+              We have processed your configuration requirements. Our team will reach out to you if any more details are needed.
             </p>
             <hr className="divider" style={{ maxWidth: 200, margin: "32px auto" }} />
             <p style={{ fontSize: 13 }}>We will update you on our progress shortly.</p>
