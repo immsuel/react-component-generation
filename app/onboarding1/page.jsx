@@ -14,7 +14,7 @@ const LICENSE_TYPES = [
   "Other"
 ];
 const WORKING_DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
-const LANGUAGES = ["English", "Oshiwambo", "Afrikaans", "Damara/Nama", "Otjiherero", "German", "Other"];
+const LANGUAGES = ["English", "Oshiwambo", "Afrikaans", "Damara/Nama", "German", "Other"];
 const TOTAL_STEPS = 7;
 const WEBHOOK_URL = "https://n8n.stellarcode.agency/webhook/b602fada-96c2-4895-a9eb-a790a40c64ff";
 
@@ -593,7 +593,7 @@ export default function StellarCodeOnboarding() {
       <header className="hero">
         <div className="logo">StellarCode</div>
         <h1>Let&rsquo;s get your school set up.</h1>
-        <p>Fill in the operational details below. We will use this information to configure your platform assets, automated pipelines, and analytics databases in Namibia.</p>
+        <p>Fill in the operational details below. We will use this information to configure your platform assets, automated pipelines, and analytics databases.</p>
         <div className="progress-bar" role="progressbar" aria-valuenow={currentStep} aria-valuemax={TOTAL_STEPS}>
           {Array.from({ length: TOTAL_STEPS }, (_, i) => (
             <div key={i} className={`progress-step ${stepStatus(i + 1)}`} />
