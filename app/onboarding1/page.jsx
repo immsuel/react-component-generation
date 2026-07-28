@@ -16,7 +16,7 @@ const LICENSE_TYPES = [
 const WORKING_DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
 const LANGUAGES = ["English", "Oshiwambo", "Afrikaans", "Damara/Nama", "Otjiherero", "German", "Other"];
 const TOTAL_STEPS = 7;
-const WEBHOOK_URL = "https://n8n.stellarcode.agency/webhook-test/b602fada-96c2-4895-a9eb-a790a40c64ff";
+const WEBHOOK_URL = "https://n8n.stellarcode.agency/webhook/b602fada-96c2-4895-a9eb-a790a40c64ff";
 
 const makeInstructor = (index) => ({
   id: Date.now() + index,
