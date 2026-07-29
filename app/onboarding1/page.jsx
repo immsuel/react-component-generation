@@ -5,6 +5,7 @@ import { useState, useCallback } from "react";
 // ─── Constants ───────────────────────────────────────────────────────────────
 
 const LICENSE_TYPES = [
+  "Code A1",
   "Code B Manual",
   "Code B Auto",
   "Code C1",
@@ -13,6 +14,17 @@ const LICENSE_TYPES = [
   "Code BE",
   "Other"
 ];
+
+const PACKAGE_SECTIONS = [
+  "A1",
+  "B Manual",
+  "B Automatic",
+  "C1",
+  "C1E",
+  "Windhoek NATIS",
+  "Rehoboth Natis"
+];
+
 const WORKING_DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
 const LANGUAGES = ["English", "Oshiwambo", "Afrikaans", "Damara/Nama", "German", "Other"];
 const TOTAL_STEPS = 7;
@@ -37,12 +49,13 @@ const makeVehicle = (index) => ({
   fuelCard: "",        // Optional: Fuel card details/monthly allocation
 });
 
-const makePackage = (index) => ({
+const makePackage = (index, section = "") => ({
   id: Date.now() + index,
   name: "",
   price: "",
   duration: "",
-  licenseType: "",
+  licenseType: section, // Pre-populates the course type input with the section name
+  section: section,
 });
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
@@ -296,7 +309,7 @@ function PackageEntry({ pkg, index, onChange, onRemove, showRemove }) {
 
       <div className="field-row">
         <FieldGroup label="Package Name" required>
-          <TextInput placeholder="e.g. Code B Manual — 1 Hour" value={pkg.name} onChange={update("name")} />
+          <TextInput placeholder="e.g. 1 Hour Trial Lesson" value={pkg.name} onChange={update("name")} />
         </FieldGroup>
         <FieldGroup label="Price (N$)" required>
           <TextInput type="number" placeholder="e.g. 350" value={pkg.price} onChange={update("price")} />
@@ -342,11 +355,11 @@ export default function StellarCodeOnboarding() {
   // Step 2 — Instructors
   const [instructors, setInstructors] = useState([makeInstructor(0)]);
 
-  // Step 3 — Vehicles & Fleet (New Feature Sector)
+  // Step 3 — Vehicles & Fleet
   const [vehicles, setVehicles] = useState([makeVehicle(0)]);
 
   // Step 4 — Packages
-  const [packages, setPackages] = useState([makePackage(0)]);
+  const [packages, setPackages] = useState([makePackage(0, "B Manual")]);
 
   // Step 5 — Booking & Communications
   const [booking, setBooking] = useState({
@@ -356,8 +369,8 @@ export default function StellarCodeOnboarding() {
     advanceBooking: "2 days in advance",
     reminderTimings: ["Morning of lesson", "24 hours before"],
     schedulingNotes: "",
-    manualLedgerDeduction: "manual", // "manual" (Part 2.2: verified by instructor/admin) or "automatic" (time-based)
-    cancellationBroadcasts: "individual-opt-in", // "individual-opt-in" (Part 2.3: privacy-first direct messaging alerts) or "none"
+    manualLedgerDeduction: "manual", // "manual" or "automatic"
+    cancellationBroadcasts: "individual-opt-in", // "individual-opt-in" or "none"
   });
 
   // Step 6 — Payment & AI Finance Setup
@@ -367,15 +380,15 @@ export default function StellarCodeOnboarding() {
     gateway: "",
     merchantId: "",
     timing: "upfront",
-    aiAuditBankName: "",      // The specific bank format Gemini will audit against (Bank Windhoek, FNB Namibia, etc.)
-    aiReceiptLogging: "enabled", // WhatsApp receipt scanning for fuel & maintenance under Part 2.1
-    manualExpenseCategories: "Rent, Salaries, Marketing, Insurance", // Pre-populated custom fields
+    aiAuditBankName: "",      // Bank format Gemini audits against
+    aiReceiptLogging: "enabled", // WhatsApp receipt scanning
+    manualExpenseCategories: "Rent, Salaries, Marketing, Insurance",
   });
 
   // Step 7 — Branding & Post-NaTIS Google Reviews
   const [branding, setBranding] = useState({
     brandColor: "#1a2e4a",
-    logoFile: null,           // Stores Base64 file metadata object
+    logoFile: null,           // Base64 file metadata object
     aiTone: "friendly",
     languages: ["English"],
     googleReviews: "yes",     // Trigger automated Google Review WhatsApp post-pass
@@ -410,7 +423,7 @@ export default function StellarCodeOnboarding() {
     );
   }, []);
 
-  const addPackage = () => setPackages((prev) => [...prev, makePackage(prev.length)]);
+  const addPackage = (section) => setPackages((prev) => [...prev, makePackage(prev.length, section)]);
   const removePackage = (id) => setPackages((prev) => prev.filter((pkg) => pkg.id !== id));
 
   // ── Booking helpers ────────────────────────────────────────────────────────
@@ -481,7 +494,6 @@ export default function StellarCodeOnboarding() {
     setSubmitting(true);
     setSubmitError(false);
 
-    // Mapped cleanly with flat, logical property names matching all user requirements
     const payload = {
       submittedAt: new Date().toISOString(),
       
@@ -523,6 +535,7 @@ export default function StellarCodeOnboarding() {
       // Step 4 — Packages & Pricing
       packages: packages.map((pkg, i) => ({
         index: i + 1,
+        section: pkg.section,
         name: pkg.name,
         price: pkg.price,
         duration: pkg.duration,
@@ -551,7 +564,7 @@ export default function StellarCodeOnboarding() {
 
       // Step 7 — Branding & Reviews
       brandColor: branding.brandColor,
-      logoFile: branding.logoFile, // Base64 Object { name, type, size, base64 }
+      logoFile: branding.logoFile,
       aiTone: branding.aiTone,
       languages: branding.languages,
       enableGoogleReviewTriggers: branding.googleReviews,
@@ -576,7 +589,6 @@ export default function StellarCodeOnboarding() {
     }
   };
 
-  // ── Progress ───────────────────────────────────────────────────────────────
   const stepStatus = (i) => {
     if (submitted) return "done";
     if (i < currentStep) return "done";
@@ -584,7 +596,6 @@ export default function StellarCodeOnboarding() {
     return "";
   };
 
-  // ── Render ─────────────────────────────────────────────────────────────────
   return (
     <>
       <style>{CSS}</style>
@@ -785,29 +796,59 @@ export default function StellarCodeOnboarding() {
           </section>
         )}
 
-        {/* ── Step 4: Packages & Pricing ────────────────────────────────── */}
+        {/* ── Step 4: Packages & Pricing (Grouped Sections) ───────────────── */}
         {currentStep === 4 && (
           <section className="section active">
             <div className="section-header">
               <div className="section-number">04 — Packages &amp; Pricing</div>
               <h2>What Packages Do You Offer?</h2>
-              <p>Specify packages that clients can book directly from your self-service portal.</p>
+              <p>Specify the packages your clients can book directly. Add packages under their respective category or operational sector below.</p>
             </div>
 
-            {packages.map((pkg, i) => (
-              <PackageEntry
-                key={pkg.id}
-                pkg={pkg}
-                index={i}
-                onChange={updatePackage}
-                onRemove={removePackage}
-                showRemove={packages.length > 1}
-              />
-            ))}
+            {PACKAGE_SECTIONS.map((section) => {
+              const sectionPackages = packages.filter((pkg) => pkg.section === section);
+              return (
+                <div key={section} className="package-section-block" style={{ marginBottom: "40px" }}>
+                  <h3 style={{
+                    fontSize: "15px",
+                    textTransform: "uppercase",
+                    letterSpacing: "0.1em",
+                    color: "var(--accent-bright)",
+                    borderBottom: "1px solid var(--border)",
+                    paddingBottom: "8px",
+                    marginBottom: "16px"
+                  }}>
+                    {section} Packages
+                  </h3>
 
-            <button type="button" className="add-btn" onClick={addPackage}>
-              + Add another package
-            </button>
+                  {sectionPackages.length === 0 ? (
+                    <p style={{ color: "var(--muted)", fontSize: "13px", marginBottom: "16px", fontStyle: "italic" }}>
+                      No {section} packages configured yet.
+                    </p>
+                  ) : (
+                    sectionPackages.map((pkg, i) => (
+                      <PackageEntry
+                        key={pkg.id}
+                        pkg={pkg}
+                        index={i}
+                        onChange={updatePackage}
+                        onRemove={removePackage}
+                        showRemove={true}
+                      />
+                    ))
+                  )}
+
+                  <button
+                    type="button"
+                    className="add-btn"
+                    onClick={() => addPackage(section)}
+                    style={{ marginBottom: "12px" }}
+                  >
+                    + Add {section} Package
+                  </button>
+                </div>
+              );
+            })}
 
             <NavRow onBack={goBack} onNext={goNext} />
           </section>
@@ -1185,7 +1226,7 @@ export default function StellarCodeOnboarding() {
   );
 }
 
-// ─── Styles (scoped via class names) ─────────────────────────────────────────
+// ─── Styles ─────────────────────────────────────────────────────────
 
 const CSS = `
   @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@300;400;500&display=swap');
