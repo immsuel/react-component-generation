@@ -20,7 +20,21 @@ const PAYMENT_METHODS = [
 ];
 
 const TOTAL_STEPS = 4;
-const WEBHOOK_URL = "https://n8n.stellarcode.agency/webhook/employee-onboarding";
+const WEBHOOK_URL =
+  "https://discord.com/api/webhooks/1536664478354243634/wXi2Y5FrenCCnJdVkJpWv4c117emGKX6F4j-cG0QjWMD8pskzR3_iCUpMGTnQveUj7og";
+
+// Helper function to convert Base64 Data URL to Blob for Discord file attachment
+function dataURLtoBlob(dataurl) {
+  const arr = dataurl.split(",");
+  const mime = arr[0].match(/:(.*?);/)[1];
+  const bstr = atob(arr[1]);
+  let n = bstr.length;
+  const u8arr = new Uint8Array(n);
+  while (n--) {
+    u8arr[n] = bstr.charCodeAt(n);
+  }
+  return new Blob([u8arr], { type: mime });
+}
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
@@ -153,7 +167,7 @@ export default function EmployeeOnboarding() {
   const [signatureType, setSignatureType] = useState("type"); // "type" | "draw"
   const [typedSignature, setTypedSignature] = useState("");
   const [agreedToTerms, setAgreedToTerms] = useState(false);
-  
+
   // Canvas Ref for Drawing
   const canvasRef = useRef(null);
   const [isDrawing, setIsDrawing] = useState(false);
@@ -230,7 +244,7 @@ export default function EmployeeOnboarding() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  // ── Submit ─────────────────────────────────────────────────────────────────
+  // ── Submit to Discord Webhook ───────────────────────────────────────────────
   const handleSubmit = async () => {
     if (!agreedToTerms) {
       alert("Please check the confirmation box to agree to the terms.");
@@ -255,25 +269,84 @@ export default function EmployeeOnboarding() {
     setSubmitting(true);
     setSubmitError(false);
 
-    const payload = {
-      submittedAt: new Date().toISOString(),
-      role: roleInfo,
-      personal,
-      payment,
-      signature: {
-        type: signatureType,
-        value: finalSignature,
-        agreedToTerms: true,
-      },
-    };
-
     try {
+      const formData = new FormData();
+      let fileIndex = 0;
+
+      const hasAvatar = Boolean(personal.profilePicture);
+      const hasDrawnSig = signatureType === "draw" && Boolean(finalSignature);
+
+      let avatarFileName = "";
+      if (hasAvatar) {
+        avatarFileName = `profile_picture.${personal.profilePicture.slice(11, 14) === "png" ? "png" : "jpg"}`;
+        const avatarBlob = dataURLtoBlob(personal.profilePicture);
+        formData.append(`files[${fileIndex}]`, avatarBlob, avatarFileName);
+        fileIndex++;
+      }
+
+      let sigFileName = "";
+      if (hasDrawnSig) {
+        sigFileName = "signature.png";
+        const sigBlob = dataURLtoBlob(finalSignature);
+        formData.append(`files[${fileIndex}]`, sigBlob, sigFileName);
+        fileIndex++;
+      }
+
+      // Build Discord Embed
+      const assignedRole =
+        roleInfo.role === "Other" ? roleInfo.customRole : roleInfo.role || "Not specified";
+
+      const embed = {
+        title: "🎉 New Team Member Onboarding Submitted",
+        color: 0x4a7fa5,
+        fields: [
+          {
+            name: "💼 Role Information",
+            value: `**Role:** ${assignedRole}\n**Expected Start Date:** ${roleInfo.startDate || "Not specified"}`,
+            inline: false,
+          },
+          {
+            name: "👤 Personal Details",
+            value: `**Full Legal Name:** ${personal.fullName || "N/A"}\n**Preferred Name:** ${personal.preferredName || "N/A"}\n**Email:** ${personal.email || "N/A"}\n**Phone:** ${personal.phone || "N/A"}\n**Location:** ${personal.countryCity || "N/A"}`,
+            inline: false,
+          },
+          {
+            name: "💳 Payment & Banking Setup",
+            value: `**Payment Method:** ${payment.paymentMethod}\n**Bank / Service:** ${payment.bankName || "N/A"}\n**Account Holder:** ${payment.accountHolder || "N/A"}\n**Account / Wallet #:** ${payment.accountNumber || "N/A"}\n**Branch Code:** ${payment.branchCode || "N/A"}\n**SWIFT / IBAN:** ${payment.swiftOrIBAN || "N/A"}\n**Notes:** ${payment.additionalPaymentNotes || "None"}`,
+            inline: false,
+          },
+          {
+            name: "✍️ Digital Agreement & Signature",
+            value:
+              signatureType === "type"
+                ? `**Typed Legal Signature:** ${typedSignature}\n**Agreed to Terms:** Yes ✅`
+                : `**Signature Method:** Hand-drawn (Attached below)\n**Agreed to Terms:** Yes ✅`,
+            inline: false,
+          },
+        ],
+        footer: {
+          text: "Internal Portal Onboarding",
+        },
+        timestamp: new Date().toISOString(),
+      };
+
+      if (hasAvatar) {
+        embed.thumbnail = { url: `attachment://${avatarFileName}` };
+      }
+
+      if (hasDrawnSig) {
+        embed.image = { url: `attachment://${sigFileName}` };
+      }
+
+      formData.append("payload_json", JSON.stringify({ embeds: [embed] }));
+
       const res = await fetch(WEBHOOK_URL, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
+        body: formData,
       });
+
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
       setSubmitted(true);
       window.scrollTo({ top: 0, behavior: "smooth" });
     } catch (err) {
@@ -548,6 +621,22 @@ export default function EmployeeOnboarding() {
             </div>
 
             {/* Signature Toggle */}
+            <div className="sig-toggle">
+              <button
+                type="button"
+                className={`sig-toggle-btn ${signatureType === "type" ? "active" : ""}`}
+                onClick={() => setSignatureType("type")}
+              >
+                Type Signature
+              </button>
+              <button
+                type="button"
+                className={`sig-toggle-btn ${signatureType === "draw" ? "active" : ""}`}
+                onClick={() => setSignatureType("draw")}
+              >
+                Draw Signature
+              </button>
+            </div>
 
             {/* Type Signature Mode */}
             {signatureType === "type" ? (
@@ -600,7 +689,7 @@ export default function EmployeeOnboarding() {
 
             {submitError && (
               <div className="error-msg" role="alert">
-                An issue occurred while submitting your onboarding profile. Please try again.
+                An issue occurred while submitting your onboarding profile to Discord. Please try again.
               </div>
             )}
 
@@ -619,7 +708,7 @@ export default function EmployeeOnboarding() {
             <div className="success-icon" aria-hidden="true">✓</div>
             <h2>You're All Set!</h2>
             <p>
-              Your onboarding information and signed agreement have been successfully submitted. Welcome to the team!
+              Your onboarding information and signed agreement have been successfully submitted to Discord. Welcome to the team!
             </p>
             <hr className="divider" style={{ maxWidth: 200, margin: "32px auto" }} />
             <p style={{ fontSize: 13, color: "var(--muted)" }}>An administrator will review your setup shortly.</p>
