@@ -15,7 +15,6 @@ const ROLES = [
 
 const PAYMENT_METHODS = [
   "Direct Bank Transfer",
-  "Mobile Money / Wallet",
   "Wise / International Transfer",
   "Crypto / Stablecoin",
 ];
@@ -357,14 +356,14 @@ export default function EmployeeOnboarding() {
             <div className="field-row">
               <FieldGroup label="Full Legal Name" required>
                 <TextInput
-                  placeholder="e.g. Cassidy Kahn"
+                  placeholder="e.g. Susmita Dey"
                   value={personal.fullName}
                   onChange={(v) => setPersonal((p) => ({ ...p, fullName: v }))}
                 />
               </FieldGroup>
               <FieldGroup label="Preferred Name">
                 <TextInput
-                  placeholder="e.g. Cass"
+                  placeholder="e.g. Susmita, Susie, S.D."
                   value={personal.preferredName}
                   onChange={(v) => setPersonal((p) => ({ ...p, preferredName: v }))}
                 />
@@ -383,7 +382,7 @@ export default function EmployeeOnboarding() {
               <FieldGroup label="Phone / WhatsApp Number" required>
                 <TextInput
                   type="tel"
-                  placeholder="+264 81 000 0000"
+                  placeholder="+44 900 123456"
                   value={personal.phone}
                   onChange={(v) => setPersonal((p) => ({ ...p, phone: v }))}
                 />
@@ -395,35 +394,6 @@ export default function EmployeeOnboarding() {
                 placeholder="e.g. Windhoek, Namibia"
                 value={personal.countryCity}
                 onChange={(v) => setPersonal((p) => ({ ...p, countryCity: v }))}
-              />
-            </FieldGroup>
-
-            <hr className="divider" />
-            <h3 className="sub-heading">Emergency Contact</h3>
-
-            <div className="field-row">
-              <FieldGroup label="Emergency Contact Name" required>
-                <TextInput
-                  placeholder="Contact Name"
-                  value={personal.emergencyName}
-                  onChange={(v) => setPersonal((p) => ({ ...p, emergencyName: v }))}
-                />
-              </FieldGroup>
-              <FieldGroup label="Relationship" required>
-                <TextInput
-                  placeholder="e.g. Parent, Partner, Sibling"
-                  value={personal.emergencyRelationship}
-                  onChange={(v) => setPersonal((p) => ({ ...p, emergencyRelationship: v }))}
-                />
-              </FieldGroup>
-            </div>
-
-            <FieldGroup label="Emergency Contact Phone" required>
-              <TextInput
-                type="tel"
-                placeholder="+264 81 000 0000"
-                value={personal.emergencyPhone}
-                onChange={(v) => setPersonal((p) => ({ ...p, emergencyPhone: v }))}
               />
             </FieldGroup>
 
@@ -454,14 +424,14 @@ export default function EmployeeOnboarding() {
             <div className="field-row">
               <FieldGroup label="Bank Name / Service Provider" required>
                 <TextInput
-                  placeholder="e.g. FNB Namibia / Wise / Binance"
+                  placeholder="e.g. Wise / Binance"
                   value={payment.bankName}
                   onChange={(v) => setPayment((p) => ({ ...p, bankName: v }))}
                 />
               </FieldGroup>
               <FieldGroup label="Account Holder Name" required hint="Must match legal identity on statement">
                 <TextInput
-                  placeholder="e.g. Cassidy Kahn"
+                  placeholder="e.g. Susmita Dey"
                   value={payment.accountHolder}
                   onChange={(v) => setPayment((p) => ({ ...p, accountHolder: v }))}
                 />
@@ -533,20 +503,13 @@ export default function EmployeeOnboarding() {
               >
                 Type Signature
               </button>
-              <button
-                type="button"
-                className={`sig-toggle-btn ${signatureType === "draw" ? "active" : ""}`}
-                onClick={() => setSignatureType("draw")}
-              >
-                Draw Signature
-              </button>
             </div>
 
             {/* Type Signature Mode */}
             {signatureType === "type" ? (
               <FieldGroup label="Type Full Legal Name" required hint="Your typed name serves as a legal digital signature.">
                 <TextInput
-                  placeholder="e.g. Cassidy Kahn"
+                  placeholder="e.g. Susmita Dey"
                   value={typedSignature}
                   onChange={setTypedSignature}
                 />
