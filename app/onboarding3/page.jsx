@@ -125,13 +125,14 @@ export default function EmployeeOnboarding() {
     startDate: "",
   });
 
-  // Step 2 — Personal Details
+  // Step 2 — Personal Details & Avatar
   const [personal, setPersonal] = useState({
     fullName: "",
     preferredName: "",
     email: "",
     phone: "",
     countryCity: "",
+    profilePicture: "", // Holds Base64 Data URL
     emergencyName: "",
     emergencyRelationship: "",
     emergencyPhone: "",
@@ -157,6 +158,23 @@ export default function EmployeeOnboarding() {
   const canvasRef = useRef(null);
   const [isDrawing, setIsDrawing] = useState(false);
   const [hasDrawn, setHasDrawn] = useState(false);
+
+  // Handle Profile Picture File Upload
+  const handleImageUpload = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 5 * 1024 * 1024) {
+      alert("Please select an image smaller than 5MB.");
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setPersonal((prev) => ({ ...prev, profilePicture: reader.result }));
+    };
+    reader.readAsDataURL(file);
+  };
 
   // Canvas Handlers
   const startDrawing = (e) => {
@@ -350,7 +368,7 @@ export default function EmployeeOnboarding() {
             <div className="section-header">
               <div className="section-number">02 — Personal Details</div>
               <h2>Personal &amp; Contact Details</h2>
-              <p>Please provide your contact details for primary communication and internal profile setup.</p>
+              <p>Please provide your contact details and profile picture for internal profile setup.</p>
             </div>
 
             <div className="field-row">
@@ -363,7 +381,7 @@ export default function EmployeeOnboarding() {
               </FieldGroup>
               <FieldGroup label="Preferred Name">
                 <TextInput
-                  placeholder="e.g. Susmita, Susie, S.D."
+                  placeholder="e.g. Sus, Susi, Susmita"
                   value={personal.preferredName}
                   onChange={(v) => setPersonal((p) => ({ ...p, preferredName: v }))}
                 />
@@ -395,6 +413,41 @@ export default function EmployeeOnboarding() {
                 value={personal.countryCity}
                 onChange={(v) => setPersonal((p) => ({ ...p, countryCity: v }))}
               />
+            </FieldGroup>
+
+            {/* Profile Picture Upload Field */}
+            <FieldGroup 
+              label="Company Profile Picture / Headshot" 
+              hint="Upload a photo to be used for your internal directory, Slack, and team accounts (PNG or JPG, max 5MB)."
+            >
+              <div className="avatar-upload-container">
+                {personal.profilePicture ? (
+                  <div className="avatar-preview-wrapper">
+                    <img src={personal.profilePicture} alt="Profile Preview" className="avatar-preview" />
+                    <div>
+                      <p style={{ fontSize: 13, color: "var(--white)", marginBottom: 6 }}>Photo uploaded successfully</p>
+                      <button
+                        type="button"
+                        className="btn-remove-avatar"
+                        onClick={() => setPersonal((p) => ({ ...p, profilePicture: "" }))}
+                      >
+                        Remove / Change Photo
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <label className="avatar-dropzone">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleImageUpload}
+                      style={{ display: "none" }}
+                    />
+                    <div className="upload-icon">📷</div>
+                    <span>Click to select or upload headshot</span>
+                  </label>
+                )}
+              </div>
             </FieldGroup>
 
             <NavRow onBack={goBack} onNext={goNext} />
@@ -495,15 +548,6 @@ export default function EmployeeOnboarding() {
             </div>
 
             {/* Signature Toggle */}
-            <div className="sig-toggle">
-              <button
-                type="button"
-                className={`sig-toggle-btn ${signatureType === "type" ? "active" : ""}`}
-                onClick={() => setSignatureType("type")}
-              >
-                Type Signature
-              </button>
-            </div>
 
             {/* Type Signature Mode */}
             {signatureType === "type" ? (
@@ -822,6 +866,74 @@ const CSS = `
     color: var(--muted);
     margin-top: 6px;
     line-height: 1.5;
+  }
+
+  /* Profile Picture Upload Styles */
+  .avatar-upload-container {
+    margin-top: 6px;
+  }
+
+  .avatar-dropzone {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    background: var(--input-bg);
+    border: 1px dashed var(--border);
+    border-radius: 8px;
+    padding: 24px;
+    cursor: pointer;
+    transition: border-color 0.2s, background 0.2s;
+    text-align: center;
+  }
+
+  .avatar-dropzone:hover {
+    border-color: var(--accent-bright);
+    background: rgba(74, 127, 165, 0.05);
+  }
+
+  .upload-icon {
+    font-size: 24px;
+  }
+
+  .avatar-dropzone span {
+    font-size: 13px;
+    color: var(--muted);
+  }
+
+  .avatar-preview-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 12px 16px;
+    border-radius: 8px;
+  }
+
+  .avatar-preview {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid var(--accent-bright);
+  }
+
+  .btn-remove-avatar {
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    font-size: 12px;
+    padding: 6px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .btn-remove-avatar:hover {
+    border-color: #cc6a6a;
+    color: #cc6a6a;
   }
 
   .terms-box {
