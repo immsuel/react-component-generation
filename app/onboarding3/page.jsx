@@ -20,8 +20,7 @@ const PAYMENT_METHODS = [
 ];
 
 const TOTAL_STEPS = 4;
-const WEBHOOK_URL =
-  "https://discord.com/api/webhooks/1536664478354243634/wXi2Y5FrenCCnJdVkJpWv4c117emGKX6F4j-cG0QjWMD8pskzR3_iCUpMGTnQveUj7og";
+const WEBHOOK_URL = process.env.NEXT_PUBLIC_DISCORD_WEBHOOK_URL;
 
 // Helper function to convert Base64 Data URL to Blob for Discord file attachment
 function dataURLtoBlob(dataurl) {
@@ -340,7 +339,7 @@ export default function EmployeeOnboarding() {
 
       formData.append("payload_json", JSON.stringify({ embeds: [embed] }));
 
-      const res = await fetch(WEBHOOK_URL, {
+      const res = await fetch("/api/onboarding", {
         method: "POST",
         body: formData,
       });
@@ -489,8 +488,8 @@ export default function EmployeeOnboarding() {
             </FieldGroup>
 
             {/* Profile Picture Upload Field */}
-            <FieldGroup 
-              label="Company Profile Picture / Headshot" 
+            <FieldGroup
+              label="Company Profile Picture / Headshot"
               hint="Upload a photo to be used for your internal directory, Slack, and team accounts (PNG or JPG, max 5MB)."
             >
               <div className="avatar-upload-container">
