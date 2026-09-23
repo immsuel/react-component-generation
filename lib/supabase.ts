@@ -21,4 +21,19 @@ export interface StellarLead {
     created_at?: string
 }
 
+export interface StellarTicket {
+    id?: string
+    created_at?: string
+    updated_at?: string
+    title: string
+    description?: string
+    status: "open" | "in_progress" | "resolved" | "closed"
+    priority: "low" | "medium" | "high" | "urgent"
+    contact_name?: string
+    contact_email?: string
+    contact_phone?: string
+    assigned_to?: string
+    lead_id?: string
+}
+
 //comment
