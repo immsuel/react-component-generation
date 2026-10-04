@@ -41,9 +41,16 @@ The content is organized as follows:
 
 <directory_structure>
 app/
+  api/
+    onboarding/
+      route.js
   booking/
     booking.jsx
+  crm/
+    page.tsx
   fairpaycasestudy/
+    page.tsx
+  login/
     page.tsx
   mymcasestudy/
     page.tsx
@@ -139,6 +146,7 @@ hooks/
   use-mobile.ts
   use-toast.ts
 lib/
+  supabase.ts
   utils.ts
 public/
   images/
@@ -1658,6 +1666,142 @@ export default function FairpayCaseStudy() {
       </footer>
     </main>
   )
+}
+</file>
+
+<file path="app/login/page.tsx">
+"use client"
+
+import { useState } from "react"
+import { useRouter } from "next/navigation"
+import { ArrowLeft, ArrowRight, Lock, ShieldCheck, AlertCircle } from "lucide-react"
+import Link from "next/link"
+
+export default function LoginPage() {
+    const router = useRouter()
+    const [passcode, setPasscode] = useState("")
+    const [error, setError] = useState(false)
+    const [loading, setLoading] = useState(false)
+
+    const handleLogin = (e: React.FormEvent) => {
+        e.preventDefault()
+        setLoading(true)
+        setError(false)
+
+        const expectedPasscode = process.env.NEXT_PUBLIC_CRM_PASSCODE || "stellar2026"
+
+        if (passcode.trim() === expectedPasscode) {
+            sessionStorage.setItem("stellar_crm_auth", "true")
+            router.push("/crm")
+        } else {
+            setTimeout(() => {
+                setError(true)
+                setLoading(false)
+            }, 300)
+        }
+    }
+
+    return (
+        <main className="min-h-screen bg-black text-white selection:bg-white/10 font-sans relative flex flex-col justify-between p-6 md:p-10 overflow-hidden">
+
+            {/* ── Background Grid ─────────────────────────────────────────── */}
+            <div
+                className="absolute inset-0 z-0 pointer-events-none opacity-[0.03]"
+                style={{
+                    backgroundImage: `linear-gradient(to right, #ffffff 1px, transparent 1px), linear-gradient(to bottom, #ffffff 1px, transparent 1px)`,
+                    backgroundSize: '80px 80px',
+                    maskImage: 'radial-gradient(ellipse 60% 60% at 50% 50%, #000 10%, transparent 100%)',
+                    WebkitMaskImage: 'radial-gradient(ellipse 60% 60% at 50% 50%, #000 10%, transparent 100%)'
+                }}
+            />
+
+            {/* ── Ambient Glow ────────────────────────────────────────────── */}
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-slate-500/5 blur-[160px] pointer-events-none rounded-full" />
+
+            {/* ── Header ──────────────────────────────────────────────────── */}
+            <header className="relative z-10 max-w-6xl w-full mx-auto flex justify-between items-center">
+                <Link href="/" className="flex items-center gap-2 group text-slate-400 hover:text-white transition-colors">
+                    <ArrowLeft className="w-4 h-4 transition-transform group-hover:-translate-x-1" />
+                    <span className="text-xs font-medium">Back to website</span>
+                </Link>
+                <div className="flex items-center gap-2 text-xs text-slate-400 font-medium">
+                    <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                    <span>Admin Portal</span>
+                </div>
+            </header>
+
+            {/* ── Center Login Card ───────────────────────────────────────── */}
+            <div className="relative z-10 w-full max-w-md mx-auto my-auto py-8">
+                <div className="bg-[#050505] border border-white/10 rounded-[2.5rem] p-8 md:p-12 shadow-2xl relative group transition-all duration-500 hover:border-white/20">
+
+                    <div className="flex justify-between items-start mb-8">
+                        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-slate-300 text-xs font-medium">
+                            <ShieldCheck className="w-3.5 h-3.5 text-slate-400" />
+                            Private Access
+                        </div>
+                    </div>
+
+                    <div className="mb-8">
+                        <h1 className="text-3xl md:text-4xl font-semibold tracking-tight mb-2 leading-tight">
+                            Sign In <br />
+                            <span className="text-slate-500">to your CRM.</span>
+                        </h1>
+                        <p className="text-xs text-slate-400 leading-relaxed font-normal">
+                            Enter your admin passcode to view and manage your client leads and pipeline.
+                        </p>
+                    </div>
+
+                    <form onSubmit={handleLogin} className="space-y-4">
+                        <div className="space-y-2">
+                            <label className="block text-xs font-medium text-slate-400">
+                                Passcode
+                            </label>
+                            <div className="relative">
+                                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                                <input
+                                    type="password"
+                                    placeholder="Enter passcode"
+                                    value={passcode}
+                                    onChange={(e) => setPasscode(e.target.value)}
+                                    autoFocus
+                                    required
+                                    className="w-full bg-white/[0.02] border border-white/10 rounded-2xl pl-11 pr-4 py-3.5 text-sm text-white placeholder:text-slate-600 focus:outline-none focus:border-white/30 transition-all"
+                                />
+                            </div>
+                        </div>
+
+                        {error && (
+                            <div className="flex items-center gap-2.5 text-rose-400 text-xs bg-rose-500/10 border border-rose-500/20 p-3.5 rounded-2xl">
+                                <AlertCircle className="w-4 h-4 shrink-0" />
+                                <span>Incorrect passcode. Please try again.</span>
+                            </div>
+                        )}
+
+                        <button
+                            type="submit"
+                            disabled={loading}
+                            className="w-full mt-2 py-4 bg-white text-black hover:bg-slate-200 active:scale-95 rounded-full text-xs font-semibold uppercase tracking-wider transition-all flex items-center justify-center gap-2 disabled:opacity-50 shadow-xl"
+                        >
+                            {loading ? (
+                                <span>Signing in...</span>
+                            ) : (
+                                <>
+                                    <span>Log In</span>
+                                    <ArrowRight className="w-4 h-4" />
+                                </>
+                            )}
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            {/* ── Footer ──────────────────────────────────────────────────── */}
+            <footer className="relative z-10 max-w-6xl w-full mx-auto pt-6 text-xs text-slate-600 flex justify-between items-center border-t border-white/5">
+                <span>StellarCode Lead Management</span>
+                <span>Authorized access only</span>
+            </footer>
+        </main>
+    )
 }
 </file>
 
@@ -9416,83 +9560,6 @@ const nextConfig = {
 export default nextConfig
 </file>
 
-<file path="package.json">
-{
-  "name": "my-v0-project",
-  "version": "0.1.0",
-  "private": true,
-  "scripts": {
-    "build": "next build",
-    "dev": "next dev",
-    "lint": "eslint .",
-    "start": "next start"
-  },
-  "dependencies": {
-    "@hookform/resolvers": "^3.10.0",
-    "@radix-ui/react-accordion": "1.2.2",
-    "@radix-ui/react-alert-dialog": "1.1.4",
-    "@radix-ui/react-aspect-ratio": "1.1.1",
-    "@radix-ui/react-avatar": "1.1.2",
-    "@radix-ui/react-checkbox": "1.1.3",
-    "@radix-ui/react-collapsible": "1.1.2",
-    "@radix-ui/react-context-menu": "2.2.4",
-    "@radix-ui/react-dialog": "1.1.4",
-    "@radix-ui/react-dropdown-menu": "2.1.4",
-    "@radix-ui/react-hover-card": "1.1.4",
-    "@radix-ui/react-label": "2.1.1",
-    "@radix-ui/react-menubar": "1.1.4",
-    "@radix-ui/react-navigation-menu": "1.2.3",
-    "@radix-ui/react-popover": "1.1.4",
-    "@radix-ui/react-progress": "1.1.1",
-    "@radix-ui/react-radio-group": "1.2.2",
-    "@radix-ui/react-scroll-area": "1.2.2",
-    "@radix-ui/react-select": "2.1.4",
-    "@radix-ui/react-separator": "1.1.1",
-    "@radix-ui/react-slider": "1.2.2",
-    "@radix-ui/react-slot": "1.1.1",
-    "@radix-ui/react-switch": "1.1.2",
-    "@radix-ui/react-tabs": "1.1.2",
-    "@radix-ui/react-toast": "1.2.4",
-    "@radix-ui/react-toggle": "1.1.1",
-    "@radix-ui/react-toggle-group": "1.1.1",
-    "@radix-ui/react-tooltip": "1.1.6",
-    "@vercel/analytics": "1.3.1",
-    "autoprefixer": "^10.4.20",
-    "class-variance-authority": "^0.7.1",
-    "clsx": "^2.1.1",
-    "cmdk": "1.0.4",
-    "date-fns": "4.1.0",
-    "embla-carousel-react": "8.5.1",
-    "framer-motion": "^12.26.1",
-    "input-otp": "1.4.1",
-    "lucide-react": "^0.454.0",
-    "next": "16.0.10",
-    "next-themes": "^0.4.6",
-    "react": "19.2.0",
-    "react-day-picker": "9.8.0",
-    "react-dom": "19.2.0",
-    "react-hook-form": "^7.60.0",
-    "react-resizable-panels": "^2.1.7",
-    "recharts": "2.15.4",
-    "sonner": "^1.7.4",
-    "tailwind-merge": "^3.3.1",
-    "tailwindcss-animate": "^1.0.7",
-    "vaul": "^1.1.2",
-    "zod": "3.25.76"
-  },
-  "devDependencies": {
-    "@tailwindcss/postcss": "^4.1.9",
-    "@types/node": "^22",
-    "@types/react": "^19",
-    "@types/react-dom": "^19",
-    "postcss": "^8.5",
-    "tailwindcss": "^4.1.9",
-    "tw-animate-css": "1.3.3",
-    "typescript": "^5"
-  }
-}
-</file>
-
 <file path="postcss.config.mjs">
 /** @type {import('postcss-load-config').Config} */
 const config = {
@@ -9545,6 +9612,50 @@ export default config
   "exclude": [
     "node_modules"
   ]
+}
+</file>
+
+<file path="app/api/onboarding/route.js">
+// app/api/onboarding/route.js
+import { NextResponse } from "next/server";
+
+export async function POST(req) {
+    try {
+        const webhookUrl = process.env.DISCORD_WEBHOOK_URL || process.env.NEXT_PUBLIC_DISCORD_WEBHOOK_URL;
+
+        if (!webhookUrl) {
+            console.error("Missing DISCORD_WEBHOOK_URL in environment variables.");
+            return NextResponse.json(
+                { error: "Server configuration error: Webhook URL not configured." },
+                { status: 500 }
+            );
+        }
+
+        // Forward the multipart/form-data directly to Discord
+        const formData = await req.formData();
+
+        const discordRes = await fetch(webhookUrl, {
+            method: "POST",
+            body: formData,
+        });
+
+        if (!discordRes.ok) {
+            const errorText = await discordRes.text();
+            console.error("Discord API Error:", errorText);
+            return NextResponse.json(
+                { error: `Discord rejected webhook: ${discordRes.status}` },
+                { status: discordRes.status }
+            );
+        }
+
+        return NextResponse.json({ success: true });
+    } catch (error) {
+        console.error("Onboarding API Error:", error);
+        return NextResponse.json(
+            { error: error?.message || "Internal Server Error" },
+            { status: 500 }
+        );
+    }
 }
 </file>
 
@@ -10078,6 +10189,1608 @@ export function Phases() {
 }
 </file>
 
+<file path="package.json">
+{
+  "name": "my-v0-project",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "build": "next build",
+    "dev": "next dev",
+    "lint": "eslint .",
+    "start": "next start"
+  },
+  "dependencies": {
+    "@hookform/resolvers": "^3.10.0",
+    "@radix-ui/react-accordion": "1.2.2",
+    "@radix-ui/react-alert-dialog": "1.1.4",
+    "@radix-ui/react-aspect-ratio": "1.1.1",
+    "@radix-ui/react-avatar": "1.1.2",
+    "@radix-ui/react-checkbox": "1.1.3",
+    "@radix-ui/react-collapsible": "1.1.2",
+    "@radix-ui/react-context-menu": "2.2.4",
+    "@radix-ui/react-dialog": "1.1.4",
+    "@radix-ui/react-dropdown-menu": "2.1.4",
+    "@radix-ui/react-hover-card": "1.1.4",
+    "@radix-ui/react-label": "2.1.1",
+    "@radix-ui/react-menubar": "1.1.4",
+    "@radix-ui/react-navigation-menu": "1.2.3",
+    "@radix-ui/react-popover": "1.1.4",
+    "@radix-ui/react-progress": "1.1.1",
+    "@radix-ui/react-radio-group": "1.2.2",
+    "@radix-ui/react-scroll-area": "1.2.2",
+    "@radix-ui/react-select": "2.1.4",
+    "@radix-ui/react-separator": "1.1.1",
+    "@radix-ui/react-slider": "1.2.2",
+    "@radix-ui/react-slot": "1.1.1",
+    "@radix-ui/react-switch": "1.1.2",
+    "@radix-ui/react-tabs": "1.1.2",
+    "@radix-ui/react-toast": "1.2.4",
+    "@radix-ui/react-toggle": "1.1.1",
+    "@radix-ui/react-toggle-group": "1.1.1",
+    "@radix-ui/react-tooltip": "1.1.6",
+    "@supabase/supabase-js": "^2.116.0",
+    "@vercel/analytics": "1.3.1",
+    "autoprefixer": "^10.4.20",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "cmdk": "1.0.4",
+    "date-fns": "4.1.0",
+    "embla-carousel-react": "8.5.1",
+    "framer-motion": "^12.26.1",
+    "input-otp": "1.4.1",
+    "lucide-react": "^0.454.0",
+    "next": "16.0.10",
+    "next-themes": "^0.4.6",
+    "react": "19.2.0",
+    "react-day-picker": "9.8.0",
+    "react-dom": "19.2.0",
+    "react-hook-form": "^7.60.0",
+    "react-resizable-panels": "^2.1.7",
+    "recharts": "2.15.4",
+    "sonner": "^1.7.4",
+    "tailwind-merge": "^3.3.1",
+    "tailwindcss-animate": "^1.0.7",
+    "vaul": "^1.1.2",
+    "zod": "3.25.76"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4.1.9",
+    "@types/node": "^22",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "postcss": "^8.5",
+    "tailwindcss": "^4.1.9",
+    "tw-animate-css": "1.3.3",
+    "typescript": "^5"
+  }
+}
+</file>
+
+<file path="app/crm/page.tsx">
+"use client"
+
+export const dynamic = "force-dynamic"
+
+import { useEffect, useState, useMemo } from "react"
+import { useRouter } from "next/navigation"
+import {
+    Search,
+    Plus,
+    Trash2,
+    Edit3,
+    RefreshCw,
+    LogOut,
+    Download,
+    Users,
+    CheckCircle2,
+    TrendingUp,
+    DollarSign,
+    Phone,
+    Mail,
+    X,
+    AlertCircle,
+    Layers,
+    Check,
+    ArrowUpDown,
+    ArrowUp,
+    ArrowDown,
+    Calendar,
+    Ticket as TicketIcon,
+    Clock,
+    AlertTriangle,
+    Tag,
+    UserCheck,
+    MessageSquare
+} from "lucide-react"
+import { supabase, type StellarLead } from "@/lib/supabase"
+import Link from "next/link"
+
+// ── Types ────────────────────────────────────────────────────────────────────
+
+export interface StellarTicket {
+    id?: string
+    created_at?: string
+    updated_at?: string
+    title: string
+    description?: string
+    status: "open" | "in_progress" | "resolved" | "closed"
+    priority: "low" | "medium" | "high" | "urgent"
+    contact_name?: string
+    contact_email?: string
+    contact_phone?: string
+    assigned_to?: string
+    lead_id?: string
+}
+
+type LeadSortKey =
+    | "Contact"
+    | "Phone Number"
+    | "Email"
+    | "created_at"
+    | "Contacted"
+    | "Responded"
+    | "Interested"
+    | "Closed"
+    | "Value"
+
+type TicketSortKey = "title" | "status" | "priority" | "created_at" | "contact_name"
+
+// ── Helpers ──────────────────────────────────────────────────────────────────
+
+function normalizePhone(phone: string | number | null | undefined): string {
+    if (!phone) return ""
+    let digits = String(phone).replace(/\D/g, "")
+    if (digits.startsWith("44")) digits = digits.slice(2)
+    if (digits.startsWith("0")) digits = digits.slice(1)
+    return digits
+}
+
+function normalizeStr(str: string | null | undefined): string {
+    return (str || "").trim().toLowerCase().replace(/\s+/g, " ")
+}
+
+function formatDate(dateStr?: string | null): string {
+    if (!dateStr) return "—"
+    try {
+        const d = new Date(dateStr)
+        if (isNaN(d.getTime())) return "—"
+        return d.toLocaleDateString("en-GB", {
+            day: "2-digit",
+            month: "short",
+            year: "numeric",
+        })
+    } catch {
+        return "—"
+    }
+}
+
+export default function CRMPage() {
+    const router = useRouter()
+
+    // Active Dashboard Tab
+    const [activeTab, setActiveTab] = useState<"leads" | "tickets">("leads")
+
+    // ── LEADS STATE ──────────────────────────────────────────────────────────
+    const [leads, setLeads] = useState<StellarLead[]>([])
+    const [loadingLeads, setLoadingLeads] = useState(true)
+    const [leadSearch, setLeadSearch] = useState("")
+    const [filterStage, setFilterStage] = useState<"ALL" | "Contacted" | "Responded" | "Interested" | "Closed">("ALL")
+    const [leadSortConfig, setLeadSortConfig] = useState<{ key: LeadSortKey; direction: "asc" | "desc" }>({
+        key: "created_at",
+        direction: "desc",
+    })
+
+    const [isLeadModalOpen, setIsLeadModalOpen] = useState(false)
+    const [editingLead, setEditingLead] = useState<StellarLead | null>(null)
+    const [duplicateWarning, setDuplicateWarning] = useState<string | null>(null)
+    const [isSubmittingLead, setIsSubmittingLead] = useState(false)
+
+    const emptyLeadForm: StellarLead = {
+        "Business Name": "",
+        Contact: "",
+        "Phone Number": "",
+        Email: "",
+        Comments: "",
+        "Website (if applicable)": "",
+        Contacted: null,
+        Responded: null,
+        Interested: null,
+        Closed: null,
+        Value: 600,
+    }
+    const [leadFormData, setLeadFormData] = useState<StellarLead>(emptyLeadForm)
+
+    // ── TICKETS STATE ────────────────────────────────────────────────────────
+    const [tickets, setTickets] = useState<StellarTicket[]>([])
+    const [loadingTickets, setLoadingTickets] = useState(true)
+    const [ticketSearch, setTicketSearch] = useState("")
+    const [filterTicketStatus, setFilterTicketStatus] = useState<"ALL" | "open" | "in_progress" | "resolved" | "closed">("ALL")
+    const [filterTicketPriority, setFilterTicketPriority] = useState<"ALL" | "low" | "medium" | "high" | "urgent">("ALL")
+    const [ticketSortConfig, setTicketSortConfig] = useState<{ key: TicketSortKey; direction: "asc" | "desc" }>({
+        key: "created_at",
+        direction: "desc",
+    })
+
+    const [isTicketModalOpen, setIsTicketModalOpen] = useState(false)
+    const [editingTicket, setEditingTicket] = useState<StellarTicket | null>(null)
+    const [isSubmittingTicket, setIsSubmittingTicket] = useState(false)
+
+    const emptyTicketForm: StellarTicket = {
+        title: "",
+        description: "",
+        status: "open",
+        priority: "medium",
+        contact_name: "",
+        contact_email: "",
+        contact_phone: "",
+        assigned_to: "",
+    }
+    const [ticketFormData, setTicketFormData] = useState<StellarTicket>(emptyTicketForm)
+
+    // Auth Guard
+    useEffect(() => {
+        const auth = sessionStorage.getItem("stellar_crm_auth")
+        if (!auth) {
+            router.push("/login")
+        } else {
+            fetchLeads()
+            fetchTickets()
+        }
+    }, [router])
+
+    // ── FETCH HANDLERS ───────────────────────────────────────────────────────
+    const fetchLeads = async () => {
+        setLoadingLeads(true)
+        try {
+            const { data, error } = await supabase.from("stellarcode_leads").select("*")
+            if (error) throw error
+            if (data) setLeads(data)
+        } catch (err: any) {
+            console.error("Error loading leads:", err?.message || err)
+        } finally {
+            setLoadingLeads(false)
+        }
+    }
+
+    const fetchTickets = async () => {
+        setLoadingTickets(true)
+        try {
+            const { data, error } = await supabase
+                .from("stellarcode_tickets")
+                .select("*")
+                .order("created_at", { ascending: false })
+
+            if (error) throw error
+            if (data) setTickets(data)
+        } catch (err: any) {
+            console.error("Error loading tickets:", err?.message || err)
+        } finally {
+            setLoadingTickets(false)
+        }
+    }
+
+    const refreshAll = () => {
+        if (activeTab === "leads") fetchLeads()
+        else fetchTickets()
+    }
+
+    // ── LEADS HANDLERS ───────────────────────────────────────────────────────
+    const isChecked = (val: any) => val === "checked" || val === true || val === "true"
+
+    const toggleStatus = async (lead: StellarLead, field: "Contacted" | "Responded" | "Interested" | "Closed") => {
+        const nextVal = isChecked(lead[field]) ? null : "checked"
+        const updated = { ...lead, [field]: nextVal }
+
+        setLeads((prev) =>
+            prev.map((l) =>
+                (l.id && l.id === lead.id) ||
+                    (l.Email === lead.Email && l["Phone Number"] === lead["Phone Number"])
+                    ? updated
+                    : l
+            )
+        )
+
+        try {
+            let query = supabase.from("stellarcode_leads").update({ [field]: nextVal })
+            if (lead.id) query = query.eq("id", lead.id)
+            else if (lead["Phone Number"]) query = query.eq("Phone Number", lead["Phone Number"])
+            else if (lead.Email) query = query.eq("Email", lead.Email)
+            await query
+        } catch (err) {
+            console.error("Update error:", err)
+            fetchLeads()
+        }
+    }
+
+    const checkForDuplicates = (
+        contact: string,
+        phone: string | number | null,
+        email: string | null,
+        business: string,
+        currentId?: string | number
+    ) => {
+        const cleanContact = normalizeStr(contact)
+        const cleanPhone = normalizePhone(phone)
+        const cleanEmail = normalizeStr(email)
+        const cleanBiz = normalizeStr(business)
+
+        return leads.find((l) => {
+            if (currentId && l.id === currentId) return false
+            const existingPhone = normalizePhone(l["Phone Number"])
+            if (cleanPhone.length >= 7 && existingPhone.length >= 7 && cleanPhone === existingPhone) return true
+            const existingContact = normalizeStr(l.Contact)
+            if (cleanContact.length >= 3 && existingContact === cleanContact) return true
+            const existingEmail = normalizeStr(l.Email)
+            if (cleanEmail.length >= 4 && existingEmail === cleanEmail) return true
+            const existingBiz = normalizeStr(l["Business Name"])
+            if (cleanBiz.length >= 3 && existingBiz.length >= 3 && cleanBiz === existingBiz) return true
+            return false
+        })
+    }
+
+    const handleLeadSort = (key: LeadSortKey) => {
+        setLeadSortConfig((prev) => ({
+            key,
+            direction: prev.key === key && prev.direction === "asc" ? "desc" : "asc",
+        }))
+    }
+
+    const handleOpenAddLead = () => {
+        setEditingLead(null)
+        setLeadFormData(emptyLeadForm)
+        setDuplicateWarning(null)
+        setIsLeadModalOpen(true)
+    }
+
+    const handleOpenEditLead = (lead: StellarLead) => {
+        setEditingLead(lead)
+        setLeadFormData({ ...lead, Value: lead.Value || 600 })
+        setDuplicateWarning(null)
+        setIsLeadModalOpen(true)
+    }
+
+    const handleDeleteLead = async (lead: StellarLead) => {
+        if (!confirm(`Are you sure you want to delete ${lead.Contact || lead["Business Name"] || "this lead"}?`)) return
+        setLeads((prev) => prev.filter((l) => l !== lead))
+
+        try {
+            let query = supabase.from("stellarcode_leads").delete()
+            if (lead.id) query = query.eq("id", lead.id)
+            else if (lead["Phone Number"]) query = query.eq("Phone Number", lead["Phone Number"])
+            else if (lead.Email) query = query.eq("Email", lead.Email)
+            await query
+        } catch (err) {
+            console.error("Delete error:", err)
+            fetchLeads()
+        }
+    }
+
+    const handleSaveLead = async (e: React.FormEvent) => {
+        e.preventDefault()
+        setIsSubmittingLead(true)
+        setDuplicateWarning(null)
+
+        const dup = checkForDuplicates(
+            leadFormData.Contact,
+            leadFormData["Phone Number"],
+            leadFormData.Email,
+            leadFormData["Business Name"],
+            editingLead?.id
+        )
+
+        if (dup && !editingLead) {
+            setDuplicateWarning(
+                `This lead already exists: matches "${dup.Contact || "Unnamed"}" (${dup["Phone Number"] || dup.Email || "No phone"}).`
+            )
+            setIsSubmittingLead(false)
+            return
+        }
+
+        try {
+            const payload = {
+                ...leadFormData,
+                created_at: editingLead?.created_at || new Date().toISOString(),
+            }
+
+            if (editingLead) {
+                let query = supabase.from("stellarcode_leads").update(payload)
+                if (editingLead.id) query = query.eq("id", editingLead.id)
+                else query = query.eq("Phone Number", editingLead["Phone Number"])
+                await query
+            } else {
+                await supabase.from("stellarcode_leads").insert([payload])
+            }
+
+            setIsLeadModalOpen(false)
+            fetchLeads()
+        } catch (err: any) {
+            console.error("Save error:", err)
+            alert(err?.message || "Failed to save lead.")
+        } finally {
+            setIsSubmittingLead(false)
+        }
+    }
+
+    const exportCSV = () => {
+        const headers = [
+            "Date Added,Business Name,Contact,Phone Number,Email,Website,Contacted,Responded,Interested,Closed,Value,Comments\n",
+        ]
+        const rows = sortedAndFilteredLeads.map((l) =>
+            [
+                `"${formatDate(l.created_at)}"`,
+                `"${l["Business Name"] || ""}"`,
+                `"${l.Contact || ""}"`,
+                `"${l["Phone Number"] || ""}"`,
+                `"${l.Email || ""}"`,
+                `"${l["Website (if applicable)"] || ""}"`,
+                isChecked(l.Contacted) ? "Yes" : "No",
+                isChecked(l.Responded) ? "Yes" : "No",
+                isChecked(l.Interested) ? "Yes" : "No",
+                isChecked(l.Closed) ? "Yes" : "No",
+                l.Value || 600,
+                `"${(l.Comments || "").replace(/"/g, '""')}"`,
+            ].join(",")
+        )
+
+        const blob = new Blob([headers.concat(rows.join("\n")).join("")], { type: "text/csv;charset=utf-8;" })
+        const url = URL.createObjectURL(blob)
+        const link = document.createElement("a")
+        link.href = url
+        link.download = `leads_${new Date().toISOString().slice(0, 10)}.csv`
+        document.body.appendChild(link)
+        link.click()
+        document.body.removeChild(link)
+    }
+
+    // ── TICKETS HANDLERS ─────────────────────────────────────────────────────
+    const handleTicketSort = (key: TicketSortKey) => {
+        setTicketSortConfig((prev) => ({
+            key,
+            direction: prev.key === key && prev.direction === "asc" ? "desc" : "asc",
+        }))
+    }
+
+    const handleOpenAddTicket = () => {
+        setEditingTicket(null)
+        setTicketFormData(emptyTicketForm)
+        setIsTicketModalOpen(true)
+    }
+
+    const handleOpenEditTicket = (ticket: StellarTicket) => {
+        setEditingTicket(ticket)
+        setTicketFormData(ticket)
+        setIsTicketModalOpen(true)
+    }
+
+    const handleQuickTicketStatus = async (ticket: StellarTicket, newStatus: StellarTicket["status"]) => {
+        const updated = { ...ticket, status: newStatus }
+        setTickets((prev) => prev.map((t) => (t.id === ticket.id ? updated : t)))
+
+        try {
+            await supabase.from("stellarcode_tickets").update({ status: newStatus }).eq("id", ticket.id)
+        } catch (err) {
+            console.error("Ticket status error:", err)
+            fetchTickets()
+        }
+    }
+
+    const handleDeleteTicket = async (ticket: StellarTicket) => {
+        if (!confirm(`Are you sure you want to delete ticket "${ticket.title}"?`)) return
+        setTickets((prev) => prev.filter((t) => t.id !== ticket.id))
+
+        try {
+            await supabase.from("stellarcode_tickets").delete().eq("id", ticket.id)
+        } catch (err) {
+            console.error("Delete ticket error:", err)
+            fetchTickets()
+        }
+    }
+
+    const handleSaveTicket = async (e: React.FormEvent) => {
+        e.preventDefault()
+        setIsSubmittingTicket(true)
+
+        try {
+            if (editingTicket?.id) {
+                const { error } = await supabase
+                    .from("stellarcode_tickets")
+                    .update(ticketFormData)
+                    .eq("id", editingTicket.id)
+                if (error) throw error
+            } else {
+                const { error } = await supabase.from("stellarcode_tickets").insert([ticketFormData])
+                if (error) throw error
+            }
+
+            setIsTicketModalOpen(false)
+            fetchTickets()
+        } catch (err: any) {
+            console.error("Save ticket error:", err)
+            alert(err?.message || "Failed to save ticket.")
+        } finally {
+            setIsSubmittingTicket(false)
+        }
+    }
+
+    // ── COMPUTED DATA ────────────────────────────────────────────────────────
+    const sortedAndFilteredLeads = useMemo(() => {
+        const filtered = leads.filter((lead) => {
+            const matchSearch =
+                (lead.Contact || "").toLowerCase().includes(leadSearch.toLowerCase()) ||
+                (lead["Business Name"] || "").toLowerCase().includes(leadSearch.toLowerCase()) ||
+                (lead.Email || "").toLowerCase().includes(leadSearch.toLowerCase()) ||
+                String(lead["Phone Number"] || "").includes(leadSearch)
+
+            if (!matchSearch) return false
+            if (filterStage === "Contacted") return isChecked(lead.Contacted)
+            if (filterStage === "Responded") return isChecked(lead.Responded)
+            if (filterStage === "Interested") return isChecked(lead.Interested)
+            if (filterStage === "Closed") return isChecked(lead.Closed)
+            return true
+        })
+
+        return filtered.sort((a, b) => {
+            const { key, direction } = leadSortConfig
+            const mod = direction === "asc" ? 1 : -1
+
+            if (key === "created_at") {
+                const timeA = a.created_at ? new Date(a.created_at).getTime() : 0
+                const timeB = b.created_at ? new Date(b.created_at).getTime() : 0
+                return (timeA - timeB) * mod
+            }
+
+            if (key === "Value") {
+                return (Number(a.Value || 600) - Number(b.Value || 600)) * mod
+            }
+
+            if (key === "Contacted" || key === "Responded" || key === "Interested" || key === "Closed") {
+                const boolA = isChecked(a[key]) ? 1 : 0
+                const boolB = isChecked(b[key]) ? 1 : 0
+                return (boolA - boolB) * mod
+            }
+
+            const strA = (a[key] ? String(a[key]) : "").toLowerCase()
+            const strB = (b[key] ? String(b[key]) : "").toLowerCase()
+            return strA.localeCompare(strB) * mod
+        })
+    }, [leads, leadSearch, filterStage, leadSortConfig])
+
+    const sortedAndFilteredTickets = useMemo(() => {
+        const filtered = tickets.filter((t) => {
+            const matchSearch =
+                (t.title || "").toLowerCase().includes(ticketSearch.toLowerCase()) ||
+                (t.description || "").toLowerCase().includes(ticketSearch.toLowerCase()) ||
+                (t.contact_name || "").toLowerCase().includes(ticketSearch.toLowerCase()) ||
+                (t.contact_email || "").toLowerCase().includes(ticketSearch.toLowerCase())
+
+            if (!matchSearch) return false
+            if (filterTicketStatus !== "ALL" && t.status !== filterTicketStatus) return false
+            if (filterTicketPriority !== "ALL" && t.priority !== filterTicketPriority) return false
+            return true
+        })
+
+        return filtered.sort((a, b) => {
+            const { key, direction } = ticketSortConfig
+            const mod = direction === "asc" ? 1 : -1
+
+            if (key === "created_at") {
+                const timeA = a.created_at ? new Date(a.created_at).getTime() : 0
+                const timeB = b.created_at ? new Date(b.created_at).getTime() : 0
+                return (timeA - timeB) * mod
+            }
+
+            const strA = (a[key] ? String(a[key]) : "").toLowerCase()
+            const strB = (b[key] ? String(b[key]) : "").toLowerCase()
+            return strA.localeCompare(strB) * mod
+        })
+    }, [tickets, ticketSearch, filterTicketStatus, filterTicketPriority, ticketSortConfig])
+
+    // Lead Metrics
+    const leadMetrics = useMemo(() => {
+        const total = leads.length
+        const contacted = leads.filter((l) => isChecked(l.Contacted)).length
+        const responded = leads.filter((l) => isChecked(l.Responded)).length
+        const closedLeads = leads.filter((l) => isChecked(l.Closed))
+        const closed = closedLeads.length
+
+        const closedAnnualValue = closedLeads.reduce(
+            (acc, curr) => acc + (Number(curr.Value) > 0 ? Number(curr.Value) : 600),
+            0
+        )
+
+        const responseRate = contacted > 0 ? Math.round((responded / contacted) * 100) : 0
+        const conversionRate = total > 0 ? Math.round((closed / total) * 100) : 0
+
+        return { total, contacted, responded, closed, closedAnnualValue, responseRate, conversionRate }
+    }, [leads])
+
+    // Ticket Metrics
+    const ticketMetrics = useMemo(() => {
+        const total = tickets.length
+        const open = tickets.filter((t) => t.status === "open").length
+        const inProgress = tickets.filter((t) => t.status === "in_progress").length
+        const resolved = tickets.filter((t) => t.status === "resolved" || t.status === "closed").length
+        const urgent = tickets.filter((t) => (t.priority === "urgent" || t.priority === "high") && t.status !== "closed").length
+
+        return { total, open, inProgress, resolved, urgent }
+    }, [tickets])
+
+    // Helper Badges
+    const renderPriorityBadge = (priority: StellarTicket["priority"]) => {
+        switch (priority) {
+            case "urgent":
+                return <span className="px-2.5 py-1 rounded-full text-[10px] font-bold tracking-wide bg-rose-500/10 text-rose-400 border border-rose-500/20">URGENT</span>
+            case "high":
+                return <span className="px-2.5 py-1 rounded-full text-[10px] font-bold tracking-wide bg-amber-500/10 text-amber-400 border border-amber-500/20">HIGH</span>
+            case "medium":
+                return <span className="px-2.5 py-1 rounded-full text-[10px] font-bold tracking-wide bg-blue-500/10 text-blue-400 border border-blue-500/20">MEDIUM</span>
+            case "low":
+            default:
+                return <span className="px-2.5 py-1 rounded-full text-[10px] font-bold tracking-wide bg-slate-500/10 text-slate-400 border border-slate-500/20">LOW</span>
+        }
+    }
+
+    const renderStatusBadge = (status: StellarTicket["status"]) => {
+        switch (status) {
+            case "open":
+                return <span className="px-2.5 py-1 rounded-full text-[10px] font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">Open</span>
+            case "in_progress":
+                return <span className="px-2.5 py-1 rounded-full text-[10px] font-semibold bg-sky-500/10 text-sky-400 border border-sky-500/20">In Progress</span>
+            case "resolved":
+                return <span className="px-2.5 py-1 rounded-full text-[10px] font-semibold bg-purple-500/10 text-purple-400 border border-purple-500/20">Resolved</span>
+            case "closed":
+            default:
+                return <span className="px-2.5 py-1 rounded-full text-[10px] font-semibold bg-white/5 text-slate-400 border border-white/10">Closed</span>
+        }
+    }
+
+    return (
+        <main className="min-h-screen bg-black text-white selection:bg-white/10 font-sans pb-24">
+
+            {/* Top Navigation */}
+            <nav className="fixed top-0 w-full z-50 border-b border-white/5 bg-black/80 backdrop-blur-md px-6 py-4">
+                <div className="max-w-7xl mx-auto flex justify-between items-center">
+                    <div className="flex items-center gap-4">
+                        <Link href="/" className="text-sm font-semibold tracking-wide text-white hover:text-slate-300 transition-colors">
+                            StellarCode
+                        </Link>
+                        <div className="h-3 w-px bg-white/10 hidden sm:block" />
+
+                        {/* Navigation Tab Switcher */}
+                        <div className="flex items-center bg-white/[0.04] p-1 rounded-full border border-white/10">
+                            <button
+                                onClick={() => setActiveTab("leads")}
+                                className={`flex items-center gap-1.5 px-3.5 py-1 rounded-full text-xs font-medium transition-all ${activeTab === "leads" ? "bg-white text-black shadow-md font-semibold" : "text-slate-400 hover:text-white"
+                                    }`}
+                            >
+                                <Layers className="w-3.5 h-3.5" />
+                                <span>Leads</span>
+                            </button>
+                            <button
+                                onClick={() => setActiveTab("tickets")}
+                                className={`flex items-center gap-1.5 px-3.5 py-1 rounded-full text-xs font-medium transition-all ${activeTab === "tickets" ? "bg-white text-black shadow-md font-semibold" : "text-slate-400 hover:text-white"
+                                    }`}
+                            >
+                                <TicketIcon className="w-3.5 h-3.5" />
+                                <span>Tickets</span>
+                                {ticketMetrics.open > 0 && (
+                                    <span className="ml-1 px-1.5 py-0.2 bg-rose-500 text-white rounded-full text-[10px] font-bold">
+                                        {ticketMetrics.open}
+                                    </span>
+                                )}
+                            </button>
+                        </div>
+                    </div>
+
+                    <div className="flex items-center gap-3">
+                        <button
+                            onClick={refreshAll}
+                            className="p-2 text-slate-400 hover:text-white rounded-xl bg-white/[0.02] border border-white/5 hover:bg-white/5 transition-all"
+                            title="Refresh data"
+                        >
+                            <RefreshCw className={`w-4 h-4 ${(activeTab === "leads" ? loadingLeads : loadingTickets) ? "animate-spin text-white" : ""}`} />
+                        </button>
+                        <button
+                            onClick={() => {
+                                sessionStorage.removeItem("stellar_crm_auth")
+                                router.push("/login")
+                            }}
+                            className="flex items-center gap-2 px-4 py-2 bg-white/5 border border-white/10 rounded-full text-xs font-medium text-slate-300 hover:text-white hover:bg-white/10 transition-all"
+                        >
+                            <LogOut className="w-3.5 h-3.5" />
+                            <span>Log out</span>
+                        </button>
+                    </div>
+                </div>
+            </nav>
+
+            {/* ═══════════════════════════════════════════════════════════════════ */}
+            {/* TAB 1: LEADS VIEW                                                  */}
+            {/* ═══════════════════════════════════════════════════════════════════ */}
+            {activeTab === "leads" && (
+                <section className="pt-32 pb-8 px-6">
+                    <div className="max-w-7xl mx-auto">
+                        <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 mb-12">
+                            <div>
+                                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-slate-400 text-xs font-medium mb-4">
+                                    <Layers className="w-3.5 h-3.5" />
+                                    Leads Overview
+                                </div>
+                                <h1 className="text-4xl md:text-5xl font-semibold tracking-tight">
+                                    Client Pipeline
+                                </h1>
+                            </div>
+
+                            <div className="flex items-center gap-3">
+                                <button
+                                    onClick={exportCSV}
+                                    className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-white/[0.02] border border-white/10 hover:bg-white/[0.05] text-slate-300 text-xs font-semibold transition-all"
+                                >
+                                    <Download className="w-3.5 h-3.5 text-slate-400" />
+                                    Export CSV
+                                </button>
+                                <button
+                                    onClick={handleOpenAddLead}
+                                    className="flex items-center gap-2 px-6 py-2.5 rounded-full bg-white text-black hover:bg-slate-200 text-xs font-semibold transition-transform hover:scale-105 active:scale-95"
+                                >
+                                    <Plus className="w-4 h-4" />
+                                    Add Lead
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* Metric Cards */}
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-12">
+                            <div className="p-6 rounded-3xl bg-white/[0.02] border border-white/5 hover:bg-white/[0.04] transition-colors">
+                                <div className="flex justify-between items-center text-slate-400 mb-4 text-xs font-medium">
+                                    <span>Total Leads</span>
+                                    <Users className="w-4 h-4 text-slate-500" />
+                                </div>
+                                <div className="text-3xl font-bold tracking-tight text-white mb-1">{leadMetrics.total}</div>
+                                <div className="text-xs text-slate-500">
+                                    {leadMetrics.contacted} contacted ({Math.round((leadMetrics.contacted / (leadMetrics.total || 1)) * 100)}%)
+                                </div>
+                            </div>
+
+                            <div className="p-6 rounded-3xl bg-white/[0.02] border border-white/5 hover:bg-white/[0.04] transition-colors">
+                                <div className="flex justify-between items-center text-slate-400 mb-4 text-xs font-medium">
+                                    <span>Response Rate</span>
+                                    <TrendingUp className="w-4 h-4 text-emerald-400" />
+                                </div>
+                                <div className="text-3xl font-bold tracking-tight text-white mb-1">{leadMetrics.responseRate}%</div>
+                                <div className="text-xs text-slate-500">
+                                    {leadMetrics.responded} replied to outreach
+                                </div>
+                            </div>
+
+                            <div className="p-6 rounded-3xl bg-white/[0.02] border border-white/5 hover:bg-white/[0.04] transition-colors">
+                                <div className="flex justify-between items-center text-slate-400 mb-4 text-xs font-medium">
+                                    <span>Closed Deals</span>
+                                    <CheckCircle2 className="w-4 h-4 text-purple-400" />
+                                </div>
+                                <div className="text-3xl font-bold tracking-tight text-white mb-1">{leadMetrics.closed}</div>
+                                <div className="text-xs text-slate-500">
+                                    {leadMetrics.conversionRate}% conversion rate
+                                </div>
+                            </div>
+
+                            <div className="p-6 rounded-3xl bg-white/[0.02] border border-white/5 hover:bg-white/[0.04] transition-colors">
+                                <div className="flex justify-between items-center text-slate-400 mb-4 text-xs font-medium">
+                                    <span>Total Annual Value</span>
+                                    <DollarSign className="w-4 h-4 text-emerald-400" />
+                                </div>
+                                <div className="text-3xl font-bold tracking-tight text-white mb-1">
+                                    £{leadMetrics.closedAnnualValue.toLocaleString()}
+                                </div>
+                                <div className="text-xs text-slate-500">
+                                    {leadMetrics.closed} closed {leadMetrics.closed === 1 ? "deal" : "deals"} (£600/yr)
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Search & Filter Bar */}
+                        <div className="flex flex-col md:flex-row justify-between items-stretch md:items-center gap-4 mb-6">
+                            <div className="relative flex-1 max-w-md">
+                                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                                <input
+                                    type="text"
+                                    placeholder="Search by contact, business, phone, or email..."
+                                    value={leadSearch}
+                                    onChange={(e) => setLeadSearch(e.target.value)}
+                                    className="w-full bg-white/[0.02] border border-white/10 rounded-full pl-11 pr-4 py-2.5 text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-white/30 transition-all"
+                                />
+                            </div>
+
+                            <div className="flex flex-wrap items-center gap-1.5 p-1 bg-white/[0.02] border border-white/5 rounded-full">
+                                {(["ALL", "Contacted", "Responded", "Interested", "Closed"] as const).map((stage) => {
+                                    const isActive = filterStage === stage
+                                    return (
+                                        <button
+                                            key={stage}
+                                            onClick={() => setFilterStage(stage)}
+                                            className={`px-4 py-1.5 rounded-full text-xs font-medium transition-all ${isActive ? "bg-white text-black shadow-md" : "text-slate-400 hover:text-white"
+                                                }`}
+                                        >
+                                            {stage === "ALL" ? "All Leads" : stage}
+                                        </button>
+                                    )
+                                })}
+                            </div>
+                        </div>
+
+                        {/* Leads Spreadsheet Table */}
+                        <div className="bg-[#050505] border border-white/10 rounded-3xl overflow-hidden shadow-2xl">
+                            <div className="overflow-x-auto max-h-[600px] overflow-y-auto">
+                                <table className="w-full text-left border-collapse text-xs">
+                                    <thead className="sticky top-0 bg-[#080808] border-b border-white/10 text-xs font-semibold text-slate-400 z-20">
+                                        <tr>
+                                            <th onClick={() => handleLeadSort("Contact")} className="py-4 px-6 cursor-pointer group hover:text-white select-none">
+                                                <div className="flex items-center">
+                                                    <span>Contact & Business</span>
+                                                    <ArrowUpDown className="w-3 h-3 text-slate-600 opacity-40 group-hover:opacity-100 ml-1.5 shrink-0" />
+                                                </div>
+                                            </th>
+                                            <th onClick={() => handleLeadSort("created_at")} className="py-4 px-4 cursor-pointer group hover:text-white select-none">
+                                                <div className="flex items-center">
+                                                    <Calendar className="w-3.5 h-3.5 mr-1.5 text-slate-500" />
+                                                    <span>Date Added</span>
+                                                    <ArrowUpDown className="w-3 h-3 text-slate-600 opacity-40 group-hover:opacity-100 ml-1.5 shrink-0" />
+                                                </div>
+                                            </th>
+                                            <th onClick={() => handleLeadSort("Phone Number")} className="py-4 px-6 cursor-pointer group hover:text-white select-none">
+                                                <span>Phone / WhatsApp</span>
+                                            </th>
+                                            <th onClick={() => handleLeadSort("Email")} className="py-4 px-6 cursor-pointer group hover:text-white select-none">
+                                                <span>Email</span>
+                                            </th>
+                                            <th onClick={() => handleLeadSort("Contacted")} className="py-4 px-3 text-center cursor-pointer group hover:text-white select-none">
+                                                <span>Contacted</span>
+                                            </th>
+                                            <th onClick={() => handleLeadSort("Responded")} className="py-4 px-3 text-center cursor-pointer group hover:text-white select-none">
+                                                <span>Responded</span>
+                                            </th>
+                                            <th onClick={() => handleLeadSort("Interested")} className="py-4 px-3 text-center cursor-pointer group hover:text-white select-none">
+                                                <span>Interested</span>
+                                            </th>
+                                            <th onClick={() => handleLeadSort("Closed")} className="py-4 px-3 text-center cursor-pointer group hover:text-white select-none">
+                                                <span>Closed</span>
+                                            </th>
+                                            <th onClick={() => handleLeadSort("Value")} className="py-4 px-6 cursor-pointer group hover:text-white select-none">
+                                                <span>Annual Value</span>
+                                            </th>
+                                            <th className="py-4 px-6 text-right">Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-white/[0.03]">
+                                        {loadingLeads ? (
+                                            <tr>
+                                                <td colSpan={10} className="text-center py-20 text-xs text-slate-500">
+                                                    Loading leads from Supabase...
+                                                </td>
+                                            </tr>
+                                        ) : sortedAndFilteredLeads.length === 0 ? (
+                                            <tr>
+                                                <td colSpan={10} className="text-center py-20 text-xs text-slate-500">
+                                                    No leads found matching your search.
+                                                </td>
+                                            </tr>
+                                        ) : (
+                                            sortedAndFilteredLeads.map((lead, idx) => (
+                                                <tr key={lead.id || idx} className="hover:bg-white/[0.02] transition-colors group">
+                                                    <td className="py-4 px-6">
+                                                        <div className="font-semibold text-white text-sm">
+                                                            {lead.Contact || "Unnamed Contact"}
+                                                        </div>
+                                                        <div className="text-xs text-slate-400 mt-0.5">
+                                                            {lead["Business Name"] || "—"}
+                                                        </div>
+                                                    </td>
+                                                    <td className="py-4 px-4 font-mono text-slate-400 whitespace-nowrap">
+                                                        {formatDate(lead.created_at)}
+                                                    </td>
+                                                    <td className="py-4 px-6 text-slate-300">
+                                                        {lead["Phone Number"] ? (
+                                                            <a
+                                                                href={`https://wa.me/${normalizePhone(lead["Phone Number"])}`}
+                                                                target="_blank"
+                                                                rel="noreferrer"
+                                                                className="inline-flex items-center gap-1.5 hover:text-white transition-colors font-mono"
+                                                            >
+                                                                <Phone className="w-3.5 h-3.5 text-slate-500" />
+                                                                {lead["Phone Number"]}
+                                                            </a>
+                                                        ) : (
+                                                            <span className="text-slate-600">—</span>
+                                                        )}
+                                                    </td>
+                                                    <td className="py-4 px-6 text-slate-300">
+                                                        {lead.Email ? (
+                                                            <a href={`mailto:${lead.Email}`} className="inline-flex items-center gap-1.5 hover:text-white transition-colors truncate max-w-[160px]">
+                                                                <Mail className="w-3.5 h-3.5 text-slate-500 shrink-0" />
+                                                                <span className="truncate">{lead.Email}</span>
+                                                            </a>
+                                                        ) : (
+                                                            <span className="text-slate-600">—</span>
+                                                        )}
+                                                    </td>
+                                                    <td className="py-4 px-3 text-center">
+                                                        <button
+                                                            onClick={() => toggleStatus(lead, "Contacted")}
+                                                            className={`w-6 h-6 rounded-full inline-flex items-center justify-center transition-all ${isChecked(lead.Contacted) ? "bg-white text-black shadow-lg" : "bg-white/[0.03] border border-white/10 hover:border-white/30 text-transparent"
+                                                                }`}
+                                                        >
+                                                            <Check className="w-3.5 h-3.5 stroke-[3]" />
+                                                        </button>
+                                                    </td>
+                                                    <td className="py-4 px-3 text-center">
+                                                        <button
+                                                            onClick={() => toggleStatus(lead, "Responded")}
+                                                            className={`w-6 h-6 rounded-full inline-flex items-center justify-center transition-all ${isChecked(lead.Responded) ? "bg-emerald-400 text-black shadow-lg" : "bg-white/[0.03] border border-white/10 hover:border-white/30 text-transparent"
+                                                                }`}
+                                                        >
+                                                            <Check className="w-3.5 h-3.5 stroke-[3]" />
+                                                        </button>
+                                                    </td>
+                                                    <td className="py-4 px-3 text-center">
+                                                        <button
+                                                            onClick={() => toggleStatus(lead, "Interested")}
+                                                            className={`w-6 h-6 rounded-full inline-flex items-center justify-center transition-all ${isChecked(lead.Interested) ? "bg-amber-400 text-black shadow-lg" : "bg-white/[0.03] border border-white/10 hover:border-white/30 text-transparent"
+                                                                }`}
+                                                        >
+                                                            <Check className="w-3.5 h-3.5 stroke-[3]" />
+                                                        </button>
+                                                    </td>
+                                                    <td className="py-4 px-3 text-center">
+                                                        <button
+                                                            onClick={() => toggleStatus(lead, "Closed")}
+                                                            className={`w-6 h-6 rounded-full inline-flex items-center justify-center transition-all ${isChecked(lead.Closed) ? "bg-purple-400 text-black shadow-lg" : "bg-white/[0.03] border border-white/10 hover:border-white/30 text-transparent"
+                                                                }`}
+                                                        >
+                                                            <Check className="w-3.5 h-3.5 stroke-[3]" />
+                                                        </button>
+                                                    </td>
+                                                    <td className="py-4 px-6 font-medium text-white font-mono">
+                                                        £{Number(lead.Value || 600).toLocaleString()}
+                                                        <span className="text-slate-500 text-xs">/yr</span>
+                                                    </td>
+                                                    <td className="py-4 px-6 text-right">
+                                                        <div className="flex items-center justify-end gap-2 opacity-60 group-hover:opacity-100 transition-opacity">
+                                                            <button
+                                                                onClick={() => handleOpenEditLead(lead)}
+                                                                className="p-2 text-slate-400 hover:text-white rounded-xl bg-white/[0.02] border border-white/5 hover:bg-white/10 transition-all"
+                                                                title="Edit lead"
+                                                            >
+                                                                <Edit3 className="w-3.5 h-3.5" />
+                                                            </button>
+                                                            <button
+                                                                onClick={() => handleDeleteLead(lead)}
+                                                                className="p-2 text-slate-400 hover:text-rose-400 rounded-xl bg-white/[0.02] border border-white/5 hover:bg-rose-500/10 transition-all"
+                                                                title="Delete lead"
+                                                            >
+                                                                <Trash2 className="w-3.5 h-3.5" />
+                                                            </button>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            ))
+                                        )}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            )}
+
+            {/* ═══════════════════════════════════════════════════════════════════ */}
+            {/* TAB 2: TICKETS VIEW                                                */}
+            {/* ═══════════════════════════════════════════════════════════════════ */}
+            {activeTab === "tickets" && (
+                <section className="pt-32 pb-8 px-6">
+                    <div className="max-w-7xl mx-auto">
+                        <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 mb-12">
+                            <div>
+                                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-slate-400 text-xs font-medium mb-4">
+                                    <TicketIcon className="w-3.5 h-3.5" />
+                                    Support & Client Tasks
+                                </div>
+                                <h1 className="text-4xl md:text-5xl font-semibold tracking-tight">
+                                    Ticket Management
+                                </h1>
+                            </div>
+
+                            <button
+                                onClick={handleOpenAddTicket}
+                                className="flex items-center gap-2 px-6 py-2.5 rounded-full bg-white text-black hover:bg-slate-200 text-xs font-semibold transition-transform hover:scale-105 active:scale-95"
+                            >
+                                <Plus className="w-4 h-4" />
+                                Create Ticket
+                            </button>
+                        </div>
+
+                        {/* Ticket Metric Cards */}
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-12">
+                            <div className="p-6 rounded-3xl bg-white/[0.02] border border-white/5 hover:bg-white/[0.04] transition-colors">
+                                <div className="flex justify-between items-center text-slate-400 mb-4 text-xs font-medium">
+                                    <span>Total Tickets</span>
+                                    <Tag className="w-4 h-4 text-slate-500" />
+                                </div>
+                                <div className="text-3xl font-bold tracking-tight text-white mb-1">{ticketMetrics.total}</div>
+                                <div className="text-xs text-slate-500">
+                                    All support and feature requests
+                                </div>
+                            </div>
+
+                            <div className="p-6 rounded-3xl bg-white/[0.02] border border-white/5 hover:bg-white/[0.04] transition-colors">
+                                <div className="flex justify-between items-center text-slate-400 mb-4 text-xs font-medium">
+                                    <span>Open Tickets</span>
+                                    <Clock className="w-4 h-4 text-emerald-400" />
+                                </div>
+                                <div className="text-3xl font-bold tracking-tight text-white mb-1">{ticketMetrics.open}</div>
+                                <div className="text-xs text-slate-500">
+                                    Awaiting initial action
+                                </div>
+                            </div>
+
+                            <div className="p-6 rounded-3xl bg-white/[0.02] border border-white/5 hover:bg-white/[0.04] transition-colors">
+                                <div className="flex justify-between items-center text-slate-400 mb-4 text-xs font-medium">
+                                    <span>In Progress</span>
+                                    <TrendingUp className="w-4 h-4 text-sky-400" />
+                                </div>
+                                <div className="text-3xl font-bold tracking-tight text-white mb-1">{ticketMetrics.inProgress}</div>
+                                <div className="text-xs text-slate-500">
+                                    Currently being worked on
+                                </div>
+                            </div>
+
+                            <div className="p-6 rounded-3xl bg-white/[0.02] border border-white/5 hover:bg-white/[0.04] transition-colors">
+                                <div className="flex justify-between items-center text-slate-400 mb-4 text-xs font-medium">
+                                    <span>High / Urgent Priority</span>
+                                    <AlertTriangle className="w-4 h-4 text-rose-400" />
+                                </div>
+                                <div className="text-3xl font-bold tracking-tight text-rose-400 mb-1">{ticketMetrics.urgent}</div>
+                                <div className="text-xs text-slate-500">
+                                    Requires immediate attention
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Search & Ticket Filter Bar */}
+                        <div className="flex flex-col lg:flex-row justify-between items-stretch lg:items-center gap-4 mb-6">
+                            <div className="relative flex-1 max-w-md">
+                                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                                <input
+                                    type="text"
+                                    placeholder="Search tickets by title, description, or contact..."
+                                    value={ticketSearch}
+                                    onChange={(e) => setTicketSearch(e.target.value)}
+                                    className="w-full bg-white/[0.02] border border-white/10 rounded-full pl-11 pr-4 py-2.5 text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-white/30 transition-all"
+                                />
+                            </div>
+
+                            <div className="flex flex-wrap items-center gap-2">
+                                {/* Status Pills */}
+                                <div className="flex items-center gap-1 p-1 bg-white/[0.02] border border-white/5 rounded-full">
+                                    {(["ALL", "open", "in_progress", "resolved", "closed"] as const).map((st) => {
+                                        const isActive = filterTicketStatus === st
+                                        return (
+                                            <button
+                                                key={st}
+                                                onClick={() => setFilterTicketStatus(st)}
+                                                className={`px-3.5 py-1.5 rounded-full text-xs font-medium capitalize transition-all ${isActive ? "bg-white text-black shadow-md font-semibold" : "text-slate-400 hover:text-white"
+                                                    }`}
+                                            >
+                                                {st === "ALL" ? "All Status" : st.replace("_", " ")}
+                                            </button>
+                                        )
+                                    })}
+                                </div>
+
+                                {/* Priority Filter Dropdown */}
+                                <select
+                                    value={filterTicketPriority}
+                                    onChange={(e: any) => setFilterTicketPriority(e.target.value)}
+                                    className="bg-[#0c0c0c] border border-white/10 text-slate-300 text-xs rounded-full px-4 py-2 focus:outline-none focus:border-white/30"
+                                >
+                                    <option value="ALL">All Priorities</option>
+                                    <option value="urgent">Urgent</option>
+                                    <option value="high">High</option>
+                                    <option value="medium">Medium</option>
+                                    <option value="low">Low</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        {/* Tickets Table */}
+                        <div className="bg-[#050505] border border-white/10 rounded-3xl overflow-hidden shadow-2xl">
+                            <div className="overflow-x-auto max-h-[600px] overflow-y-auto">
+                                <table className="w-full text-left border-collapse text-xs">
+                                    <thead className="sticky top-0 bg-[#080808] border-b border-white/10 text-xs font-semibold text-slate-400 z-20">
+                                        <tr>
+                                            <th onClick={() => handleTicketSort("title")} className="py-4 px-6 cursor-pointer group hover:text-white select-none">
+                                                <div className="flex items-center">
+                                                    <span>Ticket Title & Details</span>
+                                                    <ArrowUpDown className="w-3 h-3 text-slate-600 opacity-40 group-hover:opacity-100 ml-1.5 shrink-0" />
+                                                </div>
+                                            </th>
+                                            <th onClick={() => handleTicketSort("priority")} className="py-4 px-4 cursor-pointer group hover:text-white select-none">
+                                                <div className="flex items-center">
+                                                    <span>Priority</span>
+                                                    <ArrowUpDown className="w-3 h-3 text-slate-600 opacity-40 group-hover:opacity-100 ml-1.5 shrink-0" />
+                                                </div>
+                                            </th>
+                                            <th onClick={() => handleTicketSort("status")} className="py-4 px-4 cursor-pointer group hover:text-white select-none">
+                                                <div className="flex items-center">
+                                                    <span>Status</span>
+                                                    <ArrowUpDown className="w-3 h-3 text-slate-600 opacity-40 group-hover:opacity-100 ml-1.5 shrink-0" />
+                                                </div>
+                                            </th>
+                                            <th onClick={() => handleTicketSort("contact_name")} className="py-4 px-4 cursor-pointer group hover:text-white select-none">
+                                                <span>Contact / Client</span>
+                                            </th>
+                                            <th className="py-4 px-4">
+                                                <span>Assignee</span>
+                                            </th>
+                                            <th onClick={() => handleTicketSort("created_at")} className="py-4 px-4 cursor-pointer group hover:text-white select-none">
+                                                <div className="flex items-center">
+                                                    <Calendar className="w-3.5 h-3.5 mr-1.5 text-slate-500" />
+                                                    <span>Created</span>
+                                                    <ArrowUpDown className="w-3 h-3 text-slate-600 opacity-40 group-hover:opacity-100 ml-1.5 shrink-0" />
+                                                </div>
+                                            </th>
+                                            <th className="py-4 px-6 text-right">Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-white/[0.03]">
+                                        {loadingTickets ? (
+                                            <tr>
+                                                <td colSpan={7} className="text-center py-20 text-xs text-slate-500">
+                                                    Loading tickets from Supabase...
+                                                </td>
+                                            </tr>
+                                        ) : sortedAndFilteredTickets.length === 0 ? (
+                                            <tr>
+                                                <td colSpan={7} className="text-center py-20 text-xs text-slate-500">
+                                                    No tickets found.
+                                                </td>
+                                            </tr>
+                                        ) : (
+                                            sortedAndFilteredTickets.map((ticket) => (
+                                                <tr key={ticket.id} className="hover:bg-white/[0.02] transition-colors group">
+                                                    {/* Title & Desc */}
+                                                    <td className="py-4 px-6 max-w-sm">
+                                                        <div className="font-semibold text-white text-sm">
+                                                            {ticket.title}
+                                                        </div>
+                                                        {ticket.description && (
+                                                            <div className="text-xs text-slate-400 mt-1 line-clamp-1">
+                                                                {ticket.description}
+                                                            </div>
+                                                        )}
+                                                    </td>
+
+                                                    {/* Priority */}
+                                                    <td className="py-4 px-4 whitespace-nowrap">
+                                                        {renderPriorityBadge(ticket.priority)}
+                                                    </td>
+
+                                                    {/* Quick Status Dropdown */}
+                                                    <td className="py-4 px-4 whitespace-nowrap">
+                                                        <select
+                                                            value={ticket.status}
+                                                            onChange={(e: any) => handleQuickTicketStatus(ticket, e.target.value)}
+                                                            className="bg-white/[0.04] border border-white/10 rounded-lg px-2.5 py-1 text-xs text-slate-200 focus:outline-none focus:border-white/30 cursor-pointer"
+                                                        >
+                                                            <option value="open" className="bg-[#111]">Open</option>
+                                                            <option value="in_progress" className="bg-[#111]">In Progress</option>
+                                                            <option value="resolved" className="bg-[#111]">Resolved</option>
+                                                            <option value="closed" className="bg-[#111]">Closed</option>
+                                                        </select>
+                                                    </td>
+
+                                                    {/* Contact / Client */}
+                                                    <td className="py-4 px-4">
+                                                        <div className="text-white font-medium">
+                                                            {ticket.contact_name || "—"}
+                                                        </div>
+                                                        {ticket.contact_email && (
+                                                            <div className="text-[11px] text-slate-500 truncate max-w-[150px]">
+                                                                {ticket.contact_email}
+                                                            </div>
+                                                        )}
+                                                    </td>
+
+                                                    {/* Assigned To */}
+                                                    <td className="py-4 px-4 text-slate-300">
+                                                        {ticket.assigned_to ? (
+                                                            <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/[0.03] border border-white/10 text-[11px]">
+                                                                <UserCheck className="w-3 h-3 text-slate-400" />
+                                                                <span>{ticket.assigned_to}</span>
+                                                            </div>
+                                                        ) : (
+                                                            <span className="text-slate-600">—</span>
+                                                        )}
+                                                    </td>
+
+                                                    {/* Created Date */}
+                                                    <td className="py-4 px-4 font-mono text-slate-400 whitespace-nowrap">
+                                                        {formatDate(ticket.created_at)}
+                                                    </td>
+
+                                                    {/* Actions */}
+                                                    <td className="py-4 px-6 text-right">
+                                                        <div className="flex items-center justify-end gap-2 opacity-60 group-hover:opacity-100 transition-opacity">
+                                                            <button
+                                                                onClick={() => handleOpenEditTicket(ticket)}
+                                                                className="p-2 text-slate-400 hover:text-white rounded-xl bg-white/[0.02] border border-white/5 hover:bg-white/10 transition-all"
+                                                                title="Edit ticket"
+                                                            >
+                                                                <Edit3 className="w-3.5 h-3.5" />
+                                                            </button>
+                                                            <button
+                                                                onClick={() => handleDeleteTicket(ticket)}
+                                                                className="p-2 text-slate-400 hover:text-rose-400 rounded-xl bg-white/[0.02] border border-white/5 hover:bg-rose-500/10 transition-all"
+                                                                title="Delete ticket"
+                                                            >
+                                                                <Trash2 className="w-3.5 h-3.5" />
+                                                            </button>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            ))
+                                        )}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            )}
+
+            {/* ═══════════════════════════════════════════════════════════════════ */}
+            {/* MODAL 1: ADD / EDIT LEAD                                           */}
+            {/* ═══════════════════════════════════════════════════════════════════ */}
+            {isLeadModalOpen && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200">
+                    <div className="bg-[#050505] border border-white/10 w-full max-w-2xl rounded-3xl p-8 shadow-2xl relative max-h-[90vh] overflow-y-auto">
+                        <button
+                            onClick={() => setIsLeadModalOpen(false)}
+                            className="absolute top-6 right-6 p-2 rounded-full bg-white/5 text-slate-400 hover:text-white transition-colors"
+                        >
+                            <X className="w-4 h-4" />
+                        </button>
+
+                        <div className="mb-6">
+                            <h2 className="text-2xl font-bold tracking-tight text-white mb-1">
+                                {editingLead ? "Edit Lead" : "Add New Lead"}
+                            </h2>
+                            <p className="text-xs text-slate-400">
+                                Fill in the details below. Existing phone numbers and contact names will be checked to prevent duplicates.
+                            </p>
+                        </div>
+
+                        {duplicateWarning && (
+                            <div className="flex items-start gap-3 bg-rose-500/10 border border-rose-500/20 text-rose-300 p-4 rounded-2xl text-xs mb-6">
+                                <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-rose-400" />
+                                <span>{duplicateWarning}</span>
+                            </div>
+                        )}
+
+                        <form onSubmit={handleSaveLead} className="space-y-5">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-xs font-medium text-slate-300 mb-1.5">
+                                        Contact Name *
+                                    </label>
+                                    <input
+                                        type="text"
+                                        required
+                                        placeholder="e.g. Abdullah Mousa"
+                                        value={leadFormData.Contact}
+                                        onChange={(e) => {
+                                            setLeadFormData({ ...leadFormData, Contact: e.target.value })
+                                            setDuplicateWarning(null)
+                                        }}
+                                        className="w-full bg-white/[0.02] border border-white/10 rounded-2xl px-4 py-3 text-xs text-white placeholder:text-slate-600 focus:outline-none focus:border-white/30 transition-all"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-medium text-slate-300 mb-1.5">
+                                        Business / Driving School Name
+                                    </label>
+                                    <input
+                                        type="text"
+                                        placeholder="e.g. Manchester Driving Hub"
+                                        value={leadFormData["Business Name"]}
+                                        onChange={(e) => {
+                                            setLeadFormData({ ...leadFormData, "Business Name": e.target.value })
+                                            setDuplicateWarning(null)
+                                        }}
+                                        className="w-full bg-white/[0.02] border border-white/10 rounded-2xl px-4 py-3 text-xs text-white placeholder:text-slate-600 focus:outline-none focus:border-white/30 transition-all"
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-xs font-medium text-slate-300 mb-1.5">
+                                        Phone / WhatsApp Number
+                                    </label>
+                                    <input
+                                        type="text"
+                                        placeholder="e.g. 07741 299633"
+                                        value={leadFormData["Phone Number"] || ""}
+                                        onChange={(e) => {
+                                            setLeadFormData({ ...leadFormData, "Phone Number": e.target.value })
+                                            setDuplicateWarning(null)
+                                        }}
+                                        className="w-full bg-white/[0.02] border border-white/10 rounded-2xl px-4 py-3 text-xs text-white placeholder:text-slate-600 focus:outline-none focus:border-white/30 transition-all"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-medium text-slate-300 mb-1.5">
+                                        Email Address
+                                    </label>
+                                    <input
+                                        type="email"
+                                        placeholder="e.g. contact@domain.co.uk"
+                                        value={leadFormData.Email || ""}
+                                        onChange={(e) => {
+                                            setLeadFormData({ ...leadFormData, Email: e.target.value })
+                                            setDuplicateWarning(null)
+                                        }}
+                                        className="w-full bg-white/[0.02] border border-white/10 rounded-2xl px-4 py-3 text-xs text-white placeholder:text-slate-600 focus:outline-none focus:border-white/30 transition-all"
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-xs font-medium text-slate-300 mb-1.5">
+                                        Website (Optional)
+                                    </label>
+                                    <input
+                                        type="url"
+                                        placeholder="https://example.com"
+                                        value={leadFormData["Website (if applicable)"] || ""}
+                                        onChange={(e) => setLeadFormData({ ...leadFormData, "Website (if applicable)": e.target.value })}
+                                        className="w-full bg-white/[0.02] border border-white/10 rounded-2xl px-4 py-3 text-xs text-white placeholder:text-slate-600 focus:outline-none focus:border-white/30 transition-all"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-medium text-slate-300 mb-1.5">
+                                        Annual Value (£/year)
+                                    </label>
+                                    <input
+                                        type="number"
+                                        placeholder="600"
+                                        value={leadFormData.Value}
+                                        onChange={(e) => setLeadFormData({ ...leadFormData, Value: Number(e.target.value) })}
+                                        className="w-full bg-white/[0.02] border border-white/10 rounded-2xl px-4 py-3 text-xs text-white placeholder:text-slate-600 focus:outline-none focus:border-white/30 transition-all"
+                                    />
+                                </div>
+                            </div>
+
+                            <div>
+                                <label className="block text-xs font-medium text-slate-300 mb-2.5">
+                                    Pipeline Stage
+                                </label>
+                                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+                                    {(["Contacted", "Responded", "Interested", "Closed"] as const).map((stage) => {
+                                        const active = isChecked(leadFormData[stage])
+                                        return (
+                                            <button
+                                                key={stage}
+                                                type="button"
+                                                onClick={() => setLeadFormData({ ...leadFormData, [stage]: active ? null : "checked" })}
+                                                className={`py-3 px-4 rounded-2xl text-xs font-semibold border transition-all flex items-center justify-between ${active ? "bg-white text-black border-white" : "bg-white/[0.02] border-white/10 text-slate-400 hover:text-white"
+                                                    }`}
+                                            >
+                                                <span>{stage}</span>
+                                                {active && <Check className="w-3.5 h-3.5 stroke-[3]" />}
+                                            </button>
+                                        )
+                                    })}
+                                </div>
+                            </div>
+
+                            <div>
+                                <label className="block text-xs font-medium text-slate-300 mb-1.5">
+                                    Notes & Comments
+                                </label>
+                                <textarea
+                                    rows={3}
+                                    placeholder="Add notes about recent calls, emails, or requirements..."
+                                    value={leadFormData.Comments || ""}
+                                    onChange={(e) => setLeadFormData({ ...leadFormData, Comments: e.target.value })}
+                                    className="w-full bg-white/[0.02] border border-white/10 rounded-2xl px-4 py-3 text-xs text-white placeholder:text-slate-600 focus:outline-none focus:border-white/30 transition-all resize-none"
+                                />
+                            </div>
+
+                            <div className="flex justify-end gap-3 pt-4 border-t border-white/5">
+                                <button
+                                    type="button"
+                                    onClick={() => setIsLeadModalOpen(false)}
+                                    className="px-5 py-3 text-xs font-medium text-slate-400 hover:text-white transition-colors"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    type="submit"
+                                    disabled={isSubmittingLead}
+                                    className="px-7 py-3 bg-white text-black hover:bg-slate-200 rounded-full text-xs font-semibold uppercase tracking-wider transition-transform hover:scale-105 active:scale-95 disabled:opacity-50"
+                                >
+                                    {isSubmittingLead ? "Saving..." : editingLead ? "Save Changes" : "Add Lead"}
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
+
+            {/* ═══════════════════════════════════════════════════════════════════ */}
+            {/* MODAL 2: ADD / EDIT TICKET                                         */}
+            {/* ═══════════════════════════════════════════════════════════════════ */}
+            {isTicketModalOpen && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200">
+                    <div className="bg-[#050505] border border-white/10 w-full max-w-2xl rounded-3xl p-8 shadow-2xl relative max-h-[90vh] overflow-y-auto">
+                        <button
+                            onClick={() => setIsTicketModalOpen(false)}
+                            className="absolute top-6 right-6 p-2 rounded-full bg-white/5 text-slate-400 hover:text-white transition-colors"
+                        >
+                            <X className="w-4 h-4" />
+                        </button>
+
+                        <div className="mb-6">
+                            <h2 className="text-2xl font-bold tracking-tight text-white mb-1">
+                                {editingTicket ? "Edit Ticket" : "Create New Ticket"}
+                            </h2>
+                            <p className="text-xs text-slate-400">
+                                Create or modify a support request, client bug, or internal task.
+                            </p>
+                        </div>
+
+                        <form onSubmit={handleSaveTicket} className="space-y-5">
+                            <div>
+                                <label className="block text-xs font-medium text-slate-300 mb-1.5">
+                                    Ticket Title *
+                                </label>
+                                <input
+                                    type="text"
+                                    required
+                                    placeholder="e.g. Website DNS configuration or Payment gateway issue"
+                                    value={ticketFormData.title}
+                                    onChange={(e) => setTicketFormData({ ...ticketFormData, title: e.target.value })}
+                                    className="w-full bg-white/[0.02] border border-white/10 rounded-2xl px-4 py-3 text-xs text-white placeholder:text-slate-600 focus:outline-none focus:border-white/30 transition-all"
+                                />
+                            </div>
+
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-xs font-medium text-slate-300 mb-1.5">
+                                        Priority
+                                    </label>
+                                    <select
+                                        value={ticketFormData.priority}
+                                        onChange={(e: any) => setTicketFormData({ ...ticketFormData, priority: e.target.value })}
+                                        className="w-full bg-[#0c0c0c] border border-white/10 rounded-2xl px-4 py-3 text-xs text-white focus:outline-none focus:border-white/30 transition-all"
+                                    >
+                                        <option value="low">Low Priority</option>
+                                        <option value="medium">Medium Priority</option>
+                                        <option value="high">High Priority</option>
+                                        <option value="urgent">Urgent</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-medium text-slate-300 mb-1.5">
+                                        Status
+                                    </label>
+                                    <select
+                                        value={ticketFormData.status}
+                                        onChange={(e: any) => setTicketFormData({ ...ticketFormData, status: e.target.value })}
+                                        className="w-full bg-[#0c0c0c] border border-white/10 rounded-2xl px-4 py-3 text-xs text-white focus:outline-none focus:border-white/30 transition-all"
+                                    >
+                                        <option value="open">Open</option>
+                                        <option value="in_progress">In Progress</option>
+                                        <option value="resolved">Resolved</option>
+                                        <option value="closed">Closed</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-xs font-medium text-slate-300 mb-1.5">
+                                        Client / Contact Name
+                                    </label>
+                                    <input
+                                        type="text"
+                                        placeholder="e.g. John Smith"
+                                        value={ticketFormData.contact_name || ""}
+                                        onChange={(e) => setTicketFormData({ ...ticketFormData, contact_name: e.target.value })}
+                                        className="w-full bg-white/[0.02] border border-white/10 rounded-2xl px-4 py-3 text-xs text-white placeholder:text-slate-600 focus:outline-none focus:border-white/30 transition-all"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-medium text-slate-300 mb-1.5">
+                                        Contact Email
+                                    </label>
+                                    <input
+                                        type="email"
+                                        placeholder="e.g. client@example.com"
+                                        value={ticketFormData.contact_email || ""}
+                                        onChange={(e) => setTicketFormData({ ...ticketFormData, contact_email: e.target.value })}
+                                        className="w-full bg-white/[0.02] border border-white/10 rounded-2xl px-4 py-3 text-xs text-white placeholder:text-slate-600 focus:outline-none focus:border-white/30 transition-all"
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-xs font-medium text-slate-300 mb-1.5">
+                                        Contact Phone
+                                    </label>
+                                    <input
+                                        type="text"
+                                        placeholder="e.g. 07700 900077"
+                                        value={ticketFormData.contact_phone || ""}
+                                        onChange={(e) => setTicketFormData({ ...ticketFormData, contact_phone: e.target.value })}
+                                        className="w-full bg-white/[0.02] border border-white/10 rounded-2xl px-4 py-3 text-xs text-white placeholder:text-slate-600 focus:outline-none focus:border-white/30 transition-all"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-medium text-slate-300 mb-1.5">
+                                        Assigned Team Member
+                                    </label>
+                                    <input
+                                        type="text"
+                                        placeholder="e.g. Alex / Support"
+                                        value={ticketFormData.assigned_to || ""}
+                                        onChange={(e) => setTicketFormData({ ...ticketFormData, assigned_to: e.target.value })}
+                                        className="w-full bg-white/[0.02] border border-white/10 rounded-2xl px-4 py-3 text-xs text-white placeholder:text-slate-600 focus:outline-none focus:border-white/30 transition-all"
+                                    />
+                                </div>
+                            </div>
+
+                            <div>
+                                <label className="block text-xs font-medium text-slate-300 mb-1.5">
+                                    Ticket Description & Details
+                                </label>
+                                <textarea
+                                    rows={4}
+                                    placeholder="Describe the issue, steps to reproduce, or request specifications..."
+                                    value={ticketFormData.description || ""}
+                                    onChange={(e) => setTicketFormData({ ...ticketFormData, description: e.target.value })}
+                                    className="w-full bg-white/[0.02] border border-white/10 rounded-2xl px-4 py-3 text-xs text-white placeholder:text-slate-600 focus:outline-none focus:border-white/30 transition-all resize-none"
+                                />
+                            </div>
+
+                            <div className="flex justify-end gap-3 pt-4 border-t border-white/5">
+                                <button
+                                    type="button"
+                                    onClick={() => setIsTicketModalOpen(false)}
+                                    className="px-5 py-3 text-xs font-medium text-slate-400 hover:text-white transition-colors"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    type="submit"
+                                    disabled={isSubmittingTicket}
+                                    className="px-7 py-3 bg-white text-black hover:bg-slate-200 rounded-full text-xs font-semibold uppercase tracking-wider transition-transform hover:scale-105 active:scale-95 disabled:opacity-50"
+                                >
+                                    {isSubmittingTicket ? "Saving..." : editingTicket ? "Save Changes" : "Create Ticket"}
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
+        </main>
+    )
+}
+</file>
+
 <file path="app/tda-scope/page.tsx">
 "use client"
 
@@ -10405,127 +12118,6 @@ export function Footer() {
         </div>
       </div>
     </footer>
-  )
-}
-</file>
-
-<file path="components/header.tsx">
-"use client"
-
-import { useState } from "react"
-import { Menu, X, ArrowRight } from "lucide-react"
-import Link from "next/link" // Added for internal routing
-
-const navItems = [
-  { label: "Team", href: "/team" },
-  { label: "Performance", href: "#stats" },
-  { label: "Process", href: "#phases" },
-  { label: "Portfolio", href: "#projects" },
-  { label: "Pricing", href: "#pricing" },
-]
-
-export function Header() {
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
-
-  const scrollToSection = (href: string) => {
-    // If it's a page route (starts with /), let the Link component handle it
-    if (href.startsWith('/')) {
-      setMobileMenuOpen(false)
-      return
-    }
-
-    const element = document.querySelector(href)
-    if (element) {
-      element.scrollIntoView({ behavior: "smooth" })
-    }
-    setMobileMenuOpen(false)
-  }
-
-  // Helper to render either a Link or a Button
-  const NavLink = ({ item, mobile = false }: { item: typeof navItems[0], mobile?: boolean }) => {
-    const baseStyles = mobile 
-      ? "px-6 py-4 text-xs font-bold uppercase tracking-widest text-slate-400 hover:text-white hover:bg-white/[0.03] rounded-2xl text-left transition-all border border-transparent hover:border-white/5"
-      : "px-5 py-2 text-[11px] font-bold uppercase tracking-[0.15em] text-slate-500 hover:text-white transition-all duration-300 rounded-full hover:bg-white/[0.05]"
-
-    if (item.href.startsWith('/')) {
-      return (
-        <Link href={item.href} onClick={() => setMobileMenuOpen(false)} className={baseStyles}>
-          {item.label}
-        </Link>
-      )
-    }
-
-    return (
-      <button key={item.label} onClick={() => scrollToSection(item.href)} className={baseStyles}>
-        {item.label}
-      </button>
-    )
-  }
-
-  return (
-    <header className="fixed top-0 left-0 right-0 z-[100] px-6 py-5 bg-black/95">
-      <div className="max-w-7xl mx-auto flex items-center justify-between">
-        
-        {/* Brand Section */}
-        <div className="flex items-center gap-3 group cursor-pointer" onClick={() => scrollToSection("#hero")}>
-          <div className="p-1.5 rounded-lg">
-            <img 
-              src="/logo.svg" 
-              alt="StellarCode Logo" 
-              className="w-5 h-5 object-contain opacity-90"
-            />
-          </div>
-          <span className="font-semibold text-sm tracking-[0.2em] text-white uppercase">
-            StellarCode
-          </span>
-        </div>
-
-        {/* Desktop Navigation */}
-        <nav className="hidden md:flex items-center gap-1 bg-black/40 backdrop-blur-xl rounded-full px-1.5 py-1.5 border border-white/[0.08] shadow-2xl shadow-black">
-          {navItems.map((item) => (
-            <NavLink key={item.label} item={item} />
-          ))}
-        </nav>
-
-        {/* Action Button */}
-        <div className="hidden md:block">
-          <button 
-            onClick={() => scrollToSection("#contact")}
-            className="flex items-center gap-2 px-5 py-2.5 bg-white text-black rounded-full text-[10px] font-bold uppercase tracking-widest hover:bg-slate-200 transition-all active:scale-95"
-          >
-            Start Audit
-            <ArrowRight className="w-3 h-3" />
-          </button>
-        </div>
-
-        {/* Mobile Toggle */}
-        <div className="flex items-center md:hidden">
-          <button 
-            className="p-2.5 bg-white/[0.03] border border-white/10 rounded-xl text-white" 
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          >
-            {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-          </button>
-        </div>
-      </div>
-
-      {/* Mobile Menu */}
-      {mobileMenuOpen && (
-        <div className="md:hidden absolute top-full left-6 right-6 mt-4 bg-black/95 backdrop-blur-2xl border border-white/10 p-8 rounded-[2rem] shadow-2xl animate-in fade-in zoom-in-95 duration-300">
-          <nav className="flex flex-col gap-4">
-            {navItems.map((item) => (
-              <NavLink key={item.label} item={item} mobile />
-            ))}
-            <button 
-               onClick={() => scrollToSection("#contact")}
-               className="mt-4 w-full py-5 bg-white text-black rounded-2xl text-[10px] font-bold uppercase tracking-widest text-center"
-            >
-              Free AI Audit
-            </button>
-          </nav>
-        </div>
-      )}
-    </header>
   )
 }
 </file>
@@ -10942,6 +12534,916 @@ export function TrustedBy() {
 }
 </file>
 
+<file path="lib/supabase.ts">
+import { createClient } from "@supabase/supabase-js"
+
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ""
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ""
+
+export const supabase = createClient(supabaseUrl, supabaseAnonKey)
+
+export interface StellarLead {
+    id?: string | number
+    "Business Name": string
+    Contact: string
+    "Phone Number": string | number | null
+    Email: string | null
+    Comments: string | null
+    "Website (if applicable)": string | null
+    Contacted: string | boolean | null
+    Responded: string | boolean | null
+    Interested: string | boolean | null
+    Closed: string | boolean | null
+    Value: number
+    created_at?: string
+}
+
+export interface StellarTicket {
+    id?: string
+    created_at?: string
+    updated_at?: string
+    title: string
+    description?: string
+    status: "open" | "in_progress" | "resolved" | "closed"
+    priority: "low" | "medium" | "high" | "urgent"
+    contact_name?: string
+    contact_email?: string
+    contact_phone?: string
+    assigned_to?: string
+    lead_id?: string
+}
+
+//comment
+</file>
+
+<file path="components/contact-form.tsx">
+"use client"
+
+import type React from "react"
+import { useState } from "react"
+import { User, Mail, MessageSquare, Briefcase, Loader2, Phone, Globe } from "lucide-react"
+import { Button } from "@/components/ui/button"
+
+const SERVICE_OPTIONS = [
+  "Handle Customer Chats",
+  "Automate Repetitive Tasks",
+  "Sales & Lead Follow-up",
+  "Connect My Current Apps",
+  "Data Reports & Insights",
+  "Custom AI Strategy"
+]
+
+export function ContactForm() {
+  const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle")
+  const [selectedServices, setSelectedServices] = useState<string[]>([])
+  const [formData, setFormData] = useState({
+    firstName: "",
+    lastName: "",
+    email: "",
+    phone: "",
+    company: "",
+    website: "",
+    message: "",
+  })
+
+  // Silent Background Calculation
+  const calculateProjectValue = () => {
+    if (selectedServices.length === 0) return 0
+    const base = 5000
+    const extra = (selectedServices.length - 1) * 3000
+    return Math.min(base + extra, 20000)
+  }
+
+  const toggleService = (service: string) => {
+    setSelectedServices(prev => 
+      prev.includes(service) 
+        ? prev.filter(s => s !== service) 
+        : [...prev, service]
+    )
+  }
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    
+    if (selectedServices.length === 0) {
+      alert("Please select at least one automation goal.")
+      return
+    }
+
+    setStatus("loading")
+
+    const submissionData = {
+      ...formData,
+      needs: selectedServices,
+      estimatedValue: calculateProjectValue(), 
+      submittedAt: new Date().toLocaleString(),
+      source: "Website Contact Form"
+    }
+
+    try {
+      // Your Make Webhook URL
+      const MAKE_WEBHOOK_URL = "https://hook.eu1.make.com/kfjqkfugr8b9s72emx1biqj5j11lrewd"
+
+      const response = await fetch(MAKE_WEBHOOK_URL, {
+        method: "POST",
+        headers: { 
+          "Content-Type": "application/json",
+          "Accept": "application/json" 
+        },
+        body: JSON.stringify(submissionData),
+      })
+
+      if (response.ok) {
+        setStatus("success")
+        setFormData({ 
+          firstName: "", 
+          lastName: "", 
+          email: "", 
+          phone: "", 
+          company: "", 
+          website: "", 
+          message: "" 
+        })
+        setSelectedServices([])
+        setTimeout(() => setStatus("idle"), 5000)
+      } else {
+        throw new Error("Failed to send to Make")
+      }
+    } catch (error) {
+      console.error("Submission Error:", error)
+      setStatus("error")
+      setTimeout(() => setStatus("idle"), 4000)
+    }
+  }
+
+  return (
+    <section id="contact" className="px-4 py-24 relative bg-black/95 backdrop-blur-md">
+      <div className="max-w-2xl mx-auto relative z-10">
+        <div className="text-center mb-12">
+          <h2 className="text-3xl md:text-4xl font-semibold mb-4 text-white tracking-tight">
+            Let’s Put Your Business on <span className="text-slate-500">Autopilot</span>
+          </h2>
+          <p className="text-gray-500 max-w-xl mx-auto text-sm md:text-base">
+            Tell us what's slowing you down. We'll show you how AI can handle it in 72 hours.
+          </p>
+        </div>
+
+        <form onSubmit={handleSubmit} className="space-y-6">
+          
+          {/* Row 1: First & Last Name */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="relative">
+              <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+              <input
+                type="text"
+                placeholder="First Name"
+                value={formData.firstName}
+                onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
+                className="w-full bg-white/[0.03] border border-white/5 rounded-2xl pl-12 pr-4 py-4 text-white placeholder:text-gray-600 focus:outline-none focus:border-white/20 transition-all text-sm"
+                required
+              />
+            </div>
+            <div className="relative">
+              <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+              <input
+                type="text"
+                placeholder="Last Name"
+                value={formData.lastName}
+                onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
+                className="w-full bg-white/[0.03] border border-white/5 rounded-2xl pl-12 pr-4 py-4 text-white placeholder:text-gray-600 focus:outline-none focus:border-white/20 transition-all text-sm"
+                required
+              />
+            </div>
+          </div>
+
+          {/* Row 2: Email & Phone */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="relative">
+              <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+              <input
+                type="email"
+                placeholder="Work Email"
+                value={formData.email}
+                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                className="w-full bg-white/[0.03] border border-white/5 rounded-2xl pl-12 pr-4 py-4 text-white placeholder:text-gray-600 focus:outline-none focus:border-white/20 transition-all text-sm"
+                required
+              />
+            </div>
+            <div className="relative">
+              <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+              <input
+                type="tel"
+                placeholder="Phone Number"
+                value={formData.phone}
+                onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                className="w-full bg-white/[0.03] border border-white/5 rounded-2xl pl-12 pr-4 py-4 text-white placeholder:text-gray-600 focus:outline-none focus:border-white/20 transition-all text-sm"
+                required
+              />
+            </div>
+          </div>
+
+          {/* Row 3: Company & Website */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="relative">
+              <Briefcase className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+              <input
+                type="text"
+                placeholder="Business Name"
+                value={formData.company}
+                onChange={(e) => setFormData({ ...formData, company: e.target.value })}
+                className="w-full bg-white/[0.03] border border-white/5 rounded-2xl pl-12 pr-4 py-4 text-white placeholder:text-gray-600 focus:outline-none focus:border-white/20 transition-all text-sm"
+                required
+              />
+            </div>
+            <div className="relative">
+              <Globe className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+              <input
+                type="url"
+                placeholder="Website URL"
+                value={formData.website}
+                onChange={(e) => setFormData({ ...formData, website: e.target.value })}
+                className="w-full bg-white/[0.03] border border-white/5 rounded-2xl pl-12 pr-4 py-4 text-white placeholder:text-gray-600 focus:outline-none focus:border-white/20 transition-all text-sm"
+              />
+            </div>
+          </div>
+
+          {/* Service Selection */}
+          <div className="space-y-4">
+            <label className="text-[10px] font-bold text-slate-500 flex items-center gap-2 ml-1 uppercase tracking-[0.2em]">
+              Primary Automation Goals
+            </label>
+            <div className="grid grid-cols-2 gap-3">
+              {SERVICE_OPTIONS.map((service) => (
+                <button
+                  key={service}
+                  type="button"
+                  onClick={() => toggleService(service)}
+                  className={`py-4 px-3 rounded-2xl border text-[11px] font-semibold tracking-tight transition-all duration-300 ${
+                    selectedServices.includes(service)
+                      ? "bg-white text-black border-white shadow-xl shadow-white/5"
+                      : "bg-white/[0.02] border-white/5 text-gray-500 hover:border-white/10"
+                  }`}
+                >
+                  {service}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Message Area */}
+          <div className="relative">
+            <MessageSquare className="absolute left-4 top-4 w-4 h-4 text-slate-500" />
+            <textarea
+              placeholder="Tell us about the biggest bottleneck in your company..."
+              value={formData.message}
+              onChange={(e) => setFormData({ ...formData, message: e.target.value })}
+              rows={4}
+              className="w-full bg-white/[0.03] border border-white/5 rounded-2xl pl-12 pr-4 py-4 text-white placeholder:text-gray-600 focus:outline-none focus:border-white/20 transition-all resize-none text-sm"
+              required
+            />
+          </div>
+
+          <Button
+            type="submit"
+            disabled={status === "loading"}
+            className={`w-full py-8 rounded-2xl text-xs font-bold uppercase tracking-[0.2em] transition-all duration-500 ${
+                status === "success" 
+                ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/20" 
+                : status === "error"
+                ? "bg-red-500/20 text-red-400 border border-red-500/20"
+                : "bg-white text-black hover:bg-slate-200"
+            }`}
+          >
+            {status === "loading" ? (
+              <Loader2 className="w-5 h-5 animate-spin" />
+            ) : status === "success" ? (
+              "Message Logged"
+            ) : status === "error" ? (
+              "Try Again"
+            ) : (
+              "Request Free AI Audit"
+            )}
+          </Button>
+        </form>
+      </div>
+    </section>
+  )
+}
+</file>
+
+<file path="components/cta.tsx">
+"use client"
+
+import { useState, useMemo } from "react"
+import { ArrowRight, Wallet, Clock, TrendingDown, Zap } from "lucide-react"
+import { Button } from "@/components/ui/button"
+
+export function CTA() {
+  const [hours, setHours] = useState(20)
+  const [rate, setRate] = useState(450) // Average mid-level SA hourly rate
+
+  // useMemo ensures the calculation is lightning fast and doesn't lag the slider
+  const potentialSavings = useMemo(() => {
+    const annualWaste = hours * rate * 52
+    return Math.round(annualWaste * 0.85)
+  }, [hours, rate])
+
+  // Formatter for South African Rand
+  const formatRand = (val: number) => 
+    new Intl.NumberFormat('en-ZA', {
+      style: 'currency',
+      currency: 'ZAR',
+      maximumFractionDigits: 0,
+    }).format(val)
+
+  return (
+    <section className="px-4 py-24 relative bg-black/95 backdrop-blur-md">
+      <div className="max-w-5xl mx-auto bg-gradient-to-br from-white/[0.03] via-transparent to-slate-500/[0.03] border border-white/5 rounded-[2.5rem] p-8 md:p-14 backdrop-blur-2xl relative overflow-hidden">
+        
+        <div className="absolute -top-24 -right-24 w-80 h-80 bg-slate-500/10 blur-[120px] rounded-full pointer-events-none" />
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+          <div>
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-400/5 border border-white/10 text-slate-400 text-xs font-mono mb-8">
+              <Clock className="w-3.5 h-3.5 opacity-70" />
+              <span className="tracking-wide">Time Leak Analysis</span>
+            </div>
+            
+            <h2 className="text-4xl md:text-5xl font-semibold mb-6 text-white leading-[1.1] tracking-tight">
+              See how much <br />
+              <span className="text-slate-300">human time you're wasting.</span>
+            </h2>
+            
+            <p className="text-gray-500 mb-10 text-lg max-w-md">
+              Most teams lose 20+ hours a week to tasks that don't require a brain. Calculate what that's costing your bottom line.
+            </p>
+            
+            <div className="space-y-8">
+              <div className="group">
+                <div className="flex justify-between mb-4">
+                  <label className="text-sm font-medium text-gray-400 group-hover:text-gray-200 transition-colors italic">Lost hours per week</label>
+                  <span className="text-white font-mono bg-white/5 px-3 py-1 rounded-md border border-white/5 text-sm">{hours} Hours</span>
+                </div>
+                <input 
+                  type="range" min="5" max="160" value={hours} 
+                  onChange={(e) => setHours(Number(e.target.value))}
+                  className="w-full h-1.5 bg-white/10 rounded-lg appearance-none cursor-pointer accent-white transition-all"
+                />
+              </div>
+
+              <div className="group">
+                <div className="flex justify-between mb-4">
+                  <label className="text-sm font-medium text-gray-400 group-hover:text-gray-200 transition-colors italic">Average staff hourly cost</label>
+                  <span className="text-white font-mono bg-white/5 px-3 py-1 rounded-md border border-white/5 text-sm">R{rate}/hr</span>
+                </div>
+                <input 
+                  type="range" min="150" max="2500" step="50" value={rate} 
+                  onChange={(e) => setRate(Number(e.target.value))}
+                  className="w-full h-1.5 bg-white/10 rounded-lg appearance-none cursor-pointer accent-white transition-all"
+                />
+              </div>
+            </div>
+          </div>
+
+          <div className="relative">
+            <div className="absolute inset-0 bg-slate-500/5 blur-3xl rounded-full" />
+            
+            <div className="relative bg-white/[0.01] border border-white/10 rounded-3xl p-8 md:p-10 text-center flex flex-col justify-center backdrop-blur-sm">
+              <div className="flex justify-center mb-6">
+                <div className="p-4 rounded-2xl bg-white/[0.03] border border-white/10">
+                  <TrendingDown className="w-8 h-8 text-slate-400/80" />
+                </div>
+              </div>
+              
+              <p className="text-gray-500 text-[10px] uppercase tracking-[0.3em] mb-3 font-medium">Money you could save every year</p>
+              <div className="text-4xl md:text-5xl font-bold text-white mb-8 tracking-tighter">
+                {formatRand(potentialSavings)}
+              </div>
+              
+              <div className="space-y-4">
+                <Button className="w-full bg-white text-black hover:bg-gray-200 rounded-xl py-7 text-lg font-semibold transition-all shadow-none group">
+                  Stop the Leaks
+                  <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                </Button>
+                
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  )
+}
+</file>
+
+<file path="components/custom-cursor.tsx">
+"use client"
+
+import { useEffect, useRef, useState } from "react"
+
+export function CustomCursor() {
+  const cursorRef = useRef<HTMLDivElement>(null)
+  const dotRef = useRef<HTMLDivElement>(null)
+  
+  const [isPointer, setIsPointer] = useState(false)
+  const [isVisible, setIsVisible] = useState(false)
+  const [isClicking, setIsClicking] = useState(false)
+
+  useEffect(() => {
+    const cursor = cursorRef.current
+    const dot = dotRef.current
+    if (!cursor || !dot) return
+
+    const mousePos = { x: -100, y: -100 }
+    const delayedPos = { x: -100, y: -100 }
+
+    const updatePosition = (e: MouseEvent) => {
+      mousePos.x = e.clientX
+      mousePos.y = e.clientY
+      
+      const target = e.target as HTMLElement
+      const isClickable = !!(
+        target.closest("button") ||
+        target.closest("a") ||
+        window.getComputedStyle(target).cursor === "pointer"
+      )
+      setIsPointer(isClickable)
+    }
+
+    const animate = () => {
+      // 0.15 provides a smoother, slightly more delayed "weight"
+      delayedPos.x += (mousePos.x - delayedPos.x) * 0.15
+      delayedPos.y += (mousePos.y - delayedPos.y) * 0.15
+
+      // Use transform directly
+      cursor.style.transform = `translate3d(${delayedPos.x}px, ${delayedPos.y}px, 0) translate(-50%, -50%)`
+      dot.style.transform = `translate3d(${mousePos.x}px, ${mousePos.y}px, 0) translate(-50%, -50%)`
+
+      requestAnimationFrame(animate)
+    }
+
+    const rafId = requestAnimationFrame(animate)
+
+    const handleMouseDown = () => setIsClicking(true)
+    const handleMouseUp = () => setIsClicking(false)
+    const handleMouseLeave = () => setIsVisible(false)
+    const handleMouseEnter = () => setIsVisible(true)
+
+    window.addEventListener("mousemove", updatePosition)
+    window.addEventListener("mousedown", handleMouseDown)
+    window.addEventListener("mouseup", handleMouseUp)
+    document.addEventListener("mouseleave", handleMouseLeave)
+    document.addEventListener("mouseenter", handleMouseEnter)
+
+    return () => {
+      cancelAnimationFrame(rafId)
+      window.removeEventListener("mousemove", updatePosition)
+      window.removeEventListener("mousedown", handleMouseDown)
+      window.removeEventListener("mouseup", handleMouseUp)
+      document.removeEventListener("mouseleave", handleMouseLeave)
+      document.removeEventListener("mouseenter", handleMouseEnter)
+    }
+  }, []) // Removed isVisible dependency to prevent loop restarts
+
+  if (typeof window !== "undefined" && window.matchMedia("(pointer: coarse)").matches) {
+    return null
+  }
+
+  return (
+    <>
+      <div
+        ref={cursorRef}
+        className={`fixed top-0 left-0 pointer-events-none z-[9999] rounded-full border transition-[width,height,border-color,background-color,opacity] duration-300 ease-out ${
+          isPointer 
+            ? "w-12 h-12 border-white/40 bg-white/[0.05] backdrop-blur-[1px]" 
+            : "w-6 h-6 border-white/20 bg-transparent"
+        } ${isVisible ? "opacity-100" : "opacity-0"}`}
+        style={{ willChange: "transform" }}
+      >
+        {/* We move the scaling logic to an inner div to avoid transform conflicts */}
+        <div className={`w-full h-full rounded-full transition-transform duration-200 ${isClicking ? "scale-75" : "scale-100"}`} />
+      </div>
+
+      <div
+        ref={dotRef}
+        className={`fixed top-0 left-0 pointer-events-none z-[9999] rounded-full transition-[width,height,opacity,background-color] duration-200 ${
+          isPointer ? "w-1 h-1 bg-white" : "w-1.5 h-1.5 bg-white/60"
+        } ${isVisible ? "opacity-100" : "opacity-0"}`}
+        style={{ willChange: "transform" }}
+      />
+      
+      {/* Hide the real cursor */}
+      <style jsx global>{`
+        html, body, * {
+          cursor: none !important;
+        }
+      `}</style>
+    </>
+  )
+}
+</file>
+
+<file path="components/header.tsx">
+"use client"
+
+import { useState } from "react"
+import { Menu, X, ArrowRight } from "lucide-react"
+import Link from "next/link" // Added for internal routing
+
+const navItems = [
+  { label: "Team", href: "/team" },
+  { label: "Performance", href: "#stats" },
+  { label: "Process", href: "#phases" },
+  { label: "Portfolio", href: "#projects" },
+  { label: "Pricing", href: "#pricing" },
+  { label: "Login", href: "/login" },
+]
+
+export function Header() {
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+
+  const scrollToSection = (href: string) => {
+    // If it's a page route (starts with /), let the Link component handle it
+    if (href.startsWith('/')) {
+      setMobileMenuOpen(false)
+      return
+    }
+
+    const element = document.querySelector(href)
+    if (element) {
+      element.scrollIntoView({ behavior: "smooth" })
+    }
+    setMobileMenuOpen(false)
+  }
+
+  // Helper to render either a Link or a Button
+  const NavLink = ({ item, mobile = false }: { item: typeof navItems[0], mobile?: boolean }) => {
+    const baseStyles = mobile
+      ? "px-6 py-4 text-xs font-bold uppercase tracking-widest text-slate-400 hover:text-white hover:bg-white/[0.03] rounded-2xl text-left transition-all border border-transparent hover:border-white/5"
+      : "px-5 py-2 text-[11px] font-bold uppercase tracking-[0.15em] text-slate-500 hover:text-white transition-all duration-300 rounded-full hover:bg-white/[0.05]"
+
+    if (item.href.startsWith('/')) {
+      return (
+        <Link href={item.href} onClick={() => setMobileMenuOpen(false)} className={baseStyles}>
+          {item.label}
+        </Link>
+      )
+    }
+
+    return (
+      <button key={item.label} onClick={() => scrollToSection(item.href)} className={baseStyles}>
+        {item.label}
+      </button>
+    )
+  }
+
+  return (
+    <header className="fixed top-0 left-0 right-0 z-[100] px-6 py-5 bg-black/95">
+      <div className="max-w-7xl mx-auto flex items-center justify-between">
+
+        {/* Brand Section */}
+        <div className="flex items-center gap-3 group cursor-pointer" onClick={() => scrollToSection("#hero")}>
+          <div className="p-1.5 rounded-lg">
+            <img
+              src="/logo.svg"
+              alt="StellarCode Logo"
+              className="w-5 h-5 object-contain opacity-90"
+            />
+          </div>
+          <span className="font-semibold text-sm tracking-[0.2em] text-white uppercase">
+            StellarCode
+          </span>
+        </div>
+
+        {/* Desktop Navigation */}
+        <nav className="hidden md:flex items-center gap-1 bg-black/40 backdrop-blur-xl rounded-full px-1.5 py-1.5 border border-white/[0.08] shadow-2xl shadow-black">
+          {navItems.map((item) => (
+            <NavLink key={item.label} item={item} />
+          ))}
+        </nav>
+
+        {/* Action Button */}
+        <div className="hidden md:block">
+          <button
+            onClick={() => scrollToSection("#contact")}
+            className="flex items-center gap-2 px-5 py-2.5 bg-white text-black rounded-full text-[10px] font-bold uppercase tracking-widest hover:bg-slate-200 transition-all active:scale-95"
+          >
+            Start Audit
+            <ArrowRight className="w-3 h-3" />
+          </button>
+        </div>
+
+        {/* Mobile Toggle */}
+        <div className="flex items-center md:hidden">
+          <button
+            className="p-2.5 bg-white/[0.03] border border-white/10 rounded-xl text-white"
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+          >
+            {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+          </button>
+        </div>
+      </div>
+
+      {/* Mobile Menu */}
+      {mobileMenuOpen && (
+        <div className="md:hidden absolute top-full left-6 right-6 mt-4 bg-black/95 backdrop-blur-2xl border border-white/10 p-8 rounded-[2rem] shadow-2xl animate-in fade-in zoom-in-95 duration-300">
+          <nav className="flex flex-col gap-4">
+            {navItems.map((item) => (
+              <NavLink key={item.label} item={item} mobile />
+            ))}
+            <button
+              onClick={() => scrollToSection("#contact")}
+              className="mt-4 w-full py-5 bg-white text-black rounded-2xl text-[10px] font-bold uppercase tracking-widest text-center"
+            >
+              Free AI Audit
+            </button>
+          </nav>
+        </div>
+      )}
+    </header>
+  )
+}
+</file>
+
+<file path="components/hero.tsx">
+"use client"
+
+import { ArrowRight } from "lucide-react"
+
+export function Hero() {
+  return (
+    <section className="relative px-6 pt-32 pb-20 md:pt-44 md:pb-32 text-center overflow-hidden min-h-[100dvh] flex flex-col items-center bg-black">
+      
+      {/* 1. Optimized Background Grid */}
+      <div className="absolute inset-0 z-0 pointer-events-none">
+        <div 
+          className="absolute inset-0 opacity-[0.03] md:opacity-[0.02]" 
+          style={{ 
+            backgroundImage: `linear-gradient(to right, #ffffff 1px, transparent 1px), linear-gradient(to bottom, #ffffff 1px, transparent 1px)`,
+            backgroundSize: '80px 80px',
+            maskImage: 'radial-gradient(ellipse 60% 60% at 50% 50%, #000 10%, transparent 100%)',
+            WebkitMaskImage: 'radial-gradient(ellipse 60% 60% at 50% 50%, #000 10%, transparent 100%)'
+          }} 
+        />
+      </div>
+
+      {/* 2. Content Container */}
+      <div className="relative z-10 w-full max-w-5xl mx-auto flex flex-col items-center">
+        
+        <div className="mb-8 px-4 py-2 rounded-full border border-white/10 bg-white/[0.03] backdrop-blur-md">
+          <span className="text-[9px] md:text-[11px] uppercase tracking-[0.3em] md:tracking-[0.5em] text-slate-400 font-semibold">
+            Intelligence at the Speed of Light
+          </span>
+        </div>
+
+        <h1 className="text-[2.5rem] leading-[1.1] md:text-[clamp(2rem,5vw,3.8rem)] font-semibold tracking-tight text-white md:leading-[1.2] mb-6 max-w-4xl">
+          Automate the <span className="text-white">Routine.</span><br className="md:hidden" />{" "}
+          <span className="text-slate-500">
+            Scale the Reality.
+          </span>
+        </h1>
+
+        <p className="text-gray-400 text-sm md:text-base max-w-[500px] leading-relaxed mb-12 px-2 md:px-0">
+          Manual operations are the ceiling to your growth. We build autonomous AI agents 
+          that reclaim your team's time in <span className="text-white font-medium">72 hours.</span>
+        </p>
+
+        <div className="w-full sm:w-auto px-4 sm:px-0">
+          <button className="group relative flex items-center justify-center gap-3 w-full sm:w-fit px-10 py-5 rounded-full bg-white text-black hover:bg-slate-200 transition-all duration-300 shadow-2xl shadow-white/5 active:scale-95">
+            <span className="text-[11px] font-black tracking-[0.2em] uppercase">
+              Audit My Workflows
+            </span>
+            <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
+          </button>
+        </div>
+      </div>
+
+      {/* 3. Subdued Ambient Glows */}
+      <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-[20%] left-1/2 -translate-x-1/2 w-[80%] h-[30%] rounded-full bg-slate-500/10 blur-[80px] md:blur-[120px]" />
+      </div>
+
+      {/* 4. Cinematic Arc - HIDDEN ON MOBILE */}
+      <div className="hidden md:block absolute -bottom-24 w-full h-[350px] pointer-events-none z-20 overflow-visible translate-y-12">
+        <svg
+          width="100%"
+          height="100%"
+          viewBox="0 0 1440 400" 
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+          preserveAspectRatio="none"
+        >
+          <path
+            d="M-300 220 Q 720 -50 1740 220"
+            stroke="url(#heroArcGradient)"
+            strokeWidth="40"
+            className="opacity-100 blur-[8px]" 
+          />
+          <defs>
+            <linearGradient id="heroArcGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" stopColor="#64748b" stopOpacity="0" />
+              <stop offset="25%" stopColor="#94a3b8" stopOpacity="0.1" />
+              <stop offset="50%" stopColor="#ffffff" stopOpacity="0.3" />
+              <stop offset="75%" stopColor="#94a3b8" stopOpacity="0.1" />
+              <stop offset="100%" stopColor="#64748b" stopOpacity="0" />
+            </linearGradient>
+          </defs>
+        </svg>
+      </div>
+    </section>
+  )
+}
+</file>
+
+<file path="components/projects.tsx">
+"use client"
+
+import { useState } from "react"
+import { ExternalLink, CheckCircle2 } from "lucide-react"
+import Link from "next/link"
+
+const projects = [
+  {
+    id: "VELARI",
+    title: "VELARI",
+    slug: "/velaricasestudy",
+    type: "Autonomous Support Ecosystem",
+    year: "2026",
+    // Logic "blueprint" for the preview
+    code: `class SupportAgent {
+  async process(ticket) {
+    const context = await vectorDB.query(ticket.query);
+    const response = await openai.generate({
+      system: "Identify intent & resolve",
+      context: context
+    });
+    return response.autoReply();
+  }
+}`,
+    tags: ["OpenAI", "Vector DB", "Real-time Sync"],
+    description: "Built a fully autonomous support layer that reduced human ticket volume by 72% within the first month.",
+  },
+  {
+    id: "FAIRPAY",
+    title: "FAIRPAY",
+    slug: "/fairpaycasestudy",
+    type: "Predictive Billing Logic",
+    year: "2025",
+    code: `function predictChurn(user) {
+  const score = models.regression.analyze({
+    activity: user.last30Days,
+    payments: user.history
+  });
+  
+  if (score > 0.85) {
+    triggerRecoverySequence(user.id);
+  }
+}`,
+    tags: ["Regression Models", "Stripe API", "Node.js"],
+    description: "Developed a custom billing engine that predicts churn risks and automates recovery sequences.",
+  },
+  {
+    id: "MYM CONSULTING",
+    title: "MYM CONSULTING",
+    slug: "/mymcasestudy",
+    type: "Lead Intelligence System",
+    year: "2025",
+    code: `export const leadFlow = {
+  trigger: "new_webhook",
+  steps: [
+    enrichData("Apollo.io"),
+    scoreLead({ criteria: "ICP" }),
+    notifyChannel("#sales-leads")
+  ]
+};`,
+    tags: ["Make.com", "Enrichment API", "Slack"],
+    description: "Automated the entire lead scoring process, delivering enriched profiles directly to the sales team.",
+  },
+]
+
+export function Projects() {
+  const [activeIndex, setActiveIndex] = useState(0)
+
+  return (
+    <section className="px-4 py-24 relative overflow-visible bg-black/95 backdrop-blur-md">
+      <div className="max-w-6xl mx-auto relative z-10">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-20 items-start">
+          
+          {/* Left Side: Client List */}
+          <div>
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/[0.03] border border-white/10 text-slate-400 text-[10px] font-medium uppercase tracking-[0.3em] mb-8">
+              <CheckCircle2 className="w-3 h-3 opacity-70" />
+              <span>Proven Results</span>
+            </div>
+            
+            <h2 className="text-3xl md:text-4xl font-semibold mb-6 text-white tracking-tight">
+              Deployed <span className="text-slate-500">Logic.</span>
+            </h2>
+            
+            <p className="text-gray-500 mb-16 max-w-sm leading-relaxed text-sm">
+              We don&apos;t just build interfaces; we build engines. Explore how we&apos;ve automated operations for global industry leaders.
+            </p>
+
+            <div className="space-y-10">
+              {projects.map((project, index) => (
+                <div 
+                  key={project.id} 
+                  className="group cursor-pointer"
+                  onMouseEnter={() => setActiveIndex(index)}
+                >
+                  <Link href={project.slug} className="flex items-center gap-6">
+                    <div className={`h-[1px] transition-all duration-700 bg-gradient-to-r from-slate-400 to-transparent ${
+                      activeIndex === index ? "w-12 opacity-100" : "w-0 opacity-0"
+                    }`} />
+                    
+                    <span
+                      className={`text-2xl md:text-4xl font-bold tracking-tighter transition-all duration-500 ${
+                        activeIndex === index ? "text-white translate-x-2" : "text-gray-800 group-hover:text-gray-500"
+                      }`}
+                    >
+                      {project.title}
+                    </span>
+                  </Link>
+                  
+                  {activeIndex === index && (
+                    <div className="ml-20 mt-3 text-slate-500 text-[10px] font-medium uppercase tracking-[0.2em] animate-in fade-in slide-in-from-left-4 duration-500">
+                      {project.type}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Right Side: Code Preview */}
+          <div className="relative lg:sticky lg:top-24">
+            <div className="absolute -top-10 right-0 text-gray-700 font-medium text-[9px] tracking-[0.4em] uppercase">
+              Core Engine // {projects[activeIndex].year}
+            </div>
+            
+            <div className="relative group">
+              <div className="absolute -inset-8 bg-blue-500/5 blur-[100px] rounded-[3rem] transition-opacity duration-1000 group-hover:opacity-100 opacity-40 pointer-events-none" />
+              
+              <div className="relative bg-[#080808] border border-white/5 rounded-[2.5rem] overflow-hidden backdrop-blur-md transition-all duration-500 group-hover:border-white/10">
+                {/* Code Window Header */}
+                <div className="flex items-center gap-1.5 px-6 py-4 border-b border-white/5 bg-white/[0.02]">
+                  <div className="w-2 h-2 rounded-full bg-red-500/20" />
+                  <div className="w-2 h-2 rounded-full bg-orange-500/20" />
+                  <div className="w-2 h-2 rounded-full bg-green-500/20" />
+                  <span className="ml-2 text-[10px] text-slate-600 font-mono uppercase tracking-widest">engine.ts</span>
+                </div>
+
+                <div className="aspect-[4/3] overflow-hidden p-8 font-mono text-sm leading-relaxed">
+                  <pre className="text-slate-400">
+                    <code className="block whitespace-pre-wrap">
+                      {projects[activeIndex].code.split('\n').map((line, i) => (
+                        <div key={i} className="flex gap-4">
+                          <span className="text-slate-700 w-4 text-right select-none">{i + 1}</span>
+                          <span className={line.includes('class') || line.includes('function') ? 'text-blue-400' : 'text-slate-400'}>
+                            {line}
+                          </span>
+                        </div>
+                      ))}
+                    </code>
+                  </pre>
+                </div>
+                
+                <div className="p-10 bg-gradient-to-b from-white/[0.02] to-transparent">
+                  <div className="flex flex-wrap gap-2 mb-6">
+                    {projects[activeIndex].tags.map(tag => (
+                      <span key={tag} className="text-[9px] px-2.5 py-1 bg-white/[0.03] border border-white/5 rounded-md text-slate-500 font-medium tracking-wide uppercase">
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+                  
+                  <p className="text-gray-500 text-sm leading-relaxed mb-8 font-normal">
+                    {projects[activeIndex].description}
+                  </p>
+                  
+                  <Link 
+                    href={projects[activeIndex].slug}
+                    className="inline-flex items-center gap-2 text-white text-[10px] font-bold uppercase tracking-[0.2em] group/btn transition-colors hover:text-slate-300"
+                  >
+                    Technical Breakdown 
+                    <ExternalLink className="w-3 h-3 opacity-60 transition-transform group-hover/btn:-translate-y-0.5 group-hover/btn:translate-x-0.5" />
+                  </Link>
+                </div>
+
+                <div className="absolute top-16 right-6 px-4 py-1.5 bg-green-500/10 backdrop-blur-xl rounded-full text-[9px] font-bold text-green-500/80 border border-green-500/20 tracking-[0.1em]">
+                  NODE_ACTIVE
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </section>
+  )
+}
+</file>
+
 <file path="app/onboarding3/page.jsx">
 "use client";
 
@@ -10965,8 +13467,7 @@ const PAYMENT_METHODS = [
 ];
 
 const TOTAL_STEPS = 4;
-const WEBHOOK_URL =
-  "https://discord.com/api/webhooks/1536664478354243634/wXi2Y5FrenCCnJdVkJpWv4c117emGKX6F4j-cG0QjWMD8pskzR3_iCUpMGTnQveUj7og";
+const WEBHOOK_URL = process.env.NEXT_PUBLIC_DISCORD_WEBHOOK_URL;
 
 // Helper function to convert Base64 Data URL to Blob for Discord file attachment
 function dataURLtoBlob(dataurl) {
@@ -11285,7 +13786,7 @@ export default function EmployeeOnboarding() {
 
       formData.append("payload_json", JSON.stringify({ embeds: [embed] }));
 
-      const res = await fetch(WEBHOOK_URL, {
+      const res = await fetch("/api/onboarding", {
         method: "POST",
         body: formData,
       });
@@ -11434,8 +13935,8 @@ export default function EmployeeOnboarding() {
             </FieldGroup>
 
             {/* Profile Picture Upload Field */}
-            <FieldGroup 
-              label="Company Profile Picture / Headshot" 
+            <FieldGroup
+              label="Company Profile Picture / Headshot"
               hint="Upload a photo to be used for your internal directory, Slack, and team accounts (PNG or JPG, max 5MB)."
             >
               <div className="avatar-upload-container">
@@ -12172,752 +14673,6 @@ const CSS = `
     .hero { padding: 40px 24px; }
   }
 `;
-</file>
-
-<file path="components/contact-form.tsx">
-"use client"
-
-import type React from "react"
-import { useState } from "react"
-import { User, Mail, MessageSquare, Briefcase, Loader2, Phone, Globe } from "lucide-react"
-import { Button } from "@/components/ui/button"
-
-const SERVICE_OPTIONS = [
-  "Handle Customer Chats",
-  "Automate Repetitive Tasks",
-  "Sales & Lead Follow-up",
-  "Connect My Current Apps",
-  "Data Reports & Insights",
-  "Custom AI Strategy"
-]
-
-export function ContactForm() {
-  const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle")
-  const [selectedServices, setSelectedServices] = useState<string[]>([])
-  const [formData, setFormData] = useState({
-    firstName: "",
-    lastName: "",
-    email: "",
-    phone: "",
-    company: "",
-    website: "",
-    message: "",
-  })
-
-  // Silent Background Calculation
-  const calculateProjectValue = () => {
-    if (selectedServices.length === 0) return 0
-    const base = 5000
-    const extra = (selectedServices.length - 1) * 3000
-    return Math.min(base + extra, 20000)
-  }
-
-  const toggleService = (service: string) => {
-    setSelectedServices(prev => 
-      prev.includes(service) 
-        ? prev.filter(s => s !== service) 
-        : [...prev, service]
-    )
-  }
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    
-    if (selectedServices.length === 0) {
-      alert("Please select at least one automation goal.")
-      return
-    }
-
-    setStatus("loading")
-
-    const submissionData = {
-      ...formData,
-      needs: selectedServices,
-      estimatedValue: calculateProjectValue(), 
-      submittedAt: new Date().toLocaleString(),
-      source: "Website Contact Form"
-    }
-
-    try {
-      // Your Make Webhook URL
-      const MAKE_WEBHOOK_URL = "https://hook.eu1.make.com/kfjqkfugr8b9s72emx1biqj5j11lrewd"
-
-      const response = await fetch(MAKE_WEBHOOK_URL, {
-        method: "POST",
-        headers: { 
-          "Content-Type": "application/json",
-          "Accept": "application/json" 
-        },
-        body: JSON.stringify(submissionData),
-      })
-
-      if (response.ok) {
-        setStatus("success")
-        setFormData({ 
-          firstName: "", 
-          lastName: "", 
-          email: "", 
-          phone: "", 
-          company: "", 
-          website: "", 
-          message: "" 
-        })
-        setSelectedServices([])
-        setTimeout(() => setStatus("idle"), 5000)
-      } else {
-        throw new Error("Failed to send to Make")
-      }
-    } catch (error) {
-      console.error("Submission Error:", error)
-      setStatus("error")
-      setTimeout(() => setStatus("idle"), 4000)
-    }
-  }
-
-  return (
-    <section id="contact" className="px-4 py-24 relative bg-black/95 backdrop-blur-md">
-      <div className="max-w-2xl mx-auto relative z-10">
-        <div className="text-center mb-12">
-          <h2 className="text-3xl md:text-4xl font-semibold mb-4 text-white tracking-tight">
-            Let’s Put Your Business on <span className="text-slate-500">Autopilot</span>
-          </h2>
-          <p className="text-gray-500 max-w-xl mx-auto text-sm md:text-base">
-            Tell us what's slowing you down. We'll show you how AI can handle it in 72 hours.
-          </p>
-        </div>
-
-        <form onSubmit={handleSubmit} className="space-y-6">
-          
-          {/* Row 1: First & Last Name */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="relative">
-              <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
-              <input
-                type="text"
-                placeholder="First Name"
-                value={formData.firstName}
-                onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
-                className="w-full bg-white/[0.03] border border-white/5 rounded-2xl pl-12 pr-4 py-4 text-white placeholder:text-gray-600 focus:outline-none focus:border-white/20 transition-all text-sm"
-                required
-              />
-            </div>
-            <div className="relative">
-              <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
-              <input
-                type="text"
-                placeholder="Last Name"
-                value={formData.lastName}
-                onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
-                className="w-full bg-white/[0.03] border border-white/5 rounded-2xl pl-12 pr-4 py-4 text-white placeholder:text-gray-600 focus:outline-none focus:border-white/20 transition-all text-sm"
-                required
-              />
-            </div>
-          </div>
-
-          {/* Row 2: Email & Phone */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="relative">
-              <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
-              <input
-                type="email"
-                placeholder="Work Email"
-                value={formData.email}
-                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                className="w-full bg-white/[0.03] border border-white/5 rounded-2xl pl-12 pr-4 py-4 text-white placeholder:text-gray-600 focus:outline-none focus:border-white/20 transition-all text-sm"
-                required
-              />
-            </div>
-            <div className="relative">
-              <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
-              <input
-                type="tel"
-                placeholder="Phone Number"
-                value={formData.phone}
-                onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                className="w-full bg-white/[0.03] border border-white/5 rounded-2xl pl-12 pr-4 py-4 text-white placeholder:text-gray-600 focus:outline-none focus:border-white/20 transition-all text-sm"
-                required
-              />
-            </div>
-          </div>
-
-          {/* Row 3: Company & Website */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="relative">
-              <Briefcase className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
-              <input
-                type="text"
-                placeholder="Business Name"
-                value={formData.company}
-                onChange={(e) => setFormData({ ...formData, company: e.target.value })}
-                className="w-full bg-white/[0.03] border border-white/5 rounded-2xl pl-12 pr-4 py-4 text-white placeholder:text-gray-600 focus:outline-none focus:border-white/20 transition-all text-sm"
-                required
-              />
-            </div>
-            <div className="relative">
-              <Globe className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
-              <input
-                type="url"
-                placeholder="Website URL"
-                value={formData.website}
-                onChange={(e) => setFormData({ ...formData, website: e.target.value })}
-                className="w-full bg-white/[0.03] border border-white/5 rounded-2xl pl-12 pr-4 py-4 text-white placeholder:text-gray-600 focus:outline-none focus:border-white/20 transition-all text-sm"
-              />
-            </div>
-          </div>
-
-          {/* Service Selection */}
-          <div className="space-y-4">
-            <label className="text-[10px] font-bold text-slate-500 flex items-center gap-2 ml-1 uppercase tracking-[0.2em]">
-              Primary Automation Goals
-            </label>
-            <div className="grid grid-cols-2 gap-3">
-              {SERVICE_OPTIONS.map((service) => (
-                <button
-                  key={service}
-                  type="button"
-                  onClick={() => toggleService(service)}
-                  className={`py-4 px-3 rounded-2xl border text-[11px] font-semibold tracking-tight transition-all duration-300 ${
-                    selectedServices.includes(service)
-                      ? "bg-white text-black border-white shadow-xl shadow-white/5"
-                      : "bg-white/[0.02] border-white/5 text-gray-500 hover:border-white/10"
-                  }`}
-                >
-                  {service}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Message Area */}
-          <div className="relative">
-            <MessageSquare className="absolute left-4 top-4 w-4 h-4 text-slate-500" />
-            <textarea
-              placeholder="Tell us about the biggest bottleneck in your company..."
-              value={formData.message}
-              onChange={(e) => setFormData({ ...formData, message: e.target.value })}
-              rows={4}
-              className="w-full bg-white/[0.03] border border-white/5 rounded-2xl pl-12 pr-4 py-4 text-white placeholder:text-gray-600 focus:outline-none focus:border-white/20 transition-all resize-none text-sm"
-              required
-            />
-          </div>
-
-          <Button
-            type="submit"
-            disabled={status === "loading"}
-            className={`w-full py-8 rounded-2xl text-xs font-bold uppercase tracking-[0.2em] transition-all duration-500 ${
-                status === "success" 
-                ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/20" 
-                : status === "error"
-                ? "bg-red-500/20 text-red-400 border border-red-500/20"
-                : "bg-white text-black hover:bg-slate-200"
-            }`}
-          >
-            {status === "loading" ? (
-              <Loader2 className="w-5 h-5 animate-spin" />
-            ) : status === "success" ? (
-              "Message Logged"
-            ) : status === "error" ? (
-              "Try Again"
-            ) : (
-              "Request Free AI Audit"
-            )}
-          </Button>
-        </form>
-      </div>
-    </section>
-  )
-}
-</file>
-
-<file path="components/cta.tsx">
-"use client"
-
-import { useState, useMemo } from "react"
-import { ArrowRight, Wallet, Clock, TrendingDown, Zap } from "lucide-react"
-import { Button } from "@/components/ui/button"
-
-export function CTA() {
-  const [hours, setHours] = useState(20)
-  const [rate, setRate] = useState(450) // Average mid-level SA hourly rate
-
-  // useMemo ensures the calculation is lightning fast and doesn't lag the slider
-  const potentialSavings = useMemo(() => {
-    const annualWaste = hours * rate * 52
-    return Math.round(annualWaste * 0.85)
-  }, [hours, rate])
-
-  // Formatter for South African Rand
-  const formatRand = (val: number) => 
-    new Intl.NumberFormat('en-ZA', {
-      style: 'currency',
-      currency: 'ZAR',
-      maximumFractionDigits: 0,
-    }).format(val)
-
-  return (
-    <section className="px-4 py-24 relative bg-black/95 backdrop-blur-md">
-      <div className="max-w-5xl mx-auto bg-gradient-to-br from-white/[0.03] via-transparent to-slate-500/[0.03] border border-white/5 rounded-[2.5rem] p-8 md:p-14 backdrop-blur-2xl relative overflow-hidden">
-        
-        <div className="absolute -top-24 -right-24 w-80 h-80 bg-slate-500/10 blur-[120px] rounded-full pointer-events-none" />
-
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
-          <div>
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-400/5 border border-white/10 text-slate-400 text-xs font-mono mb-8">
-              <Clock className="w-3.5 h-3.5 opacity-70" />
-              <span className="tracking-wide">Time Leak Analysis</span>
-            </div>
-            
-            <h2 className="text-4xl md:text-5xl font-semibold mb-6 text-white leading-[1.1] tracking-tight">
-              See how much <br />
-              <span className="text-slate-300">human time you're wasting.</span>
-            </h2>
-            
-            <p className="text-gray-500 mb-10 text-lg max-w-md">
-              Most teams lose 20+ hours a week to tasks that don't require a brain. Calculate what that's costing your bottom line.
-            </p>
-            
-            <div className="space-y-8">
-              <div className="group">
-                <div className="flex justify-between mb-4">
-                  <label className="text-sm font-medium text-gray-400 group-hover:text-gray-200 transition-colors italic">Lost hours per week</label>
-                  <span className="text-white font-mono bg-white/5 px-3 py-1 rounded-md border border-white/5 text-sm">{hours} Hours</span>
-                </div>
-                <input 
-                  type="range" min="5" max="160" value={hours} 
-                  onChange={(e) => setHours(Number(e.target.value))}
-                  className="w-full h-1.5 bg-white/10 rounded-lg appearance-none cursor-pointer accent-white transition-all"
-                />
-              </div>
-
-              <div className="group">
-                <div className="flex justify-between mb-4">
-                  <label className="text-sm font-medium text-gray-400 group-hover:text-gray-200 transition-colors italic">Average staff hourly cost</label>
-                  <span className="text-white font-mono bg-white/5 px-3 py-1 rounded-md border border-white/5 text-sm">R{rate}/hr</span>
-                </div>
-                <input 
-                  type="range" min="150" max="2500" step="50" value={rate} 
-                  onChange={(e) => setRate(Number(e.target.value))}
-                  className="w-full h-1.5 bg-white/10 rounded-lg appearance-none cursor-pointer accent-white transition-all"
-                />
-              </div>
-            </div>
-          </div>
-
-          <div className="relative">
-            <div className="absolute inset-0 bg-slate-500/5 blur-3xl rounded-full" />
-            
-            <div className="relative bg-white/[0.01] border border-white/10 rounded-3xl p-8 md:p-10 text-center flex flex-col justify-center backdrop-blur-sm">
-              <div className="flex justify-center mb-6">
-                <div className="p-4 rounded-2xl bg-white/[0.03] border border-white/10">
-                  <TrendingDown className="w-8 h-8 text-slate-400/80" />
-                </div>
-              </div>
-              
-              <p className="text-gray-500 text-[10px] uppercase tracking-[0.3em] mb-3 font-medium">Money you could save every year</p>
-              <div className="text-4xl md:text-5xl font-bold text-white mb-8 tracking-tighter">
-                {formatRand(potentialSavings)}
-              </div>
-              
-              <div className="space-y-4">
-                <Button className="w-full bg-white text-black hover:bg-gray-200 rounded-xl py-7 text-lg font-semibold transition-all shadow-none group">
-                  Stop the Leaks
-                  <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
-                </Button>
-                
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-  )
-}
-</file>
-
-<file path="components/custom-cursor.tsx">
-"use client"
-
-import { useEffect, useRef, useState } from "react"
-
-export function CustomCursor() {
-  const cursorRef = useRef<HTMLDivElement>(null)
-  const dotRef = useRef<HTMLDivElement>(null)
-  
-  const [isPointer, setIsPointer] = useState(false)
-  const [isVisible, setIsVisible] = useState(false)
-  const [isClicking, setIsClicking] = useState(false)
-
-  useEffect(() => {
-    const cursor = cursorRef.current
-    const dot = dotRef.current
-    if (!cursor || !dot) return
-
-    const mousePos = { x: -100, y: -100 }
-    const delayedPos = { x: -100, y: -100 }
-
-    const updatePosition = (e: MouseEvent) => {
-      mousePos.x = e.clientX
-      mousePos.y = e.clientY
-      
-      const target = e.target as HTMLElement
-      const isClickable = !!(
-        target.closest("button") ||
-        target.closest("a") ||
-        window.getComputedStyle(target).cursor === "pointer"
-      )
-      setIsPointer(isClickable)
-    }
-
-    const animate = () => {
-      // 0.15 provides a smoother, slightly more delayed "weight"
-      delayedPos.x += (mousePos.x - delayedPos.x) * 0.15
-      delayedPos.y += (mousePos.y - delayedPos.y) * 0.15
-
-      // Use transform directly
-      cursor.style.transform = `translate3d(${delayedPos.x}px, ${delayedPos.y}px, 0) translate(-50%, -50%)`
-      dot.style.transform = `translate3d(${mousePos.x}px, ${mousePos.y}px, 0) translate(-50%, -50%)`
-
-      requestAnimationFrame(animate)
-    }
-
-    const rafId = requestAnimationFrame(animate)
-
-    const handleMouseDown = () => setIsClicking(true)
-    const handleMouseUp = () => setIsClicking(false)
-    const handleMouseLeave = () => setIsVisible(false)
-    const handleMouseEnter = () => setIsVisible(true)
-
-    window.addEventListener("mousemove", updatePosition)
-    window.addEventListener("mousedown", handleMouseDown)
-    window.addEventListener("mouseup", handleMouseUp)
-    document.addEventListener("mouseleave", handleMouseLeave)
-    document.addEventListener("mouseenter", handleMouseEnter)
-
-    return () => {
-      cancelAnimationFrame(rafId)
-      window.removeEventListener("mousemove", updatePosition)
-      window.removeEventListener("mousedown", handleMouseDown)
-      window.removeEventListener("mouseup", handleMouseUp)
-      document.removeEventListener("mouseleave", handleMouseLeave)
-      document.removeEventListener("mouseenter", handleMouseEnter)
-    }
-  }, []) // Removed isVisible dependency to prevent loop restarts
-
-  if (typeof window !== "undefined" && window.matchMedia("(pointer: coarse)").matches) {
-    return null
-  }
-
-  return (
-    <>
-      <div
-        ref={cursorRef}
-        className={`fixed top-0 left-0 pointer-events-none z-[9999] rounded-full border transition-[width,height,border-color,background-color,opacity] duration-300 ease-out ${
-          isPointer 
-            ? "w-12 h-12 border-white/40 bg-white/[0.05] backdrop-blur-[1px]" 
-            : "w-6 h-6 border-white/20 bg-transparent"
-        } ${isVisible ? "opacity-100" : "opacity-0"}`}
-        style={{ willChange: "transform" }}
-      >
-        {/* We move the scaling logic to an inner div to avoid transform conflicts */}
-        <div className={`w-full h-full rounded-full transition-transform duration-200 ${isClicking ? "scale-75" : "scale-100"}`} />
-      </div>
-
-      <div
-        ref={dotRef}
-        className={`fixed top-0 left-0 pointer-events-none z-[9999] rounded-full transition-[width,height,opacity,background-color] duration-200 ${
-          isPointer ? "w-1 h-1 bg-white" : "w-1.5 h-1.5 bg-white/60"
-        } ${isVisible ? "opacity-100" : "opacity-0"}`}
-        style={{ willChange: "transform" }}
-      />
-      
-      {/* Hide the real cursor */}
-      <style jsx global>{`
-        html, body, * {
-          cursor: none !important;
-        }
-      `}</style>
-    </>
-  )
-}
-</file>
-
-<file path="components/hero.tsx">
-"use client"
-
-import { ArrowRight } from "lucide-react"
-
-export function Hero() {
-  return (
-    <section className="relative px-6 pt-32 pb-20 md:pt-44 md:pb-32 text-center overflow-hidden min-h-[100dvh] flex flex-col items-center bg-black">
-      
-      {/* 1. Optimized Background Grid */}
-      <div className="absolute inset-0 z-0 pointer-events-none">
-        <div 
-          className="absolute inset-0 opacity-[0.03] md:opacity-[0.02]" 
-          style={{ 
-            backgroundImage: `linear-gradient(to right, #ffffff 1px, transparent 1px), linear-gradient(to bottom, #ffffff 1px, transparent 1px)`,
-            backgroundSize: '80px 80px',
-            maskImage: 'radial-gradient(ellipse 60% 60% at 50% 50%, #000 10%, transparent 100%)',
-            WebkitMaskImage: 'radial-gradient(ellipse 60% 60% at 50% 50%, #000 10%, transparent 100%)'
-          }} 
-        />
-      </div>
-
-      {/* 2. Content Container */}
-      <div className="relative z-10 w-full max-w-5xl mx-auto flex flex-col items-center">
-        
-        <div className="mb-8 px-4 py-2 rounded-full border border-white/10 bg-white/[0.03] backdrop-blur-md">
-          <span className="text-[9px] md:text-[11px] uppercase tracking-[0.3em] md:tracking-[0.5em] text-slate-400 font-semibold">
-            Intelligence at the Speed of Light
-          </span>
-        </div>
-
-        <h1 className="text-[2.5rem] leading-[1.1] md:text-[clamp(2rem,5vw,3.8rem)] font-semibold tracking-tight text-white md:leading-[1.2] mb-6 max-w-4xl">
-          Automate the <span className="text-white">Routine.</span><br className="md:hidden" />{" "}
-          <span className="text-slate-500">
-            Scale the Reality.
-          </span>
-        </h1>
-
-        <p className="text-gray-400 text-sm md:text-base max-w-[500px] leading-relaxed mb-12 px-2 md:px-0">
-          Manual operations are the ceiling to your growth. We build autonomous AI agents 
-          that reclaim your team's time in <span className="text-white font-medium">72 hours.</span>
-        </p>
-
-        <div className="w-full sm:w-auto px-4 sm:px-0">
-          <button className="group relative flex items-center justify-center gap-3 w-full sm:w-fit px-10 py-5 rounded-full bg-white text-black hover:bg-slate-200 transition-all duration-300 shadow-2xl shadow-white/5 active:scale-95">
-            <span className="text-[11px] font-black tracking-[0.2em] uppercase">
-              Audit My Workflows
-            </span>
-            <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
-          </button>
-        </div>
-      </div>
-
-      {/* 3. Subdued Ambient Glows */}
-      <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-[20%] left-1/2 -translate-x-1/2 w-[80%] h-[30%] rounded-full bg-slate-500/10 blur-[80px] md:blur-[120px]" />
-      </div>
-
-      {/* 4. Cinematic Arc - HIDDEN ON MOBILE */}
-      <div className="hidden md:block absolute -bottom-24 w-full h-[350px] pointer-events-none z-20 overflow-visible translate-y-12">
-        <svg
-          width="100%"
-          height="100%"
-          viewBox="0 0 1440 400" 
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-          preserveAspectRatio="none"
-        >
-          <path
-            d="M-300 220 Q 720 -50 1740 220"
-            stroke="url(#heroArcGradient)"
-            strokeWidth="40"
-            className="opacity-100 blur-[8px]" 
-          />
-          <defs>
-            <linearGradient id="heroArcGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-              <stop offset="0%" stopColor="#64748b" stopOpacity="0" />
-              <stop offset="25%" stopColor="#94a3b8" stopOpacity="0.1" />
-              <stop offset="50%" stopColor="#ffffff" stopOpacity="0.3" />
-              <stop offset="75%" stopColor="#94a3b8" stopOpacity="0.1" />
-              <stop offset="100%" stopColor="#64748b" stopOpacity="0" />
-            </linearGradient>
-          </defs>
-        </svg>
-      </div>
-    </section>
-  )
-}
-</file>
-
-<file path="components/projects.tsx">
-"use client"
-
-import { useState } from "react"
-import { ExternalLink, CheckCircle2 } from "lucide-react"
-import Link from "next/link"
-
-const projects = [
-  {
-    id: "VELARI",
-    title: "VELARI",
-    slug: "/velaricasestudy",
-    type: "Autonomous Support Ecosystem",
-    year: "2026",
-    // Logic "blueprint" for the preview
-    code: `class SupportAgent {
-  async process(ticket) {
-    const context = await vectorDB.query(ticket.query);
-    const response = await openai.generate({
-      system: "Identify intent & resolve",
-      context: context
-    });
-    return response.autoReply();
-  }
-}`,
-    tags: ["OpenAI", "Vector DB", "Real-time Sync"],
-    description: "Built a fully autonomous support layer that reduced human ticket volume by 72% within the first month.",
-  },
-  {
-    id: "FAIRPAY",
-    title: "FAIRPAY",
-    slug: "/fairpaycasestudy",
-    type: "Predictive Billing Logic",
-    year: "2025",
-    code: `function predictChurn(user) {
-  const score = models.regression.analyze({
-    activity: user.last30Days,
-    payments: user.history
-  });
-  
-  if (score > 0.85) {
-    triggerRecoverySequence(user.id);
-  }
-}`,
-    tags: ["Regression Models", "Stripe API", "Node.js"],
-    description: "Developed a custom billing engine that predicts churn risks and automates recovery sequences.",
-  },
-  {
-    id: "MYM CONSULTING",
-    title: "MYM CONSULTING",
-    slug: "/mymcasestudy",
-    type: "Lead Intelligence System",
-    year: "2025",
-    code: `export const leadFlow = {
-  trigger: "new_webhook",
-  steps: [
-    enrichData("Apollo.io"),
-    scoreLead({ criteria: "ICP" }),
-    notifyChannel("#sales-leads")
-  ]
-};`,
-    tags: ["Make.com", "Enrichment API", "Slack"],
-    description: "Automated the entire lead scoring process, delivering enriched profiles directly to the sales team.",
-  },
-]
-
-export function Projects() {
-  const [activeIndex, setActiveIndex] = useState(0)
-
-  return (
-    <section className="px-4 py-24 relative overflow-visible bg-black/95 backdrop-blur-md">
-      <div className="max-w-6xl mx-auto relative z-10">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-20 items-start">
-          
-          {/* Left Side: Client List */}
-          <div>
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/[0.03] border border-white/10 text-slate-400 text-[10px] font-medium uppercase tracking-[0.3em] mb-8">
-              <CheckCircle2 className="w-3 h-3 opacity-70" />
-              <span>Proven Results</span>
-            </div>
-            
-            <h2 className="text-3xl md:text-4xl font-semibold mb-6 text-white tracking-tight">
-              Deployed <span className="text-slate-500">Logic.</span>
-            </h2>
-            
-            <p className="text-gray-500 mb-16 max-w-sm leading-relaxed text-sm">
-              We don&apos;t just build interfaces; we build engines. Explore how we&apos;ve automated operations for global industry leaders.
-            </p>
-
-            <div className="space-y-10">
-              {projects.map((project, index) => (
-                <div 
-                  key={project.id} 
-                  className="group cursor-pointer"
-                  onMouseEnter={() => setActiveIndex(index)}
-                >
-                  <Link href={project.slug} className="flex items-center gap-6">
-                    <div className={`h-[1px] transition-all duration-700 bg-gradient-to-r from-slate-400 to-transparent ${
-                      activeIndex === index ? "w-12 opacity-100" : "w-0 opacity-0"
-                    }`} />
-                    
-                    <span
-                      className={`text-2xl md:text-4xl font-bold tracking-tighter transition-all duration-500 ${
-                        activeIndex === index ? "text-white translate-x-2" : "text-gray-800 group-hover:text-gray-500"
-                      }`}
-                    >
-                      {project.title}
-                    </span>
-                  </Link>
-                  
-                  {activeIndex === index && (
-                    <div className="ml-20 mt-3 text-slate-500 text-[10px] font-medium uppercase tracking-[0.2em] animate-in fade-in slide-in-from-left-4 duration-500">
-                      {project.type}
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Right Side: Code Preview */}
-          <div className="relative lg:sticky lg:top-24">
-            <div className="absolute -top-10 right-0 text-gray-700 font-medium text-[9px] tracking-[0.4em] uppercase">
-              Core Engine // {projects[activeIndex].year}
-            </div>
-            
-            <div className="relative group">
-              <div className="absolute -inset-8 bg-blue-500/5 blur-[100px] rounded-[3rem] transition-opacity duration-1000 group-hover:opacity-100 opacity-40 pointer-events-none" />
-              
-              <div className="relative bg-[#080808] border border-white/5 rounded-[2.5rem] overflow-hidden backdrop-blur-md transition-all duration-500 group-hover:border-white/10">
-                {/* Code Window Header */}
-                <div className="flex items-center gap-1.5 px-6 py-4 border-b border-white/5 bg-white/[0.02]">
-                  <div className="w-2 h-2 rounded-full bg-red-500/20" />
-                  <div className="w-2 h-2 rounded-full bg-orange-500/20" />
-                  <div className="w-2 h-2 rounded-full bg-green-500/20" />
-                  <span className="ml-2 text-[10px] text-slate-600 font-mono uppercase tracking-widest">engine.ts</span>
-                </div>
-
-                <div className="aspect-[4/3] overflow-hidden p-8 font-mono text-sm leading-relaxed">
-                  <pre className="text-slate-400">
-                    <code className="block whitespace-pre-wrap">
-                      {projects[activeIndex].code.split('\n').map((line, i) => (
-                        <div key={i} className="flex gap-4">
-                          <span className="text-slate-700 w-4 text-right select-none">{i + 1}</span>
-                          <span className={line.includes('class') || line.includes('function') ? 'text-blue-400' : 'text-slate-400'}>
-                            {line}
-                          </span>
-                        </div>
-                      ))}
-                    </code>
-                  </pre>
-                </div>
-                
-                <div className="p-10 bg-gradient-to-b from-white/[0.02] to-transparent">
-                  <div className="flex flex-wrap gap-2 mb-6">
-                    {projects[activeIndex].tags.map(tag => (
-                      <span key={tag} className="text-[9px] px-2.5 py-1 bg-white/[0.03] border border-white/5 rounded-md text-slate-500 font-medium tracking-wide uppercase">
-                        {tag}
-                      </span>
-                    ))}
-                  </div>
-                  
-                  <p className="text-gray-500 text-sm leading-relaxed mb-8 font-normal">
-                    {projects[activeIndex].description}
-                  </p>
-                  
-                  <Link 
-                    href={projects[activeIndex].slug}
-                    className="inline-flex items-center gap-2 text-white text-[10px] font-bold uppercase tracking-[0.2em] group/btn transition-colors hover:text-slate-300"
-                  >
-                    Technical Breakdown 
-                    <ExternalLink className="w-3 h-3 opacity-60 transition-transform group-hover/btn:-translate-y-0.5 group-hover/btn:translate-x-0.5" />
-                  </Link>
-                </div>
-
-                <div className="absolute top-16 right-6 px-4 py-1.5 bg-green-500/10 backdrop-blur-xl rounded-full text-[9px] font-bold text-green-500/80 border border-green-500/20 tracking-[0.1em]">
-                  NODE_ACTIVE
-                </div>
-              </div>
-            </div>
-          </div>
-
-        </div>
-      </div>
-    </section>
-  )
-}
 </file>
 
 <file path="app/onboarding1/page.jsx">
