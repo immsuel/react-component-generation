@@ -35,7 +35,7 @@ const PRIORITIES = [
     { id: "low", label: "Low", hint: "Standard inquiry", baseHours: 48 },
     { id: "medium", label: "Medium", hint: "Normal priority", baseHours: 24 },
     { id: "high", label: "High", hint: "Impacts workflow", baseHours: 8 },
-    { id: "urgent", label: "Urgent", hint: "Critical system block", baseHours: 6 },
+    { id: "urgent", label: "Urgent", hint: "Critical system block", baseHours: 4 },
 ]
 
 // ─── ETA Helper Functions ───────────────────────────────────────────────────
