@@ -10,7 +10,7 @@ const navItems = [
   { label: "Process", href: "#phases" },
   { label: "Portfolio", href: "#projects" },
   { label: "Pricing", href: "#pricing" },
-  { label: "Login", href: "/login" },
+  { label: "Client Portal", href: "/portal" },
 ]
 
 export function Header() {
