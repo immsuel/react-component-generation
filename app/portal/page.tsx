@@ -32,10 +32,10 @@ const CATEGORIES = [
 ]
 
 const PRIORITIES = [
-    { id: "low", label: "Low", hint: "Standard inquiry", baseHours: 36 },
-    { id: "medium", label: "Medium", hint: "Normal priority", baseHours: 18 },
+    { id: "low", label: "Low", hint: "Standard inquiry", baseHours: 48 },
+    { id: "medium", label: "Medium", hint: "Normal priority", baseHours: 24 },
     { id: "high", label: "High", hint: "Impacts workflow", baseHours: 8 },
-    { id: "urgent", label: "Urgent", hint: "Critical system block", baseHours: 3 },
+    { id: "urgent", label: "Urgent", hint: "Critical system block", baseHours: 6 },
 ]
 
 // ─── ETA Helper Functions ───────────────────────────────────────────────────
