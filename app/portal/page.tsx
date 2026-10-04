@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect, useMemo } from "react"
 import {
     Ticket,
     Send,
@@ -15,8 +15,9 @@ import {
     Mail,
     Phone,
     Building,
-    FileText,
-    ExternalLink
+    Activity,
+    Calendar,
+    Sparkles
 } from "lucide-react"
 import Link from "next/link"
 import { supabase } from "@/lib/supabase"
@@ -31,18 +32,59 @@ const CATEGORIES = [
 ]
 
 const PRIORITIES = [
-    { id: "low", label: "Low", hint: "Standard inquiry (within 48h)" },
-    { id: "medium", label: "Medium", hint: "Normal priority (within 24h)" },
-    { id: "high", label: "High", hint: "Impacts workflow (within 8h)" },
-    { id: "urgent", label: "Urgent", hint: "System down / critical blocking" },
+    { id: "low", label: "Low", hint: "Standard inquiry", baseHours: 36 },
+    { id: "medium", label: "Medium", hint: "Normal priority", baseHours: 18 },
+    { id: "high", label: "High", hint: "Impacts workflow", baseHours: 8 },
+    { id: "urgent", label: "Urgent", hint: "Critical system block", baseHours: 3 },
 ]
+
+// ─── ETA Helper Functions ───────────────────────────────────────────────────
+
+function calculateETAFromQueue(priority: string, outstandingCount: number, baseDate = new Date()) {
+    const priorityConfig = PRIORITIES.find((p) => p.id === priority) || PRIORITIES[1]
+
+    // Urgent tickets bypass general queue; others scale slightly with queue volume
+    const queueMultiplier = priority === "urgent" ? 0.3 : priority === "high" ? 0.7 : 1.2
+    const additionalHours = Math.round(outstandingCount * queueMultiplier)
+    const totalHours = priorityConfig.baseHours + additionalHours
+
+    const targetDate = new Date(baseDate.getTime() + totalHours * 60 * 60 * 1000)
+
+    const isToday = targetDate.toDateString() === new Date().toDateString()
+    const tomorrow = new Date()
+    tomorrow.setDate(tomorrow.getDate() + 1)
+    const isTomorrow = targetDate.toDateString() === tomorrow.toDateString()
+
+    const timeStr = targetDate.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" })
+
+    let dayLabel = targetDate.toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short" })
+    if (isToday) dayLabel = "Today"
+    else if (isTomorrow) dayLabel = "Tomorrow"
+
+    return {
+        totalHours,
+        targetDate,
+        formattedEstimate: `${dayLabel} by ${timeStr}`,
+        humanDuration: totalHours < 24 ? `~${totalHours} hours` : `~${Math.round(totalHours / 24)} days`,
+    }
+}
 
 export default function ClientPortalPage() {
     const [activeTab, setActiveTab] = useState<"create" | "track">("create")
 
+    // Active desk queue state
+    const [activeQueueCount, setActiveQueueCount] = useState(0)
+    const [loadingQueue, setLoadingQueue] = useState(true)
+
     // Form state
     const [submitting, setSubmitting] = useState(false)
-    const [submittedCode, setSubmittedCode] = useState<string | null>(null)
+    const [submittedData, setSubmittedData] = useState<{
+        code: string
+        queuePos: number
+        etaFormatted: string
+        humanDuration: string
+    } | null>(null)
+
     const [formData, setFormData] = useState({
         companyName: "",
         contactName: "",
@@ -59,6 +101,34 @@ export default function ClientPortalPage() {
     const [trackedTickets, setTrackedTickets] = useState<any[]>([])
     const [searchingTickets, setSearchingTickets] = useState(false)
     const [hasSearched, setHasSearched] = useState(false)
+
+    // Fetch live active queue volume
+    const fetchQueueStats = async () => {
+        setLoadingQueue(true)
+        try {
+            const { count, error } = await supabase
+                .from("stellarcode_tickets")
+                .select("id", { count: "exact", head: true })
+                .in("status", ["open", "in_progress"])
+
+            if (!error && count !== null) {
+                setActiveQueueCount(count)
+            }
+        } catch (err) {
+            console.error("Queue load error:", err)
+        } finally {
+            setLoadingQueue(false)
+        }
+    }
+
+    useEffect(() => {
+        fetchQueueStats()
+    }, [])
+
+    // Real-time ETA calculated dynamically for the currently selected priority in form
+    const currentLiveETA = useMemo(() => {
+        return calculateETAFromQueue(formData.priority, activeQueueCount)
+    }, [formData.priority, activeQueueCount])
 
     // Handle ticket creation
     const handleSubmitTicket = async (e: React.FormEvent) => {
@@ -111,12 +181,25 @@ export default function ClientPortalPage() {
                         contact_phone: formData.phone || null,
                     },
                 ])
-                .select("ticket_code, id")
+                .select("ticket_code, id, created_at")
                 .single()
 
             if (ticketError) throw ticketError
 
-            setSubmittedCode(createdTicket?.ticket_code || "ST-RECEIVED")
+            // Re-calculate queue position and ETA
+            const queuePos = activeQueueCount + 1
+            const calculatedEta = calculateETAFromQueue(formData.priority, activeQueueCount)
+
+            setSubmittedData({
+                code: createdTicket?.ticket_code || "ST-RECEIVED",
+                queuePos,
+                etaFormatted: calculatedEta.formattedEstimate,
+                humanDuration: calculatedEta.humanDuration,
+            })
+
+            // Refresh queue count
+            fetchQueueStats()
+
             setFormData({
                 companyName: "",
                 contactName: "",
@@ -162,9 +245,9 @@ export default function ClientPortalPage() {
     const renderStatusBadge = (status: string) => {
         switch (status) {
             case "open":
-                return <span className="px-2.5 py-1 rounded-full text-[10px] font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">Open / Logged</span>
+                return <span className="px-2.5 py-1 rounded-full text-[10px] font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">Open / In Queue</span>
             case "in_progress":
-                return <span className="px-2.5 py-1 rounded-full text-[10px] font-semibold bg-sky-500/10 text-sky-400 border border-sky-500/20">In Progress</span>
+                return <span className="px-2.5 py-1 rounded-full text-[10px] font-semibold bg-sky-500/10 text-sky-400 border border-sky-500/20">In Active Progress</span>
             case "resolved":
                 return <span className="px-2.5 py-1 rounded-full text-[10px] font-semibold bg-purple-500/10 text-purple-400 border border-purple-500/20">Resolved</span>
             case "closed":
@@ -187,7 +270,7 @@ export default function ClientPortalPage() {
                     {/* View Switcher */}
                     <div className="flex items-center bg-white/[0.04] p-1 rounded-full border border-white/10">
                         <button
-                            onClick={() => { setActiveTab("create"); setSubmittedCode(null) }}
+                            onClick={() => { setActiveTab("create"); setSubmittedData(null) }}
                             className={`flex items-center gap-1.5 px-4 py-1.5 rounded-full text-xs font-medium transition-all ${activeTab === "create" ? "bg-white text-black font-semibold shadow-md" : "text-slate-400 hover:text-white"
                                 }`}
                         >
@@ -211,19 +294,40 @@ export default function ClientPortalPage() {
                 {/* ═══════════════════════════════════════════════════════════════ */}
                 {/* TAB 1: CREATE TICKET                                           */}
                 {/* ═══════════════════════════════════════════════════════════════ */}
-                {activeTab === "create" && !submittedCode && (
+                {activeTab === "create" && !submittedData && (
                     <div className="animate-in fade-in duration-300">
-                        <div className="text-center mb-12">
+                        <div className="text-center mb-8">
                             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-slate-400 text-xs font-medium mb-4">
                                 <Layers className="w-3.5 h-3.5" />
-                                Client Engineering Support
+                                Client Support
                             </div>
                             <h1 className="text-4xl md:text-5xl font-semibold tracking-tight text-white mb-3">
                                 Submit a Support Request
                             </h1>
                             <p className="text-slate-400 text-sm max-w-lg mx-auto">
-                                Need an issue resolved, an automation modified, or new system logic deployed? Log your ticket directly with our engineering desk.
+                                Need an issue resolved, an automation modified, or new system logic deployed? Log your ticket directly with our support desk.
                             </p>
+                        </div>
+
+                        {/* Live Desk Queue / Velocity Bar */}
+                        <div className="mb-8 p-4 bg-white/[0.02] border border-white/10 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-4 text-xs">
+                            <div className="flex items-center gap-2.5">
+                                <div className="relative flex h-2 w-2">
+                                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                                    <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                                </div>
+                                <span className="text-slate-300 font-medium">Support Desk Status:</span>
+                                <span className="text-emerald-400 font-semibold">Active & Triaging</span>
+                            </div>
+                            <div className="flex items-center gap-4 text-slate-400 font-mono text-[11px]">
+                                <div>
+                                    Outstanding Tickets: <span className="text-white font-bold">{loadingQueue ? "..." : activeQueueCount}</span>
+                                </div>
+                                <div className="h-3 w-px bg-white/10" />
+                                <div>
+                                    Current Turnaround: <span className="text-white font-bold">{currentLiveETA.humanDuration}</span>
+                                </div>
+                            </div>
                         </div>
 
                         <form onSubmit={handleSubmitTicket} className="bg-[#050505] border border-white/10 rounded-[2.5rem] p-8 md:p-12 shadow-2xl space-y-8">
@@ -297,8 +401,8 @@ export default function ClientPortalPage() {
                                                         key={c.id}
                                                         onClick={() => setFormData({ ...formData, category: c.id })}
                                                         className={`p-3.5 rounded-2xl border cursor-pointer transition-all ${selected
-                                                                ? "bg-white/10 border-white/40 text-white"
-                                                                : "bg-white/[0.02] border-white/5 text-slate-400 hover:border-white/10"
+                                                            ? "bg-white/10 border-white/40 text-white"
+                                                            : "bg-white/[0.02] border-white/5 text-slate-400 hover:border-white/10"
                                                             }`}
                                                     >
                                                         <div className="text-xs font-semibold">{c.label}</div>
@@ -310,7 +414,13 @@ export default function ClientPortalPage() {
                                     </div>
 
                                     <div>
-                                        <label className="block text-xs text-slate-400 mb-2">Urgency Level</label>
+                                        <div className="flex justify-between items-center mb-2">
+                                            <label className="block text-xs text-slate-400">Urgency Level</label>
+                                            <span className="text-[11px] font-mono text-emerald-400">
+                                                Estimated Resolution: {currentLiveETA.formattedEstimate}
+                                            </span>
+                                        </div>
+
                                         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
                                             {PRIORITIES.map((p) => {
                                                 const selected = formData.priority === p.id
@@ -320,10 +430,10 @@ export default function ClientPortalPage() {
                                                         type="button"
                                                         onClick={() => setFormData({ ...formData, priority: p.id })}
                                                         className={`py-3 px-3 rounded-2xl border text-center transition-all ${selected
-                                                                ? p.id === "urgent"
-                                                                    ? "bg-rose-500/20 border-rose-500 text-rose-300 font-semibold"
-                                                                    : "bg-white text-black border-white font-semibold"
-                                                                : "bg-white/[0.02] border-white/10 text-slate-400 hover:text-white"
+                                                            ? p.id === "urgent"
+                                                                ? "bg-rose-500/20 border-rose-500 text-rose-300 font-semibold"
+                                                                : "bg-white text-black border-white font-semibold"
+                                                            : "bg-white/[0.02] border-white/10 text-slate-400 hover:text-white"
                                                             }`}
                                                     >
                                                         <div className="text-xs capitalize font-medium">{p.label}</div>
@@ -373,15 +483,25 @@ export default function ClientPortalPage() {
                                 </div>
                             </div>
 
-                            {/* Submit */}
-                            <div className="border-t border-white/5 pt-4">
+                            {/* Submit with Live Projected ETA */}
+                            <div className="border-t border-white/5 pt-4 space-y-3">
+                                <div className="flex items-center justify-between text-xs text-slate-400 bg-white/[0.02] border border-white/5 p-3.5 rounded-2xl">
+                                    <div className="flex items-center gap-2">
+                                        <Clock className="w-3.5 h-3.5 text-slate-500" />
+                                        <span>Current Queue: <strong className="text-white">{activeQueueCount} ahead</strong></span>
+                                    </div>
+                                    <div>
+                                        Expected Completion: <strong className="text-white">{currentLiveETA.formattedEstimate}</strong>
+                                    </div>
+                                </div>
+
                                 <button
                                     type="submit"
                                     disabled={submitting}
                                     className="w-full py-5 bg-white text-black hover:bg-slate-200 active:scale-98 rounded-full text-xs font-black uppercase tracking-[0.2em] transition-all flex items-center justify-center gap-2 shadow-2xl disabled:opacity-50"
                                 >
                                     {submitting ? (
-                                        <span>Dispatching to Engineering Desk...</span>
+                                        <span>Your request is being submitted...</span>
                                     ) : (
                                         <>
                                             <Send className="w-4 h-4" />
@@ -394,26 +514,38 @@ export default function ClientPortalPage() {
                     </div>
                 )}
 
-                {/* ── Success Screen ────────────────────────────────────────── */}
-                {submittedCode && (
-                    <div className="bg-[#050505] border border-white/10 rounded-[2.5rem] p-12 text-center shadow-2xl animate-in zoom-in-95 duration-300">
+                {/* ── Success Screen with ETA Card ──────────────────────────── */}
+                {submittedData && (
+                    <div className="bg-[#050505] border border-white/10 rounded-[2.5rem] p-10 md:p-14 text-center shadow-2xl animate-in zoom-in-95 duration-300">
                         <div className="w-16 h-16 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center mx-auto mb-6">
                             <CheckCircle2 className="w-8 h-8" />
                         </div>
                         <h2 className="text-3xl font-bold tracking-tight text-white mb-2">Ticket Logged Successfully</h2>
-                        <p className="text-slate-400 text-sm max-w-md mx-auto mb-6">
-                            Your support ticket has been received and added to our priority queue.
+                        <p className="text-slate-400 text-sm max-w-md mx-auto mb-8">
+                            Your support ticket has been received and scheduled based on current team workload.
                         </p>
 
-                        <div className="bg-white/[0.02] border border-white/10 rounded-2xl p-6 max-w-xs mx-auto mb-8">
-                            <div className="text-[10px] uppercase font-bold tracking-widest text-slate-500 mb-1">Your Tracking Code</div>
-                            <div className="font-mono text-2xl font-bold text-white tracking-wider">{submittedCode}</div>
+                        {/* Ticket Code & Live ETA Box */}
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 max-w-xl mx-auto mb-8">
+                            <div className="bg-white/[0.02] border border-white/10 rounded-2xl p-5">
+                                <div className="text-[10px] uppercase font-bold tracking-widest text-slate-500 mb-1">Tracking Code</div>
+                                <div className="font-mono text-xl font-bold text-white tracking-wider">{submittedData.code}</div>
+                            </div>
+                            <div className="bg-white/[0.02] border border-white/10 rounded-2xl p-5">
+                                <div className="text-[10px] uppercase font-bold tracking-widest text-slate-500 mb-1">Queue Position</div>
+                                <div className="font-mono text-xl font-bold text-sky-400">#{submittedData.queuePos}</div>
+                            </div>
+                            <div className="bg-white/[0.02] border border-white/10 rounded-2xl p-5">
+                                <div className="text-[10px] uppercase font-bold tracking-widest text-slate-500 mb-1">Target ETA</div>
+                                <div className="text-xs font-semibold text-emerald-400 mt-1">{submittedData.etaFormatted}</div>
+                                <div className="text-[10px] text-slate-500 mt-0.5">({submittedData.humanDuration})</div>
+                            </div>
                         </div>
 
                         <div className="flex flex-col sm:flex-row justify-center gap-3">
                             <button
                                 onClick={() => {
-                                    setSubmittedCode(null)
+                                    setSubmittedData(null)
                                     setActiveTab("track")
                                 }}
                                 className="px-6 py-3.5 bg-white/5 border border-white/10 hover:bg-white/10 rounded-full text-xs font-semibold tracking-wider uppercase transition-all"
@@ -421,7 +553,7 @@ export default function ClientPortalPage() {
                                 Track Status
                             </button>
                             <button
-                                onClick={() => setSubmittedCode(null)}
+                                onClick={() => setSubmittedData(null)}
                                 className="px-6 py-3.5 bg-white text-black hover:bg-slate-200 rounded-full text-xs font-semibold tracking-wider uppercase transition-all"
                             >
                                 Submit Another Ticket
@@ -440,7 +572,7 @@ export default function ClientPortalPage() {
                                 Ticket Status Tracker
                             </h1>
                             <p className="text-slate-400 text-xs">
-                                Enter your company email to review real-time progress on open and resolved requests.
+                                Enter your company email to review real-time progress and completion estimates on open requests.
                             </p>
                         </div>
 
@@ -469,51 +601,84 @@ export default function ClientPortalPage() {
                         {/* Results List */}
                         <div className="space-y-4">
                             {trackedTickets.length > 0 ? (
-                                trackedTickets.map((t) => (
-                                    <div
-                                        key={t.id}
-                                        className="bg-[#050505] border border-white/10 rounded-3xl p-6 transition-all hover:border-white/20"
-                                    >
-                                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
-                                            <div className="flex items-center gap-3">
-                                                <span className="font-mono text-xs text-slate-500 font-bold bg-white/5 px-2.5 py-1 rounded-lg border border-white/5">
-                                                    {t.ticket_code || "ST-LOG"}
-                                                </span>
-                                                <h4 className="font-semibold text-white text-sm">
-                                                    {t.title}
-                                                </h4>
-                                            </div>
-                                            <div className="flex items-center gap-2">
-                                                {renderStatusBadge(t.status)}
-                                            </div>
-                                        </div>
+                                trackedTickets.map((t, idx) => {
+                                    // Compute estimated ETA for this specific ticket based on creation time + priority
+                                    const ticketETA = calculateETAFromQueue(
+                                        t.priority || "medium",
+                                        activeQueueCount,
+                                        new Date(t.created_at || Date.now())
+                                    )
 
-                                        <p className="text-slate-400 text-xs leading-relaxed mb-4">
-                                            {t.description}
-                                        </p>
+                                    const isComplete = t.status === "resolved" || t.status === "closed"
 
-                                        {t.resolution_notes && (
-                                            <div className="bg-emerald-500/5 border border-emerald-500/10 rounded-2xl p-4 text-xs text-emerald-300 mb-4">
-                                                <span className="font-bold text-emerald-400">Resolution Update: </span>
-                                                {t.resolution_notes}
+                                    return (
+                                        <div
+                                            key={t.id}
+                                            className="bg-[#050505] border border-white/10 rounded-3xl p-6 transition-all hover:border-white/20"
+                                        >
+                                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
+                                                <div className="flex items-center gap-3">
+                                                    <span className="font-mono text-xs text-slate-500 font-bold bg-white/5 px-2.5 py-1 rounded-lg border border-white/5">
+                                                        {t.ticket_code || `ST-10${idx + 1}`}
+                                                    </span>
+                                                    <h4 className="font-semibold text-white text-sm">
+                                                        {t.title}
+                                                    </h4>
+                                                </div>
+                                                <div className="flex items-center gap-2">
+                                                    {renderStatusBadge(t.status)}
+                                                </div>
                                             </div>
-                                        )}
 
-                                        <div className="flex flex-wrap items-center justify-between gap-4 pt-4 border-t border-white/5 text-[11px] text-slate-500 font-mono">
-                                            <div>
-                                                Category: <span className="text-slate-300 capitalize">{t.category?.replace("_", " ")}</span>
-                                            </div>
-                                            {t.assigned_to && (
-                                                <div>
-                                                    Engineer: <span className="text-slate-300">{t.assigned_to}</span>
+                                            <p className="text-slate-400 text-xs leading-relaxed mb-4">
+                                                {t.description}
+                                            </p>
+
+                                            {/* Live ETA Box for Active Tickets */}
+                                            {!isComplete ? (
+                                                <div className="bg-white/[0.02] border border-white/5 rounded-2xl p-3.5 mb-4 flex items-center justify-between text-xs">
+                                                    <div className="flex items-center gap-2 text-slate-400">
+                                                        <Clock className="w-3.5 h-3.5 text-sky-400" />
+                                                        <span>Target Completion Window:</span>
+                                                    </div>
+                                                    <div className="text-right">
+                                                        <span className="font-medium text-emerald-400">{ticketETA.formattedEstimate}</span>
+                                                        <span className="text-[10px] text-slate-500 ml-1.5 font-mono">({ticketETA.humanDuration})</span>
+                                                    </div>
+                                                </div>
+                                            ) : (
+                                                <div className="bg-emerald-500/5 border border-emerald-500/10 rounded-2xl p-3.5 mb-4 flex items-center gap-2 text-xs text-emerald-400">
+                                                    <CheckCircle2 className="w-4 h-4 shrink-0" />
+                                                    <span>Completed and verified by our development team.</span>
                                                 </div>
                                             )}
-                                            <div>
-                                                Submitted: <span className="text-slate-300">{new Date(t.created_at).toLocaleDateString("en-GB")}</span>
+
+                                            {t.resolution_notes && (
+                                                <div className="bg-emerald-500/5 border border-emerald-500/10 rounded-2xl p-4 text-xs text-emerald-300 mb-4">
+                                                    <span className="font-bold text-emerald-400">Resolution Update: </span>
+                                                    {t.resolution_notes}
+                                                </div>
+                                            )}
+
+                                            <div className="flex flex-wrap items-center justify-between gap-4 pt-4 border-t border-white/5 text-[11px] text-slate-500 font-mono">
+                                                <div>
+                                                    Category: <span className="text-slate-300 capitalize">{t.category?.replace("_", " ")}</span>
+                                                </div>
+                                                <div>
+                                                    Priority: <span className="text-slate-300 capitalize font-medium">{t.priority || "Medium"}</span>
+                                                </div>
+                                                {t.assigned_to && (
+                                                    <div>
+                                                        Developer: <span className="text-slate-300">{t.assigned_to}</span>
+                                                    </div>
+                                                )}
+                                                <div>
+                                                    Submitted: <span className="text-slate-300">{new Date(t.created_at).toLocaleDateString("en-GB")}</span>
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>
-                                ))
+                                    )
+                                })
                             ) : hasSearched && !searchingTickets ? (
                                 <div className="text-center py-16 bg-[#050505] border border-white/5 rounded-3xl text-slate-500 text-xs">
                                     No tickets found under &quot;{lookupEmail}&quot;. Make sure you are using the same email provided when creating your ticket.
