@@ -309,26 +309,7 @@ export default function ClientPortalPage() {
                             </p>
                         </div>
 
-                        {/* Live Desk Queue / Velocity Bar */}
-                        <div className="mb-8 p-4 bg-white/[0.02] border border-white/10 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-4 text-xs">
-                            <div className="flex items-center gap-2.5">
-                                <div className="relative flex h-2 w-2">
-                                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                                    <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-                                </div>
-                                <span className="text-slate-300 font-medium">Support Desk Status:</span>
-                                <span className="text-emerald-400 font-semibold">Active & Triaging</span>
-                            </div>
-                            <div className="flex items-center gap-4 text-slate-400 font-mono text-[11px]">
-                                <div>
-                                    Outstanding Tickets: <span className="text-white font-bold">{loadingQueue ? "..." : activeQueueCount}</span>
-                                </div>
-                                <div className="h-3 w-px bg-white/10" />
-                                <div>
-                                    Current Turnaround: <span className="text-white font-bold">{currentLiveETA.humanDuration}</span>
-                                </div>
-                            </div>
-                        </div>
+
 
                         <form onSubmit={handleSubmitTicket} className="bg-[#050505] border border-white/10 rounded-[2.5rem] p-8 md:p-12 shadow-2xl space-y-8">
 
