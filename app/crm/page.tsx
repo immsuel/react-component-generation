@@ -23,20 +23,23 @@ import {
     Layers,
     Check,
     ArrowUpDown,
-    ArrowUp,
-    ArrowDown,
     Calendar,
     Ticket as TicketIcon,
     Clock,
     AlertTriangle,
     Tag,
-    UserCheck,
-    MessageSquare
+    UserCheck
 } from "lucide-react"
 import { supabase, type StellarLead } from "@/lib/supabase"
 import Link from "next/link"
 
 // ── Types ────────────────────────────────────────────────────────────────────
+
+export type LeadBrand = "bitepoint" | "stellarcode"
+
+export interface LeadItem extends StellarLead {
+    brand?: LeadBrand | string
+}
 
 export interface StellarTicket {
     id?: string
@@ -98,11 +101,11 @@ function formatDate(dateStr?: string | null): string {
 export default function CRMPage() {
     const router = useRouter()
 
-    // Active Dashboard Tab
-    const [activeTab, setActiveTab] = useState<"leads" | "tickets">("leads")
+    // Active Dashboard Tab: Bitepoint Leads, StellarCode Leads, or Tickets
+    const [activeTab, setActiveTab] = useState<"bitepoint" | "stellarcode" | "tickets">("bitepoint")
 
     // ── LEADS STATE ──────────────────────────────────────────────────────────
-    const [leads, setLeads] = useState<StellarLead[]>([])
+    const [leads, setLeads] = useState<LeadItem[]>([])
     const [loadingLeads, setLoadingLeads] = useState(true)
     const [leadSearch, setLeadSearch] = useState("")
     const [filterStage, setFilterStage] = useState<"ALL" | "Contacted" | "Responded" | "Interested" | "Closed">("ALL")
@@ -112,11 +115,11 @@ export default function CRMPage() {
     })
 
     const [isLeadModalOpen, setIsLeadModalOpen] = useState(false)
-    const [editingLead, setEditingLead] = useState<StellarLead | null>(null)
+    const [editingLead, setEditingLead] = useState<LeadItem | null>(null)
     const [duplicateWarning, setDuplicateWarning] = useState<string | null>(null)
     const [isSubmittingLead, setIsSubmittingLead] = useState(false)
 
-    const emptyLeadForm: StellarLead = {
+    const emptyLeadForm: LeadItem = {
         "Business Name": "",
         Contact: "",
         "Phone Number": "",
@@ -128,8 +131,9 @@ export default function CRMPage() {
         Interested: null,
         Closed: null,
         Value: 600,
+        brand: "bitepoint",
     }
-    const [leadFormData, setLeadFormData] = useState<StellarLead>(emptyLeadForm)
+    const [leadFormData, setLeadFormData] = useState<LeadItem>(emptyLeadForm)
 
     // ── TICKETS STATE ────────────────────────────────────────────────────────
     const [tickets, setTickets] = useState<StellarTicket[]>([])
@@ -201,14 +205,14 @@ export default function CRMPage() {
     }
 
     const refreshAll = () => {
-        if (activeTab === "leads") fetchLeads()
-        else fetchTickets()
+        if (activeTab === "tickets") fetchTickets()
+        else fetchLeads()
     }
 
     // ── LEADS HANDLERS ───────────────────────────────────────────────────────
     const isChecked = (val: any) => val === "checked" || val === true || val === "true"
 
-    const toggleStatus = async (lead: StellarLead, field: "Contacted" | "Responded" | "Interested" | "Closed") => {
+    const toggleStatus = async (lead: LeadItem, field: "Contacted" | "Responded" | "Interested" | "Closed") => {
         const nextVal = isChecked(lead[field]) ? null : "checked"
         const updated = { ...lead, [field]: nextVal }
 
@@ -238,15 +242,20 @@ export default function CRMPage() {
         phone: string | number | null,
         email: string | null,
         business: string,
+        brand?: string,
         currentId?: string | number
     ) => {
         const cleanContact = normalizeStr(contact)
         const cleanPhone = normalizePhone(phone)
         const cleanEmail = normalizeStr(email)
         const cleanBiz = normalizeStr(business)
+        const targetBrand = brand?.toLowerCase() || "bitepoint"
 
         return leads.find((l) => {
             if (currentId && l.id === currentId) return false
+            const lBrand = l.brand?.toLowerCase() || "bitepoint"
+            if (lBrand !== targetBrand) return false
+
             const existingPhone = normalizePhone(l["Phone Number"])
             if (cleanPhone.length >= 7 && existingPhone.length >= 7 && cleanPhone === existingPhone) return true
             const existingContact = normalizeStr(l.Contact)
@@ -268,19 +277,26 @@ export default function CRMPage() {
 
     const handleOpenAddLead = () => {
         setEditingLead(null)
-        setLeadFormData(emptyLeadForm)
+        setLeadFormData({
+            ...emptyLeadForm,
+            brand: activeTab === "stellarcode" ? "stellarcode" : "bitepoint",
+        })
         setDuplicateWarning(null)
         setIsLeadModalOpen(true)
     }
 
-    const handleOpenEditLead = (lead: StellarLead) => {
+    const handleOpenEditLead = (lead: LeadItem) => {
         setEditingLead(lead)
-        setLeadFormData({ ...lead, Value: lead.Value || 600 })
+        setLeadFormData({
+            ...lead,
+            brand: lead.brand?.toLowerCase() || "bitepoint",
+            Value: lead.Value || 600,
+        })
         setDuplicateWarning(null)
         setIsLeadModalOpen(true)
     }
 
-    const handleDeleteLead = async (lead: StellarLead) => {
+    const handleDeleteLead = async (lead: LeadItem) => {
         if (!confirm(`Are you sure you want to delete ${lead.Contact || lead["Business Name"] || "this lead"}?`)) return
         setLeads((prev) => prev.filter((l) => l !== lead))
 
@@ -301,17 +317,20 @@ export default function CRMPage() {
         setIsSubmittingLead(true)
         setDuplicateWarning(null)
 
+        const targetBrand = leadFormData.brand || "bitepoint"
+
         const dup = checkForDuplicates(
             leadFormData.Contact,
             leadFormData["Phone Number"],
             leadFormData.Email,
             leadFormData["Business Name"],
+            targetBrand,
             editingLead?.id
         )
 
         if (dup && !editingLead) {
             setDuplicateWarning(
-                `This lead already exists: matches "${dup.Contact || "Unnamed"}" (${dup["Phone Number"] || dup.Email || "No phone"}).`
+                `This lead already exists in ${targetBrand === "stellarcode" ? "StellarCode" : "BitePoint"}: matches "${dup.Contact || "Unnamed"}" (${dup["Phone Number"] || dup.Email || "No phone"}).`
             )
             setIsSubmittingLead(false)
             return
@@ -320,6 +339,7 @@ export default function CRMPage() {
         try {
             const payload = {
                 ...leadFormData,
+                brand: targetBrand,
                 created_at: editingLead?.created_at || new Date().toISOString(),
             }
 
@@ -343,11 +363,13 @@ export default function CRMPage() {
     }
 
     const exportCSV = () => {
+        const brandName = activeTab === "stellarcode" ? "StellarCode" : "BitePoint"
         const headers = [
-            "Date Added,Business Name,Contact,Phone Number,Email,Website,Contacted,Responded,Interested,Closed,Value,Comments\n",
+            "Brand,Date Added,Business Name,Contact,Phone Number,Email,Website,Contacted,Responded,Interested,Closed,Value,Comments\n",
         ]
         const rows = sortedAndFilteredLeads.map((l) =>
             [
+                `"${l.brand || "bitepoint"}"`,
                 `"${formatDate(l.created_at)}"`,
                 `"${l["Business Name"] || ""}"`,
                 `"${l.Contact || ""}"`,
@@ -367,7 +389,7 @@ export default function CRMPage() {
         const url = URL.createObjectURL(blob)
         const link = document.createElement("a")
         link.href = url
-        link.download = `leads_${new Date().toISOString().slice(0, 10)}.csv`
+        link.download = `${brandName.toLowerCase()}_leads_${new Date().toISOString().slice(0, 10)}.csv`
         document.body.appendChild(link)
         link.click()
         document.body.removeChild(link)
@@ -444,8 +466,26 @@ export default function CRMPage() {
     }
 
     // ── COMPUTED DATA ────────────────────────────────────────────────────────
+
+    // Leads by brand (existing leads without a brand default to 'bitepoint')
+    const currentBrandLeads = useMemo(() => {
+        if (activeTab === "tickets") return []
+        return leads.filter((lead) => {
+            const leadBrand = lead.brand?.toLowerCase() || "bitepoint"
+            return leadBrand === activeTab
+        })
+    }, [leads, activeTab])
+
+    const bitepointLeadCount = useMemo(() => {
+        return leads.filter((l) => (l.brand?.toLowerCase() || "bitepoint") === "bitepoint").length
+    }, [leads])
+
+    const stellarcodeLeadCount = useMemo(() => {
+        return leads.filter((l) => l.brand?.toLowerCase() === "stellarcode").length
+    }, [leads])
+
     const sortedAndFilteredLeads = useMemo(() => {
-        const filtered = leads.filter((lead) => {
+        const filtered = currentBrandLeads.filter((lead) => {
             const matchSearch =
                 (lead.Contact || "").toLowerCase().includes(leadSearch.toLowerCase()) ||
                 (lead["Business Name"] || "").toLowerCase().includes(leadSearch.toLowerCase()) ||
@@ -484,7 +524,7 @@ export default function CRMPage() {
             const strB = (b[key] ? String(b[key]) : "").toLowerCase()
             return strA.localeCompare(strB) * mod
         })
-    }, [leads, leadSearch, filterStage, leadSortConfig])
+    }, [currentBrandLeads, leadSearch, filterStage, leadSortConfig])
 
     const sortedAndFilteredTickets = useMemo(() => {
         const filtered = tickets.filter((t) => {
@@ -516,12 +556,12 @@ export default function CRMPage() {
         })
     }, [tickets, ticketSearch, filterTicketStatus, filterTicketPriority, ticketSortConfig])
 
-    // Lead Metrics
+    // Lead Metrics (for the currently selected brand)
     const leadMetrics = useMemo(() => {
-        const total = leads.length
-        const contacted = leads.filter((l) => isChecked(l.Contacted)).length
-        const responded = leads.filter((l) => isChecked(l.Responded)).length
-        const closedLeads = leads.filter((l) => isChecked(l.Closed))
+        const total = currentBrandLeads.length
+        const contacted = currentBrandLeads.filter((l) => isChecked(l.Contacted)).length
+        const responded = currentBrandLeads.filter((l) => isChecked(l.Responded)).length
+        const closedLeads = currentBrandLeads.filter((l) => isChecked(l.Closed))
         const closed = closedLeads.length
 
         const closedAnnualValue = closedLeads.reduce(
@@ -533,7 +573,7 @@ export default function CRMPage() {
         const conversionRate = total > 0 ? Math.round((closed / total) * 100) : 0
 
         return { total, contacted, responded, closed, closedAnnualValue, responseRate, conversionRate }
-    }, [leads])
+    }, [currentBrandLeads])
 
     // Ticket Metrics
     const ticketMetrics = useMemo(() => {
@@ -561,19 +601,7 @@ export default function CRMPage() {
         }
     }
 
-    const renderStatusBadge = (status: StellarTicket["status"]) => {
-        switch (status) {
-            case "open":
-                return <span className="px-2.5 py-1 rounded-full text-[10px] font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">Open</span>
-            case "in_progress":
-                return <span className="px-2.5 py-1 rounded-full text-[10px] font-semibold bg-sky-500/10 text-sky-400 border border-sky-500/20">In Progress</span>
-            case "resolved":
-                return <span className="px-2.5 py-1 rounded-full text-[10px] font-semibold bg-purple-500/10 text-purple-400 border border-purple-500/20">Resolved</span>
-            case "closed":
-            default:
-                return <span className="px-2.5 py-1 rounded-full text-[10px] font-semibold bg-white/5 text-slate-400 border border-white/10">Closed</span>
-        }
-    }
+    const currentBrandTitle = activeTab === "stellarcode" ? "StellarCode" : "BitePoint"
 
     return (
         <main className="min-h-screen bg-black text-white selection:bg-white/10 font-sans pb-24">
@@ -589,14 +617,35 @@ export default function CRMPage() {
 
                         {/* Navigation Tab Switcher */}
                         <div className="flex items-center bg-white/[0.04] p-1 rounded-full border border-white/10">
+                            {/* BitePoint Leads Tab */}
                             <button
-                                onClick={() => setActiveTab("leads")}
-                                className={`flex items-center gap-1.5 px-3.5 py-1 rounded-full text-xs font-medium transition-all ${activeTab === "leads" ? "bg-white text-black shadow-md font-semibold" : "text-slate-400 hover:text-white"
+                                onClick={() => setActiveTab("bitepoint")}
+                                className={`flex items-center gap-1.5 px-3.5 py-1 rounded-full text-xs font-medium transition-all ${activeTab === "bitepoint" ? "bg-white text-black shadow-md font-semibold" : "text-slate-400 hover:text-white"
                                     }`}
                             >
                                 <Layers className="w-3.5 h-3.5" />
-                                <span>Leads</span>
+                                <span>BitePoint</span>
+                                <span className={`ml-1 px-1.5 py-0.2 rounded-full text-[10px] font-semibold ${activeTab === "bitepoint" ? "bg-black/10 text-black" : "bg-white/10 text-slate-300"
+                                    }`}>
+                                    {bitepointLeadCount}
+                                </span>
                             </button>
+
+                            {/* StellarCode Leads Tab */}
+                            <button
+                                onClick={() => setActiveTab("stellarcode")}
+                                className={`flex items-center gap-1.5 px-3.5 py-1 rounded-full text-xs font-medium transition-all ${activeTab === "stellarcode" ? "bg-white text-black shadow-md font-semibold" : "text-slate-400 hover:text-white"
+                                    }`}
+                            >
+                                <Layers className="w-3.5 h-3.5" />
+                                <span>StellarCode</span>
+                                <span className={`ml-1 px-1.5 py-0.2 rounded-full text-[10px] font-semibold ${activeTab === "stellarcode" ? "bg-black/10 text-black" : "bg-white/10 text-slate-300"
+                                    }`}>
+                                    {stellarcodeLeadCount}
+                                </span>
+                            </button>
+
+                            {/* Tickets Tab */}
                             <button
                                 onClick={() => setActiveTab("tickets")}
                                 className={`flex items-center gap-1.5 px-3.5 py-1 rounded-full text-xs font-medium transition-all ${activeTab === "tickets" ? "bg-white text-black shadow-md font-semibold" : "text-slate-400 hover:text-white"
@@ -619,7 +668,7 @@ export default function CRMPage() {
                             className="p-2 text-slate-400 hover:text-white rounded-xl bg-white/[0.02] border border-white/5 hover:bg-white/5 transition-all"
                             title="Refresh data"
                         >
-                            <RefreshCw className={`w-4 h-4 ${(activeTab === "leads" ? loadingLeads : loadingTickets) ? "animate-spin text-white" : ""}`} />
+                            <RefreshCw className={`w-4 h-4 ${(activeTab === "tickets" ? loadingTickets : loadingLeads) ? "animate-spin text-white" : ""}`} />
                         </button>
                         <button
                             onClick={() => {
@@ -636,19 +685,19 @@ export default function CRMPage() {
             </nav>
 
             {/* ═══════════════════════════════════════════════════════════════════ */}
-            {/* TAB 1: LEADS VIEW                                                  */}
+            {/* TAB: LEADS VIEW (BitePoint or StellarCode)                         */}
             {/* ═══════════════════════════════════════════════════════════════════ */}
-            {activeTab === "leads" && (
+            {activeTab !== "tickets" && (
                 <section className="pt-32 pb-8 px-6">
                     <div className="max-w-7xl mx-auto">
                         <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 mb-12">
                             <div>
                                 <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-slate-400 text-xs font-medium mb-4">
                                     <Layers className="w-3.5 h-3.5" />
-                                    Leads Overview
+                                    {currentBrandTitle} Pipeline
                                 </div>
                                 <h1 className="text-4xl md:text-5xl font-semibold tracking-tight">
-                                    Client Pipeline
+                                    {currentBrandTitle} Leads
                                 </h1>
                             </div>
 
@@ -665,7 +714,7 @@ export default function CRMPage() {
                                     className="flex items-center gap-2 px-6 py-2.5 rounded-full bg-white text-black hover:bg-slate-200 text-xs font-semibold transition-transform hover:scale-105 active:scale-95"
                                 >
                                     <Plus className="w-4 h-4" />
-                                    Add Lead
+                                    Add Lead ({currentBrandTitle})
                                 </button>
                             </div>
                         </div>
@@ -725,7 +774,7 @@ export default function CRMPage() {
                                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
                                 <input
                                     type="text"
-                                    placeholder="Search by contact, business, phone, or email..."
+                                    placeholder={`Search ${currentBrandTitle} leads by contact, business, phone...`}
                                     value={leadSearch}
                                     onChange={(e) => setLeadSearch(e.target.value)}
                                     className="w-full bg-white/[0.02] border border-white/10 rounded-full pl-11 pr-4 py-2.5 text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-white/30 transition-all"
@@ -802,7 +851,7 @@ export default function CRMPage() {
                                         ) : sortedAndFilteredLeads.length === 0 ? (
                                             <tr>
                                                 <td colSpan={10} className="text-center py-20 text-xs text-slate-500">
-                                                    No leads found matching your search.
+                                                    No {currentBrandTitle} leads found.
                                                 </td>
                                             </tr>
                                         ) : (
@@ -914,7 +963,7 @@ export default function CRMPage() {
             )}
 
             {/* ═══════════════════════════════════════════════════════════════════ */}
-            {/* TAB 2: TICKETS VIEW                                                */}
+            {/* TAB: TICKETS VIEW                                                  */}
             {/* ═══════════════════════════════════════════════════════════════════ */}
             {activeTab === "tickets" && (
                 <section className="pt-32 pb-8 px-6">
@@ -1088,7 +1137,6 @@ export default function CRMPage() {
                                         ) : (
                                             sortedAndFilteredTickets.map((ticket) => (
                                                 <tr key={ticket.id} className="hover:bg-white/[0.02] transition-colors group">
-                                                    {/* Title & Desc */}
                                                     <td className="py-4 px-6 max-w-sm">
                                                         <div className="font-semibold text-white text-sm">
                                                             {ticket.title}
@@ -1099,13 +1147,9 @@ export default function CRMPage() {
                                                             </div>
                                                         )}
                                                     </td>
-
-                                                    {/* Priority */}
                                                     <td className="py-4 px-4 whitespace-nowrap">
                                                         {renderPriorityBadge(ticket.priority)}
                                                     </td>
-
-                                                    {/* Quick Status Dropdown */}
                                                     <td className="py-4 px-4 whitespace-nowrap">
                                                         <select
                                                             value={ticket.status}
@@ -1118,8 +1162,6 @@ export default function CRMPage() {
                                                             <option value="closed" className="bg-[#111]">Closed</option>
                                                         </select>
                                                     </td>
-
-                                                    {/* Contact / Client */}
                                                     <td className="py-4 px-4">
                                                         <div className="text-white font-medium">
                                                             {ticket.contact_name || "—"}
@@ -1130,8 +1172,6 @@ export default function CRMPage() {
                                                             </div>
                                                         )}
                                                     </td>
-
-                                                    {/* Assigned To */}
                                                     <td className="py-4 px-4 text-slate-300">
                                                         {ticket.assigned_to ? (
                                                             <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/[0.03] border border-white/10 text-[11px]">
@@ -1142,13 +1182,9 @@ export default function CRMPage() {
                                                             <span className="text-slate-600">—</span>
                                                         )}
                                                     </td>
-
-                                                    {/* Created Date */}
                                                     <td className="py-4 px-4 font-mono text-slate-400 whitespace-nowrap">
                                                         {formatDate(ticket.created_at)}
                                                     </td>
-
-                                                    {/* Actions */}
                                                     <td className="py-4 px-6 text-right">
                                                         <div className="flex items-center justify-end gap-2 opacity-60 group-hover:opacity-100 transition-opacity">
                                                             <button
@@ -1196,7 +1232,7 @@ export default function CRMPage() {
                                 {editingLead ? "Edit Lead" : "Add New Lead"}
                             </h2>
                             <p className="text-xs text-slate-400">
-                                Fill in the details below. Existing phone numbers and contact names will be checked to prevent duplicates.
+                                Fill in the details below. Leads are split between BitePoint and StellarCode pipelines.
                             </p>
                         </div>
 
@@ -1208,6 +1244,43 @@ export default function CRMPage() {
                         )}
 
                         <form onSubmit={handleSaveLead} className="space-y-5">
+                            {/* Brand / Destination Selector */}
+                            <div>
+                                <label className="block text-xs font-medium text-slate-300 mb-1.5">
+                                    Lead Category / Brand *
+                                </label>
+                                <div className="grid grid-cols-2 gap-2">
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            setLeadFormData({ ...leadFormData, brand: "bitepoint" })
+                                            setDuplicateWarning(null)
+                                        }}
+                                        className={`py-2.5 px-4 rounded-2xl text-xs font-semibold border transition-all flex items-center justify-center gap-2 ${(leadFormData.brand || "bitepoint") === "bitepoint"
+                                                ? "bg-white text-black border-white shadow-md"
+                                                : "bg-white/[0.02] border-white/10 text-slate-400 hover:text-white"
+                                            }`}
+                                    >
+                                        <span>BitePoint</span>
+                                        {(leadFormData.brand || "bitepoint") === "bitepoint" && <Check className="w-3.5 h-3.5 stroke-[3]" />}
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            setLeadFormData({ ...leadFormData, brand: "stellarcode" })
+                                            setDuplicateWarning(null)
+                                        }}
+                                        className={`py-2.5 px-4 rounded-2xl text-xs font-semibold border transition-all flex items-center justify-center gap-2 ${leadFormData.brand === "stellarcode"
+                                                ? "bg-white text-black border-white shadow-md"
+                                                : "bg-white/[0.02] border-white/10 text-slate-400 hover:text-white"
+                                            }`}
+                                    >
+                                        <span>StellarCode</span>
+                                        {leadFormData.brand === "stellarcode" && <Check className="w-3.5 h-3.5 stroke-[3]" />}
+                                    </button>
+                                </div>
+                            </div>
+
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <div>
                                     <label className="block text-xs font-medium text-slate-300 mb-1.5">
@@ -1227,7 +1300,7 @@ export default function CRMPage() {
                                 </div>
                                 <div>
                                     <label className="block text-xs font-medium text-slate-300 mb-1.5">
-                                        Business / Driving School Name
+                                        Business / Client Name
                                     </label>
                                     <input
                                         type="text"
@@ -1351,7 +1424,7 @@ export default function CRMPage() {
                                     disabled={isSubmittingLead}
                                     className="px-7 py-3 bg-white text-black hover:bg-slate-200 rounded-full text-xs font-semibold uppercase tracking-wider transition-transform hover:scale-105 active:scale-95 disabled:opacity-50"
                                 >
-                                    {isSubmittingLead ? "Saving..." : editingLead ? "Save Changes" : "Add Lead"}
+                                    {isSubmittingLead ? "Saving..." : editingLead ? "Save Changes" : `Add Lead (${(leadFormData.brand || "bitepoint") === "stellarcode" ? "StellarCode" : "BitePoint"})`}
                                 </button>
                             </div>
                         </form>
