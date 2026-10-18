@@ -105,7 +105,7 @@ async function createMercuryPaymentLink(params: {
   ticketCode: string
   description: string
 }): Promise<{ paymentLink: string; invoiceId: string }> {
-  const n8nWebhookUrl = process.env.N8N_MERCURY_WEBHOOK_URL || "https://n8n.stellarcode.agency/webhook/mercury-invoice"
+  const n8nWebhookUrl = process.env.N8N_MERCURY_WEBHOOK_URL || "https://n8n.stellarcode.agency/webhook/84a4bcb8-f582-43c9-924d-e19db6d8fad1"
   const mercuryKey = process.env.MERCURY_API_KEY
 
   // Always append unique timestamp to avoid "An invoice with this invoice number already exists"
