@@ -14,18 +14,19 @@ import {
     Mail,
     Phone,
     Building,
-    ExternalLink
+    ExternalLink,
+    ShieldCheck
 } from "lucide-react"
 import Link from "next/link"
 import { supabase } from "@/lib/supabase"
 
 const CATEGORIES = [
-    { id: "bug", label: "Bug / Error Report", desc: "Something in the automation or system stopped working" },
-    { id: "automation_failure", label: "Automation Failure", desc: "Webhook, Make.com, or API sync failure" },
+    { id: "bug", label: "Bug / Error Report", desc: "Something in the automation or system stopped working (Included)" },
+    { id: "automation_failure", label: "Automation Failure", desc: "Webhook, Make.com, or API sync failure (Included)" },
     { id: "feature_request", label: "New Feature / Logic", desc: "Request changes or additions to existing logic" },
     { id: "integration", label: "App Integration", desc: "Connect a new tool (CRM, Slack, Stripe, etc.)" },
     { id: "maintenance", label: "Routine Maintenance", desc: "Updates, credentials change, or routine cleanups" },
-    { id: "general", label: "General Question", desc: "Any operational or general consulting inquiry" },
+    { id: "general", label: "General Question", desc: "Any operational or general consulting inquiry (Included)" },
 ]
 
 const PRIORITIES = [
@@ -87,6 +88,7 @@ export default function ClientPortalPage() {
         overtimeAmount: number
         paymentLink: string | null
         paymentStatus: string
+        isExempt: boolean
     } | null>(null)
 
     const [formData, setFormData] = useState({
@@ -164,6 +166,7 @@ export default function ClientPortalPage() {
                 overtimeAmount: data.ticket.overtime_amount,
                 paymentLink: data.ticket.payment_link,
                 paymentStatus: data.ticket.payment_status,
+                isExempt: Boolean(data.ticket.is_exempt),
             })
 
             fetchQueueStats()
@@ -273,7 +276,7 @@ export default function ClientPortalPage() {
                                 Submit a Support Request
                             </h1>
                             <p className="text-slate-400 text-sm max-w-lg mx-auto">
-                                Every client receives <strong>2.0 hours</strong> included monthly. Tasks are evaluated by Gemini AI and excess hours are billed at R400/hr.
+                                Need an issue resolved, an automation modified, or new system logic deployed? Log your ticket directly with our engineering desk.
                             </p>
                         </div>
 
@@ -364,7 +367,7 @@ export default function ClientPortalPage() {
                                         <div className="flex justify-between items-center mb-2">
                                             <label className="block text-xs text-slate-400">Urgency Level</label>
                                             <span className="text-[11px] font-mono text-emerald-400">
-                                                Estimated Resolution: {currentLiveETA.formattedEstimate}
+                                                Target Completion Window: {currentLiveETA.formattedEstimate}
                                             </span>
                                         </div>
 
@@ -430,7 +433,7 @@ export default function ClientPortalPage() {
                                 </div>
                             </div>
 
-                            {/* Submit with Live Projected ETA */}
+                            {/* Submit */}
                             <div className="border-t border-white/5 pt-4 space-y-3">
                                 <div className="flex items-center justify-between text-xs text-slate-400 bg-white/[0.02] border border-white/5 p-3.5 rounded-2xl">
                                     <div className="flex items-center gap-2">
@@ -461,7 +464,7 @@ export default function ClientPortalPage() {
                     </div>
                 )}
 
-                {/* ── Success Screen with Hours & Mercury Overtime Card ── */}
+                {/* ── Success Screen with Dynamic Retainer & Hours Card ── */}
                 {submittedData && (
                     <div className="bg-[#050505] border border-white/10 rounded-[2.5rem] p-8 md:p-12 text-center shadow-2xl animate-in zoom-in-95 duration-300">
                         <div className="w-16 h-16 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center mx-auto mb-6">
@@ -469,8 +472,18 @@ export default function ClientPortalPage() {
                         </div>
                         <h2 className="text-3xl font-bold tracking-tight text-white mb-2">Ticket Logged &amp; Evaluated</h2>
                         <p className="text-slate-400 text-sm max-w-md mx-auto mb-8">
-                            Your support request has been logged. We deducted time from your 2.0 monthly allowance.
+                            Your support request has been logged. Our systems have evaluated your task and updated your account balance.
                         </p>
+
+                        {/* Category Exemption Notice */}
+                        {submittedData.isExempt ? (
+                            <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-2xl p-4 max-w-xl mx-auto mb-6 flex items-center gap-3 text-left">
+                                <ShieldCheck className="w-5 h-5 text-emerald-400 shrink-0" />
+                                <div className="text-xs text-emerald-300">
+                                    <strong>No Hours Deducted:</strong> This request falls under our system maintenance and reliability guarantee and was not billed against your monthly retainer.
+                                </div>
+                            </div>
+                        ) : null}
 
                         {/* Breakdown Cards */}
                         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 max-w-xl mx-auto mb-6 text-left">
@@ -488,13 +501,13 @@ export default function ClientPortalPage() {
 
                             <div className="bg-white/[0.02] border border-white/10 rounded-2xl p-4">
                                 <div className="text-[10px] uppercase font-bold tracking-widest text-slate-500 mb-1">
-                                    Monthly Hours Deducted
+                                    Hours Deducted
                                 </div>
                                 <div className="font-mono text-xl font-bold text-sky-400">
-                                    -{submittedData.hoursDeducted} hrs
+                                    {submittedData.hoursDeducted > 0 ? `-${submittedData.hoursDeducted} hrs` : "0 hrs"}
                                 </div>
                                 <div className="text-[10px] text-slate-400 mt-1">
-                                    From 2.0 monthly hrs
+                                    {submittedData.isExempt ? "Covered by warranty" : "From monthly balance"}
                                 </div>
                             </div>
 
@@ -506,7 +519,7 @@ export default function ClientPortalPage() {
                                     {submittedData.remainingHours} hrs
                                 </div>
                                 <div className="text-[10px] text-slate-400 mt-1">
-                                    Available this month
+                                    Current balance remaining
                                 </div>
                             </div>
                         </div>
@@ -519,7 +532,7 @@ export default function ClientPortalPage() {
                                     <span>Overtime Hours Incurred</span>
                                 </div>
                                 <p className="text-xs text-slate-300 leading-relaxed mb-4">
-                                    This ticket exceeds your included monthly balance by{" "}
+                                    This ticket exceeds your available monthly balance by{" "}
                                     <strong>{submittedData.overtimeHours} hour(s)</strong>. Overtime is billed at{" "}
                                     <strong>R400 / hr</strong> (Total:{" "}
                                     <strong className="text-white">R{submittedData.overtimeAmount}</strong>).
@@ -603,6 +616,7 @@ export default function ClientPortalPage() {
                                     )
 
                                     const isComplete = t.status === "resolved" || t.status === "closed"
+                                    const isTicketExempt = ["bug", "automation_failure", "general"].includes(t.category)
 
                                     return (
                                         <div
@@ -631,7 +645,12 @@ export default function ClientPortalPage() {
                                             <div className="bg-white/[0.02] border border-white/5 rounded-2xl p-4 mb-4 text-xs space-y-2">
                                                 <div className="flex justify-between items-center text-slate-300">
                                                     <span>AI Estimated Time: <strong className="text-white">{t.estimated_hours || 0} hrs</strong></span>
-                                                    <span>Hours Deducted: <strong className="text-sky-400">-{t.hours_deducted || 0} hrs</strong></span>
+                                                    <span>
+                                                        Hours Deducted:{" "}
+                                                        <strong className={isTicketExempt ? "text-emerald-400" : "text-sky-400"}>
+                                                            {isTicketExempt ? "0 hrs (Included)" : `-${t.hours_deducted || 0} hrs`}
+                                                        </strong>
+                                                    </span>
                                                 </div>
                                                 {t.overtime_hours > 0 && (
                                                     <div className="flex justify-between items-center pt-2 border-t border-white/5 text-amber-400 font-medium">
