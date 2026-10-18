@@ -1,3 +1,4 @@
+// app/api/portal/ticket/route.ts
 import { NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
 
@@ -105,12 +106,16 @@ async function createMercuryPaymentLink(params: {
   ticketCode: string
   description: string
 }): Promise<{ paymentLink: string; invoiceId: string }> {
-  const n8nWebhookUrl = process.env.N8N_MERCURY_WEBHOOK_URL || "https://n8n.stellarcode.agency/webhook/84a4bcb8-f582-43c9-924d-e19db6d8fad1"
+  const n8nWebhookUrl =
+    process.env.N8N_MERCURY_WEBHOOK_URL ||
+    "https://n8n.stellarcode.agency/webhook/84a4bcb8-f582-43c9-924d-e19db6d8fad1"
+
   const mercuryKey = process.env.MERCURY_API_KEY
 
-  // Always append unique timestamp to avoid "An invoice with this invoice number already exists"
+  // Append a 4-digit timestamp suffix to prevent duplicate invoiceNumber errors on re-tests
   const uniqueInvoiceCode = `${params.ticketCode}-${Date.now().toString().slice(-4)}`
 
+  // Strategy A: Call via n8n (retains static IP allowlist)
   try {
     const n8nRes = await fetch(n8nWebhookUrl, {
       method: "POST",
@@ -124,24 +129,42 @@ async function createMercuryPaymentLink(params: {
       }),
     })
 
-    if (n8nRes.ok) {
-      const data = await n8nRes.json()
-      const link = data.slug
-        ? `https://app.mercury.com/pay/${data.slug}`
-        : data.paymentLink || data.hostedInvoiceUrl
+    if (!n8nRes.ok) {
+      const errText = await n8nRes.text()
+      console.error("n8n invoice proxy returned an error:", n8nRes.status, errText)
+      throw new Error(`n8n webhook error: ${n8nRes.status} ${errText}`)
+    }
 
-      if (link) {
-        return {
-          paymentLink: link,
-          invoiceId: data.invoiceId || data.id || `MERC-${Date.now()}`,
-        }
+    const data = await n8nRes.json()
+
+    // Extract clean Mercury slug (e.g. 6g8r81n6hvh8kg8t)
+    let slug = data.slug || ""
+    if (!slug && data.paymentLink && typeof data.paymentLink === "string") {
+      const match = data.paymentLink.match(/\/pay\/([a-zA-Z0-9_-]+)/)
+      if (match) slug = match[1]
+    }
+
+    // Ensure slug doesn't contain raw template brackets
+    if (slug && !slug.includes("{") && !slug.includes("%7B")) {
+      return {
+        paymentLink: `https://app.mercury.com/pay/${slug.trim()}`,
+        invoiceId: data.invoiceId || data.id || slug.trim(),
       }
     }
+
+    if (data.paymentLink && !data.paymentLink.includes("{") && !data.paymentLink.includes("%7B")) {
+      return {
+        paymentLink: data.paymentLink,
+        invoiceId: data.invoiceId || data.id || `INV-${uniqueInvoiceCode}`,
+      }
+    }
+
+    throw new Error("n8n succeeded but returned an invalid or unrendered payment link.")
   } catch (err) {
-    console.warn("n8n invoice proxy unavailable, trying fallback:", err)
+    console.warn("n8n proxy failed, attempting direct Mercury API fallback...", err)
   }
 
-  // Fallback direct Mercury API
+  // Strategy B: Fallback direct call to Mercury (if API key provided)
   if (mercuryKey) {
     try {
       const mercuryRes = await fetch("https://api.mercury.com/api/v1/ar/invoices", {
@@ -175,21 +198,19 @@ async function createMercuryPaymentLink(params: {
 
       if (mercuryRes.ok) {
         const inv = await mercuryRes.json()
+        const slug = inv.slug || inv.id
         return {
-          paymentLink: inv.slug ? `https://app.mercury.com/pay/${inv.slug}` : `https://app.mercury.com/pay/${inv.id}`,
-          invoiceId: inv.id || `MERC-${Date.now()}`,
+          paymentLink: `https://app.mercury.com/pay/${slug}`,
+          invoiceId: inv.id || `INV-${uniqueInvoiceCode}`,
         }
       }
     } catch (e) {
-      console.warn("Direct Mercury API error:", e)
+      console.error("Direct Mercury API error:", e)
     }
   }
 
-  const fallbackId = `MERC-${Date.now().toString(36).toUpperCase()}`
-  return {
-    paymentLink: `https://mercury.com/pay/${fallbackId}?amount=${params.amountZAR}&currency=ZAR&ref=${encodeURIComponent(params.ticketCode)}`,
-    invoiceId: fallbackId,
-  }
+  // If both n8n and Mercury fail, throw error so the user is alerted rather than receiving a dead 404 URL
+  throw new Error("Unable to generate Mercury payment link at this moment. Please check n8n connection.")
 }
 
 // ── 3. POST Handler ──────────────────────────────────────────────────────────
@@ -233,22 +254,26 @@ export async function POST(req: Request) {
       // If a new month has started, reset to client's configured monthly allocation
       if (!lastReset.startsWith(currentMonthKey)) {
         const clientAllocatedHours = Number(clientRecord.monthly_hours_allocated) || DEFAULT_MONTHLY_HOURS
-        const { data: resetClient, error: resetErr } = await supabase
-          .from("stellarcode_clients")
-          .update({
-            monthly_hours_remaining: clientAllocatedHours,
-            last_hours_reset: new Date().toISOString(),
-          })
-          .eq("id", existingClient.id)
-          .select("*")
-          .single()
+        try {
+          const { data: resetClient, error: resetErr } = await supabase
+            .from("stellarcode_clients")
+            .update({
+              monthly_hours_remaining: clientAllocatedHours,
+              last_hours_reset: new Date().toISOString(),
+            })
+            .eq("id", existingClient.id)
+            .select("*")
+            .single()
 
-        if (!resetErr && resetClient) {
-          clientRecord = resetClient
+          if (!resetErr && resetClient) {
+            clientRecord = resetClient
+          }
+        } catch (e) {
+          console.warn("Client hours reset skipped:", e)
         }
       }
     } else {
-      // New client creation with safe fallback
+      // Create new client with safe fallback
       const fullPayload = {
         company_name: companyName || contactName,
         contact_name: contactName,
@@ -302,7 +327,12 @@ export async function POST(req: Request) {
     })
 
     // Step C: Check if ticket category is exempt from hours deduction
-    const isExempt = EXEMPT_CATEGORIES.includes(category)
+    const normalizedCategory = String(category || "").toLowerCase().trim()
+    const isExempt =
+      EXEMPT_CATEGORIES.includes(normalizedCategory) ||
+      normalizedCategory.includes("bug") ||
+      normalizedCategory.includes("automation_failure") ||
+      normalizedCategory.includes("general")
 
     let hoursDeducted = 0
     let remainingHoursAfter = currentAvailableHours
@@ -312,6 +342,9 @@ export async function POST(req: Request) {
     let paymentLink: string | null = null
     let mercuryInvoiceId: string | null = null
 
+    // Generate a single consistent ticket code shared across Supabase and Mercury
+    const ticketCode = `ST-${Math.floor(1000 + Math.random() * 9000)}`
+
     if (isExempt) {
       // Bug reports, automation failures, and general questions do not deduct hours
       hoursDeducted = 0
@@ -320,7 +353,7 @@ export async function POST(req: Request) {
       overtimeAmount = 0
       paymentStatus = "not_required"
     } else {
-      // Billable category (Feature requests, custom integrations, etc.)
+      // Billable category (Feature requests, custom integrations, maintenance)
       if (currentAvailableHours >= estimated_hours) {
         hoursDeducted = estimated_hours
         remainingHoursAfter = Math.round((currentAvailableHours - estimated_hours) * 100) / 100
@@ -334,32 +367,38 @@ export async function POST(req: Request) {
         overtimeAmount = Math.round(overtimeHours * OVERTIME_RATE_ZAR)
         paymentStatus = "pending"
 
-        // Generate Mercury Payment Link for overtime
-        const tempTicketCode = `ST-${Math.floor(1000 + Math.random() * 9000)}`
-        const mercury = await createMercuryPaymentLink({
-          amountZAR: overtimeAmount,
-          clientName: contactName,
-          clientEmail: cleanEmail,
-          ticketCode: tempTicketCode,
-          description: title,
-        })
-        paymentLink = mercury.paymentLink
-        mercuryInvoiceId = mercury.invoiceId
+        // Generate Mercury Payment Link for overtime using the exact ticketCode
+        try {
+          const mercury = await createMercuryPaymentLink({
+            amountZAR: overtimeAmount,
+            clientName: contactName,
+            clientEmail: cleanEmail,
+            ticketCode: ticketCode,
+            description: title,
+          })
+          paymentLink = mercury.paymentLink
+          mercuryInvoiceId = mercury.invoiceId
+        } catch (mercuryErr) {
+          console.error("Payment link creation error:", mercuryErr)
+        }
       }
 
       // Update remaining client hours in database
       if (clientRecord?.id) {
-        await supabase
-          .from("stellarcode_clients")
-          .update({
-            monthly_hours_remaining: remainingHoursAfter,
-          })
-          .eq("id", clientRecord.id)
+        try {
+          await supabase
+            .from("stellarcode_clients")
+            .update({
+              monthly_hours_remaining: remainingHoursAfter,
+            })
+            .eq("id", clientRecord.id)
+        } catch (e) {
+          console.warn("Client hours update skipped:", e)
+        }
       }
     }
 
     // Step D: Insert Ticket Record into Supabase
-    const ticketCode = `ST-${Math.floor(1000 + Math.random() * 9000)}`
     const fullTicketPayload = {
       ticket_code: ticketCode,
       client_id: clientRecord?.id || null,
