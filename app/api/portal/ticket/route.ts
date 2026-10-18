@@ -3,7 +3,7 @@ import { NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
 
 const OVERTIME_RATE_ZAR = 400 // R400 per hour
-const DEFAULT_MONTHLY_HOURS = 2.0
+const DEFAULT_MONTHLY_HOURS = 1.5
 
 // Categories that DO NOT deduct hours from client retainers
 const EXEMPT_CATEGORIES = ["bug", "automation_failure", "general"]
