@@ -1,3 +1,4 @@
+// lib/supabase.ts
 import { createClient } from "@supabase/supabase-js"
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ""
@@ -16,6 +17,9 @@ export interface StellarClient {
     website?: string | null
     status?: "active" | "inactive" | "onboarding"
     notes?: string | null
+    monthly_hours_allocated?: number // 2 hours default
+    monthly_hours_remaining?: number
+    last_hours_reset?: string
 }
 
 export interface StellarTicket {
@@ -35,6 +39,17 @@ export interface StellarTicket {
     assigned_to?: string | null
     resolution_notes?: string | null
     lead_id?: string | null
+    // Hours & Billing
+    estimated_hours?: number
+    gemini_reasoning?: string | null
+    hours_deducted?: number
+    remaining_hours_after?: number
+    overtime_hours?: number
+    overtime_rate?: number // R400
+    overtime_amount?: number // R400 * overtime_hours
+    payment_status?: "not_required" | "pending" | "paid"
+    payment_link?: string | null
+    mercury_invoice_id?: string | null
 }
 
 export interface StellarLead {

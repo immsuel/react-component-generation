@@ -28,7 +28,8 @@ import {
     Clock,
     AlertTriangle,
     Tag,
-    UserCheck
+    UserCheck,
+    ExternalLink
 } from "lucide-react"
 import { supabase, type StellarLead } from "@/lib/supabase"
 import Link from "next/link"
@@ -43,6 +44,7 @@ export interface LeadItem extends StellarLead {
 
 export interface StellarTicket {
     id?: string
+    ticket_code?: string
     created_at?: string
     updated_at?: string
     title: string
@@ -54,6 +56,16 @@ export interface StellarTicket {
     contact_phone?: string
     assigned_to?: string
     lead_id?: string
+    // Hours & Billing
+    estimated_hours?: number
+    gemini_reasoning?: string
+    hours_deducted?: number
+    remaining_hours_after?: number
+    overtime_hours?: number
+    overtime_amount?: number
+    payment_status?: "not_required" | "pending" | "paid"
+    payment_link?: string
+    mercury_invoice_id?: string
 }
 
 type LeadSortKey =
@@ -101,7 +113,6 @@ function formatDate(dateStr?: string | null): string {
 export default function CRMPage() {
     const router = useRouter()
 
-    // Active Dashboard Tab: Bitepoint Leads, StellarCode Leads, or Tickets
     const [activeTab, setActiveTab] = useState<"bitepoint" | "stellarcode" | "tickets">("bitepoint")
 
     // ── LEADS STATE ──────────────────────────────────────────────────────────
@@ -159,10 +170,15 @@ export default function CRMPage() {
         contact_email: "",
         contact_phone: "",
         assigned_to: "",
+        estimated_hours: 1.0,
+        hours_deducted: 1.0,
+        overtime_hours: 0,
+        overtime_amount: 0,
+        payment_status: "not_required",
+        payment_link: "",
     }
     const [ticketFormData, setTicketFormData] = useState<StellarTicket>(emptyTicketForm)
 
-    // Auth Guard
     useEffect(() => {
         const auth = sessionStorage.getItem("stellar_crm_auth")
         if (!auth) {
@@ -467,7 +483,6 @@ export default function CRMPage() {
 
     // ── COMPUTED DATA ────────────────────────────────────────────────────────
 
-    // Leads by brand (existing leads without a brand default to 'bitepoint')
     const currentBrandLeads = useMemo(() => {
         if (activeTab === "tickets") return []
         return leads.filter((lead) => {
@@ -532,7 +547,8 @@ export default function CRMPage() {
                 (t.title || "").toLowerCase().includes(ticketSearch.toLowerCase()) ||
                 (t.description || "").toLowerCase().includes(ticketSearch.toLowerCase()) ||
                 (t.contact_name || "").toLowerCase().includes(ticketSearch.toLowerCase()) ||
-                (t.contact_email || "").toLowerCase().includes(ticketSearch.toLowerCase())
+                (t.contact_email || "").toLowerCase().includes(ticketSearch.toLowerCase()) ||
+                (t.ticket_code || "").toLowerCase().includes(ticketSearch.toLowerCase())
 
             if (!matchSearch) return false
             if (filterTicketStatus !== "ALL" && t.status !== filterTicketStatus) return false
@@ -556,7 +572,7 @@ export default function CRMPage() {
         })
     }, [tickets, ticketSearch, filterTicketStatus, filterTicketPriority, ticketSortConfig])
 
-    // Lead Metrics (for the currently selected brand)
+    // Lead Metrics
     const leadMetrics = useMemo(() => {
         const total = currentBrandLeads.length
         const contacted = currentBrandLeads.filter((l) => isChecked(l.Contacted)).length
@@ -575,7 +591,7 @@ export default function CRMPage() {
         return { total, contacted, responded, closed, closedAnnualValue, responseRate, conversionRate }
     }, [currentBrandLeads])
 
-    // Ticket Metrics
+    // Ticket Metrics + Total Overtime Billed calculation
     const ticketMetrics = useMemo(() => {
         const total = tickets.length
         const open = tickets.filter((t) => t.status === "open").length
@@ -583,10 +599,14 @@ export default function CRMPage() {
         const resolved = tickets.filter((t) => t.status === "resolved" || t.status === "closed").length
         const urgent = tickets.filter((t) => (t.priority === "urgent" || t.priority === "high") && t.status !== "closed").length
 
-        return { total, open, inProgress, resolved, urgent }
+        const totalOvertimeBilled = tickets.reduce(
+            (acc, t) => acc + (Number(t.overtime_amount) || 0),
+            0
+        )
+
+        return { total, open, inProgress, resolved, urgent, totalOvertimeBilled }
     }, [tickets])
 
-    // Helper Badges
     const renderPriorityBadge = (priority: StellarTicket["priority"]) => {
         switch (priority) {
             case "urgent":
@@ -617,7 +637,6 @@ export default function CRMPage() {
 
                         {/* Navigation Tab Switcher */}
                         <div className="flex items-center bg-white/[0.04] p-1 rounded-full border border-white/10">
-                            {/* BitePoint Leads Tab */}
                             <button
                                 onClick={() => setActiveTab("bitepoint")}
                                 className={`flex items-center gap-1.5 px-3.5 py-1 rounded-full text-xs font-medium transition-all ${activeTab === "bitepoint" ? "bg-white text-black shadow-md font-semibold" : "text-slate-400 hover:text-white"
@@ -631,7 +650,6 @@ export default function CRMPage() {
                                 </span>
                             </button>
 
-                            {/* StellarCode Leads Tab */}
                             <button
                                 onClick={() => setActiveTab("stellarcode")}
                                 className={`flex items-center gap-1.5 px-3.5 py-1 rounded-full text-xs font-medium transition-all ${activeTab === "stellarcode" ? "bg-white text-black shadow-md font-semibold" : "text-slate-400 hover:text-white"
@@ -645,7 +663,6 @@ export default function CRMPage() {
                                 </span>
                             </button>
 
-                            {/* Tickets Tab */}
                             <button
                                 onClick={() => setActiveTab("tickets")}
                                 className={`flex items-center gap-1.5 px-3.5 py-1 rounded-full text-xs font-medium transition-all ${activeTab === "tickets" ? "bg-white text-black shadow-md font-semibold" : "text-slate-400 hover:text-white"
@@ -685,7 +702,7 @@ export default function CRMPage() {
             </nav>
 
             {/* ═══════════════════════════════════════════════════════════════════ */}
-            {/* TAB: LEADS VIEW (BitePoint or StellarCode)                         */}
+            {/* TAB: LEADS VIEW                                                     */}
             {/* ═══════════════════════════════════════════════════════════════════ */}
             {activeTab !== "tickets" && (
                 <section className="pt-32 pb-8 px-6">
@@ -989,7 +1006,7 @@ export default function CRMPage() {
                         </div>
 
                         {/* Ticket Metric Cards */}
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-12">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-12">
                             <div className="p-6 rounded-3xl bg-white/[0.02] border border-white/5 hover:bg-white/[0.04] transition-colors">
                                 <div className="flex justify-between items-center text-slate-400 mb-4 text-xs font-medium">
                                     <span>Total Tickets</span>
@@ -997,7 +1014,7 @@ export default function CRMPage() {
                                 </div>
                                 <div className="text-3xl font-bold tracking-tight text-white mb-1">{ticketMetrics.total}</div>
                                 <div className="text-xs text-slate-500">
-                                    All support and feature requests
+                                    All support and requests
                                 </div>
                             </div>
 
@@ -1008,7 +1025,7 @@ export default function CRMPage() {
                                 </div>
                                 <div className="text-3xl font-bold tracking-tight text-white mb-1">{ticketMetrics.open}</div>
                                 <div className="text-xs text-slate-500">
-                                    Awaiting initial action
+                                    Awaiting resolution
                                 </div>
                             </div>
 
@@ -1019,18 +1036,32 @@ export default function CRMPage() {
                                 </div>
                                 <div className="text-3xl font-bold tracking-tight text-white mb-1">{ticketMetrics.inProgress}</div>
                                 <div className="text-xs text-slate-500">
-                                    Currently being worked on
+                                    Active development
                                 </div>
                             </div>
 
                             <div className="p-6 rounded-3xl bg-white/[0.02] border border-white/5 hover:bg-white/[0.04] transition-colors">
                                 <div className="flex justify-between items-center text-slate-400 mb-4 text-xs font-medium">
-                                    <span>High / Urgent Priority</span>
+                                    <span>Urgent Priority</span>
                                     <AlertTriangle className="w-4 h-4 text-rose-400" />
                                 </div>
                                 <div className="text-3xl font-bold tracking-tight text-rose-400 mb-1">{ticketMetrics.urgent}</div>
                                 <div className="text-xs text-slate-500">
-                                    Requires immediate attention
+                                    High / urgent attention
+                                </div>
+                            </div>
+
+                            {/* Overtime Metric Card */}
+                            <div className="p-6 rounded-3xl bg-white/[0.02] border border-white/5 hover:bg-white/[0.04] transition-colors">
+                                <div className="flex justify-between items-center text-slate-400 mb-4 text-xs font-medium">
+                                    <span>Overtime Billed</span>
+                                    <DollarSign className="w-4 h-4 text-amber-400" />
+                                </div>
+                                <div className="text-3xl font-bold tracking-tight text-amber-400 mb-1">
+                                    R{ticketMetrics.totalOvertimeBilled.toLocaleString()}
+                                </div>
+                                <div className="text-xs text-slate-500">
+                                    Billed @ R400/hr via Mercury
                                 </div>
                             </div>
                         </div>
@@ -1041,7 +1072,7 @@ export default function CRMPage() {
                                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
                                 <input
                                     type="text"
-                                    placeholder="Search tickets by title, description, or contact..."
+                                    placeholder="Search tickets by title, code, description, or contact..."
                                     value={ticketSearch}
                                     onChange={(e) => setTicketSearch(e.target.value)}
                                     className="w-full bg-white/[0.02] border border-white/10 rounded-full pl-11 pr-4 py-2.5 text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-white/30 transition-all"
@@ -1049,7 +1080,6 @@ export default function CRMPage() {
                             </div>
 
                             <div className="flex flex-wrap items-center gap-2">
-                                {/* Status Pills */}
                                 <div className="flex items-center gap-1 p-1 bg-white/[0.02] border border-white/5 rounded-full">
                                     {(["ALL", "open", "in_progress", "resolved", "closed"] as const).map((st) => {
                                         const isActive = filterTicketStatus === st
@@ -1066,7 +1096,6 @@ export default function CRMPage() {
                                     })}
                                 </div>
 
-                                {/* Priority Filter Dropdown */}
                                 <select
                                     value={filterTicketPriority}
                                     onChange={(e: any) => setFilterTicketPriority(e.target.value)}
@@ -1089,7 +1118,7 @@ export default function CRMPage() {
                                         <tr>
                                             <th onClick={() => handleTicketSort("title")} className="py-4 px-6 cursor-pointer group hover:text-white select-none">
                                                 <div className="flex items-center">
-                                                    <span>Ticket Title & Details</span>
+                                                    <span>Ticket & Details</span>
                                                     <ArrowUpDown className="w-3 h-3 text-slate-600 opacity-40 group-hover:opacity-100 ml-1.5 shrink-0" />
                                                 </div>
                                             </th>
@@ -1104,6 +1133,9 @@ export default function CRMPage() {
                                                     <span>Status</span>
                                                     <ArrowUpDown className="w-3 h-3 text-slate-600 opacity-40 group-hover:opacity-100 ml-1.5 shrink-0" />
                                                 </div>
+                                            </th>
+                                            <th className="py-4 px-4">
+                                                <span>Hours &amp; Billing</span>
                                             </th>
                                             <th onClick={() => handleTicketSort("contact_name")} className="py-4 px-4 cursor-pointer group hover:text-white select-none">
                                                 <span>Contact / Client</span>
@@ -1124,13 +1156,13 @@ export default function CRMPage() {
                                     <tbody className="divide-y divide-white/[0.03]">
                                         {loadingTickets ? (
                                             <tr>
-                                                <td colSpan={7} className="text-center py-20 text-xs text-slate-500">
+                                                <td colSpan={8} className="text-center py-20 text-xs text-slate-500">
                                                     Loading tickets from Supabase...
                                                 </td>
                                             </tr>
                                         ) : sortedAndFilteredTickets.length === 0 ? (
                                             <tr>
-                                                <td colSpan={7} className="text-center py-20 text-xs text-slate-500">
+                                                <td colSpan={8} className="text-center py-20 text-xs text-slate-500">
                                                     No tickets found.
                                                 </td>
                                             </tr>
@@ -1138,8 +1170,15 @@ export default function CRMPage() {
                                             sortedAndFilteredTickets.map((ticket) => (
                                                 <tr key={ticket.id} className="hover:bg-white/[0.02] transition-colors group">
                                                     <td className="py-4 px-6 max-w-sm">
-                                                        <div className="font-semibold text-white text-sm">
-                                                            {ticket.title}
+                                                        <div className="flex items-center gap-2">
+                                                            {ticket.ticket_code && (
+                                                                <span className="font-mono text-[10px] text-slate-500 bg-white/5 px-2 py-0.5 rounded border border-white/5">
+                                                                    {ticket.ticket_code}
+                                                                </span>
+                                                            )}
+                                                            <span className="font-semibold text-white text-sm">
+                                                                {ticket.title}
+                                                            </span>
                                                         </div>
                                                         {ticket.description && (
                                                             <div className="text-xs text-slate-400 mt-1 line-clamp-1">
@@ -1162,6 +1201,37 @@ export default function CRMPage() {
                                                             <option value="closed" className="bg-[#111]">Closed</option>
                                                         </select>
                                                     </td>
+
+                                                    {/* Hours & Mercury Payment Column */}
+                                                    <td className="py-4 px-4 whitespace-nowrap">
+                                                        <div className="font-mono text-slate-300">
+                                                            Est: {ticket.estimated_hours || 0}h (Deducted: -{ticket.hours_deducted || 0}h)
+                                                        </div>
+                                                        {(ticket.overtime_hours || 0) > 0 ? (
+                                                            <div className="flex items-center gap-2 mt-1">
+                                                                <span className="text-amber-400 font-semibold font-mono">
+                                                                    +R{ticket.overtime_amount} ({ticket.overtime_hours}h)
+                                                                </span>
+                                                                {ticket.payment_link && (
+                                                                    <a
+                                                                        href={ticket.payment_link}
+                                                                        target="_blank"
+                                                                        rel="noreferrer"
+                                                                        className="inline-flex items-center gap-1 text-[10px] text-sky-400 hover:text-sky-300 underline"
+                                                                        title="Open Mercury Payment Link"
+                                                                    >
+                                                                        <span>Mercury</span>
+                                                                        <ExternalLink className="w-2.5 h-2.5" />
+                                                                    </a>
+                                                                )}
+                                                            </div>
+                                                        ) : (
+                                                            <span className="text-[10px] text-emerald-400 font-medium">
+                                                                Covered (Monthly 2h)
+                                                            </span>
+                                                        )}
+                                                    </td>
+
                                                     <td className="py-4 px-4">
                                                         <div className="text-white font-medium">
                                                             {ticket.contact_name || "—"}
@@ -1244,7 +1314,6 @@ export default function CRMPage() {
                         )}
 
                         <form onSubmit={handleSaveLead} className="space-y-5">
-                            {/* Brand / Destination Selector */}
                             <div>
                                 <label className="block text-xs font-medium text-slate-300 mb-1.5">
                                     Lead Category / Brand *
@@ -1505,6 +1574,47 @@ export default function CRMPage() {
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <div>
                                     <label className="block text-xs font-medium text-slate-300 mb-1.5">
+                                        Estimated Hours
+                                    </label>
+                                    <input
+                                        type="number"
+                                        step="0.25"
+                                        placeholder="1.0"
+                                        value={ticketFormData.estimated_hours || ""}
+                                        onChange={(e) => setTicketFormData({ ...ticketFormData, estimated_hours: Number(e.target.value) })}
+                                        className="w-full bg-white/[0.02] border border-white/10 rounded-2xl px-4 py-3 text-xs text-white placeholder:text-slate-600 focus:outline-none focus:border-white/30 transition-all font-mono"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-medium text-slate-300 mb-1.5">
+                                        Overtime Amount (ZAR / R400 hr)
+                                    </label>
+                                    <input
+                                        type="number"
+                                        placeholder="0"
+                                        value={ticketFormData.overtime_amount || ""}
+                                        onChange={(e) => setTicketFormData({ ...ticketFormData, overtime_amount: Number(e.target.value) })}
+                                        className="w-full bg-white/[0.02] border border-white/10 rounded-2xl px-4 py-3 text-xs text-white placeholder:text-slate-600 focus:outline-none focus:border-white/30 transition-all font-mono"
+                                    />
+                                </div>
+                            </div>
+
+                            <div>
+                                <label className="block text-xs font-medium text-slate-300 mb-1.5">
+                                    Mercury Payment Link (Optional)
+                                </label>
+                                <input
+                                    type="url"
+                                    placeholder="https://mercury.com/pay/..."
+                                    value={ticketFormData.payment_link || ""}
+                                    onChange={(e) => setTicketFormData({ ...ticketFormData, payment_link: e.target.value })}
+                                    className="w-full bg-white/[0.02] border border-white/10 rounded-2xl px-4 py-3 text-xs text-white placeholder:text-slate-600 focus:outline-none focus:border-white/30 transition-all font-mono text-[11px]"
+                                />
+                            </div>
+
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-xs font-medium text-slate-300 mb-1.5">
                                         Client / Contact Name
                                     </label>
                                     <input
@@ -1592,4 +1702,3 @@ export default function CRMPage() {
         </main>
     )
 }
-

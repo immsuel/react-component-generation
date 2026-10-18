@@ -9,15 +9,12 @@ import {
     CheckCircle2,
     AlertTriangle,
     ArrowLeft,
-    Check,
     Layers,
     User,
     Mail,
     Phone,
     Building,
-    Activity,
-    Calendar,
-    Sparkles
+    ExternalLink
 } from "lucide-react"
 import Link from "next/link"
 import { supabase } from "@/lib/supabase"
@@ -43,7 +40,6 @@ const PRIORITIES = [
 function calculateETAFromQueue(priority: string, outstandingCount: number, baseDate = new Date()) {
     const priorityConfig = PRIORITIES.find((p) => p.id === priority) || PRIORITIES[1]
 
-    // Urgent tickets bypass general queue; others scale slightly with queue volume
     const queueMultiplier = priority === "urgent" ? 0.3 : priority === "high" ? 0.7 : 1.2
     const additionalHours = Math.round(outstandingCount * queueMultiplier)
     const totalHours = priorityConfig.baseHours + additionalHours
@@ -83,6 +79,14 @@ export default function ClientPortalPage() {
         queuePos: number
         etaFormatted: string
         humanDuration: string
+        estimatedHours: number
+        geminiReasoning: string
+        hoursDeducted: number
+        remainingHours: number
+        overtimeHours: number
+        overtimeAmount: number
+        paymentLink: string | null
+        paymentStatus: string
     } | null>(null)
 
     const [formData, setFormData] = useState({
@@ -125,79 +129,43 @@ export default function ClientPortalPage() {
         fetchQueueStats()
     }, [])
 
-    // Real-time ETA calculated dynamically for the currently selected priority in form
     const currentLiveETA = useMemo(() => {
         return calculateETAFromQueue(formData.priority, activeQueueCount)
     }, [formData.priority, activeQueueCount])
 
-    // Handle ticket creation
+    // Handle ticket creation via Next.js Backend Route
     const handleSubmitTicket = async (e: React.FormEvent) => {
         e.preventDefault()
         setSubmitting(true)
 
         try {
-            // 1. Look up or auto-create client in stellarcode_clients
-            let clientId: string | null = null
-            const cleanEmail = formData.email.trim().toLowerCase()
+            const res = await fetch("/api/portal/ticket", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(formData),
+            })
 
-            const { data: existingClient } = await supabase
-                .from("stellarcode_clients")
-                .select("id")
-                .ilike("email", cleanEmail)
-                .maybeSingle()
+            const data = await res.json()
+            if (!res.ok) throw new Error(data.error || "Failed to submit ticket.")
 
-            if (existingClient?.id) {
-                clientId = existingClient.id
-            } else {
-                const { data: newClient } = await supabase
-                    .from("stellarcode_clients")
-                    .insert([
-                        {
-                            company_name: formData.companyName || formData.contactName,
-                            contact_name: formData.contactName,
-                            email: cleanEmail,
-                            phone: formData.phone || null,
-                        },
-                    ])
-                    .select("id")
-                    .single()
-
-                if (newClient) clientId = newClient.id
-            }
-
-            // 2. Insert Ticket
-            const { data: createdTicket, error: ticketError } = await supabase
-                .from("stellarcode_tickets")
-                .insert([
-                    {
-                        client_id: clientId,
-                        title: formData.title,
-                        description: formData.description,
-                        category: formData.category,
-                        priority: formData.priority,
-                        status: "open",
-                        contact_name: formData.contactName,
-                        contact_email: cleanEmail,
-                        contact_phone: formData.phone || null,
-                    },
-                ])
-                .select("ticket_code, id, created_at")
-                .single()
-
-            if (ticketError) throw ticketError
-
-            // Re-calculate queue position and ETA
             const queuePos = activeQueueCount + 1
             const calculatedEta = calculateETAFromQueue(formData.priority, activeQueueCount)
 
             setSubmittedData({
-                code: createdTicket?.ticket_code || "ST-RECEIVED",
+                code: data.ticket.ticket_code,
                 queuePos,
                 etaFormatted: calculatedEta.formattedEstimate,
                 humanDuration: calculatedEta.humanDuration,
+                estimatedHours: data.ticket.estimated_hours,
+                geminiReasoning: data.ticket.gemini_reasoning,
+                hoursDeducted: data.ticket.hours_deducted,
+                remainingHours: data.ticket.remaining_hours,
+                overtimeHours: data.ticket.overtime_hours,
+                overtimeAmount: data.ticket.overtime_amount,
+                paymentLink: data.ticket.payment_link,
+                paymentStatus: data.ticket.payment_status,
             })
 
-            // Refresh queue count
             fetchQueueStats()
 
             setFormData({
@@ -305,11 +273,9 @@ export default function ClientPortalPage() {
                                 Submit a Support Request
                             </h1>
                             <p className="text-slate-400 text-sm max-w-lg mx-auto">
-                                Need an issue resolved, an automation modified, or new system logic deployed? Log your ticket directly with our support desk.
+                                Every client receives <strong>2.0 hours</strong> included monthly. Tasks are evaluated by Gemini AI and excess hours are billed at R400/hr.
                             </p>
                         </div>
-
-
 
                         <form onSubmit={handleSubmitTicket} className="bg-[#050505] border border-white/10 rounded-[2.5rem] p-8 md:p-12 shadow-2xl space-y-8">
 
@@ -441,7 +407,7 @@ export default function ClientPortalPage() {
                                         <input
                                             type="text"
                                             required
-                                            placeholder="e.g. Lead webhook failing on Typeform submissions"
+                                            placeholder="e.g. Webhook failing on Typeform submissions"
                                             value={formData.title}
                                             onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                                             className="w-full bg-white/[0.02] border border-white/10 rounded-2xl px-4 py-3.5 text-xs text-white placeholder:text-slate-600 focus:outline-none focus:border-white/30 transition-all"
@@ -455,7 +421,7 @@ export default function ClientPortalPage() {
                                         <textarea
                                             required
                                             rows={5}
-                                            placeholder="Describe what occurred, any error messages, affected accounts, links, or expectations..."
+                                            placeholder="Describe what occurred, affected endpoints, links, or expectations..."
                                             value={formData.description}
                                             onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                                             className="w-full bg-white/[0.02] border border-white/10 rounded-2xl px-4 py-3.5 text-xs text-white placeholder:text-slate-600 focus:outline-none focus:border-white/30 transition-all resize-none leading-relaxed"
@@ -472,7 +438,7 @@ export default function ClientPortalPage() {
                                         <span>Current Queue: <strong className="text-white">{activeQueueCount} ahead</strong></span>
                                     </div>
                                     <div>
-                                        Expected Completion: <strong className="text-white">{currentLiveETA.formattedEstimate}</strong>
+                                        Target Window: <strong className="text-white">{currentLiveETA.formattedEstimate}</strong>
                                     </div>
                                 </div>
 
@@ -482,7 +448,7 @@ export default function ClientPortalPage() {
                                     className="w-full py-5 bg-white text-black hover:bg-slate-200 active:scale-98 rounded-full text-xs font-black uppercase tracking-[0.2em] transition-all flex items-center justify-center gap-2 shadow-2xl disabled:opacity-50"
                                 >
                                     {submitting ? (
-                                        <span>Your request is being submitted...</span>
+                                        <span>Analyzing & Logging Request...</span>
                                     ) : (
                                         <>
                                             <Send className="w-4 h-4" />
@@ -495,33 +461,80 @@ export default function ClientPortalPage() {
                     </div>
                 )}
 
-                {/* ── Success Screen with ETA Card ──────────────────────────── */}
+                {/* ── Success Screen with Hours & Mercury Overtime Card ── */}
                 {submittedData && (
-                    <div className="bg-[#050505] border border-white/10 rounded-[2.5rem] p-10 md:p-14 text-center shadow-2xl animate-in zoom-in-95 duration-300">
+                    <div className="bg-[#050505] border border-white/10 rounded-[2.5rem] p-8 md:p-12 text-center shadow-2xl animate-in zoom-in-95 duration-300">
                         <div className="w-16 h-16 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center mx-auto mb-6">
                             <CheckCircle2 className="w-8 h-8" />
                         </div>
-                        <h2 className="text-3xl font-bold tracking-tight text-white mb-2">Ticket Logged Successfully</h2>
+                        <h2 className="text-3xl font-bold tracking-tight text-white mb-2">Ticket Logged &amp; Evaluated</h2>
                         <p className="text-slate-400 text-sm max-w-md mx-auto mb-8">
-                            Your support ticket has been received and scheduled based on current team workload.
+                            Your support request has been logged. We deducted time from your 2.0 monthly allowance.
                         </p>
 
-                        {/* Ticket Code & Live ETA Box */}
-                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 max-w-xl mx-auto mb-8">
-                            <div className="bg-white/[0.02] border border-white/10 rounded-2xl p-5">
-                                <div className="text-[10px] uppercase font-bold tracking-widest text-slate-500 mb-1">Tracking Code</div>
-                                <div className="font-mono text-xl font-bold text-white tracking-wider">{submittedData.code}</div>
+                        {/* Breakdown Cards */}
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 max-w-xl mx-auto mb-6 text-left">
+                            <div className="bg-white/[0.02] border border-white/10 rounded-2xl p-4">
+                                <div className="text-[10px] uppercase font-bold tracking-widest text-slate-500 mb-1">
+                                    AI Estimated Time
+                                </div>
+                                <div className="font-mono text-xl font-bold text-white">
+                                    {submittedData.estimatedHours} hrs
+                                </div>
+                                <div className="text-[10px] text-slate-400 mt-1 line-clamp-1" title={submittedData.geminiReasoning}>
+                                    {submittedData.geminiReasoning}
+                                </div>
                             </div>
-                            <div className="bg-white/[0.02] border border-white/10 rounded-2xl p-5">
-                                <div className="text-[10px] uppercase font-bold tracking-widest text-slate-500 mb-1">Queue Position</div>
-                                <div className="font-mono text-xl font-bold text-sky-400">#{submittedData.queuePos}</div>
+
+                            <div className="bg-white/[0.02] border border-white/10 rounded-2xl p-4">
+                                <div className="text-[10px] uppercase font-bold tracking-widest text-slate-500 mb-1">
+                                    Monthly Hours Deducted
+                                </div>
+                                <div className="font-mono text-xl font-bold text-sky-400">
+                                    -{submittedData.hoursDeducted} hrs
+                                </div>
+                                <div className="text-[10px] text-slate-400 mt-1">
+                                    From 2.0 monthly hrs
+                                </div>
                             </div>
-                            <div className="bg-white/[0.02] border border-white/10 rounded-2xl p-5">
-                                <div className="text-[10px] uppercase font-bold tracking-widest text-slate-500 mb-1">Target ETA</div>
-                                <div className="text-xs font-semibold text-emerald-400 mt-1">{submittedData.etaFormatted}</div>
-                                <div className="text-[10px] text-slate-500 mt-0.5">({submittedData.humanDuration})</div>
+
+                            <div className="bg-white/[0.02] border border-white/10 rounded-2xl p-4">
+                                <div className="text-[10px] uppercase font-bold tracking-widest text-slate-500 mb-1">
+                                    Remaining Balance
+                                </div>
+                                <div className="font-mono text-xl font-bold text-emerald-400">
+                                    {submittedData.remainingHours} hrs
+                                </div>
+                                <div className="text-[10px] text-slate-400 mt-1">
+                                    Available this month
+                                </div>
                             </div>
                         </div>
+
+                        {/* Overtime & Mercury Payment Link */}
+                        {submittedData.overtimeHours > 0 && submittedData.paymentLink && (
+                            <div className="bg-amber-500/10 border border-amber-500/20 rounded-2xl p-6 max-w-xl mx-auto mb-8 text-left">
+                                <div className="flex items-center gap-2 text-amber-400 font-semibold text-sm mb-2">
+                                    <AlertTriangle className="w-4 h-4" />
+                                    <span>Overtime Hours Incurred</span>
+                                </div>
+                                <p className="text-xs text-slate-300 leading-relaxed mb-4">
+                                    This ticket exceeds your included monthly balance by{" "}
+                                    <strong>{submittedData.overtimeHours} hour(s)</strong>. Overtime is billed at{" "}
+                                    <strong>R400 / hr</strong> (Total:{" "}
+                                    <strong className="text-white">R{submittedData.overtimeAmount}</strong>).
+                                </p>
+                                <a
+                                    href={submittedData.paymentLink}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="inline-flex items-center justify-center gap-2 w-full py-3.5 bg-amber-400 hover:bg-amber-300 text-black font-bold text-xs uppercase tracking-widest rounded-xl transition-all shadow-lg"
+                                >
+                                    <span>Pay R{submittedData.overtimeAmount} via Mercury</span>
+                                    <ExternalLink className="w-3.5 h-3.5" />
+                                </a>
+                            </div>
+                        )}
 
                         <div className="flex flex-col sm:flex-row justify-center gap-3">
                             <button
@@ -583,7 +596,6 @@ export default function ClientPortalPage() {
                         <div className="space-y-4">
                             {trackedTickets.length > 0 ? (
                                 trackedTickets.map((t, idx) => {
-                                    // Compute estimated ETA for this specific ticket based on creation time + priority
                                     const ticketETA = calculateETAFromQueue(
                                         t.priority || "medium",
                                         activeQueueCount,
@@ -615,7 +627,31 @@ export default function ClientPortalPage() {
                                                 {t.description}
                                             </p>
 
-                                            {/* Live ETA Box for Active Tickets */}
+                                            {/* Time and Billing Breakdown */}
+                                            <div className="bg-white/[0.02] border border-white/5 rounded-2xl p-4 mb-4 text-xs space-y-2">
+                                                <div className="flex justify-between items-center text-slate-300">
+                                                    <span>AI Estimated Time: <strong className="text-white">{t.estimated_hours || 0} hrs</strong></span>
+                                                    <span>Hours Deducted: <strong className="text-sky-400">-{t.hours_deducted || 0} hrs</strong></span>
+                                                </div>
+                                                {t.overtime_hours > 0 && (
+                                                    <div className="flex justify-between items-center pt-2 border-t border-white/5 text-amber-400 font-medium">
+                                                        <span>Overtime Billed: R{t.overtime_amount} ({t.overtime_hours} hrs @ R400/hr)</span>
+                                                        {t.payment_link && (
+                                                            <a
+                                                                href={t.payment_link}
+                                                                target="_blank"
+                                                                rel="noreferrer"
+                                                                className="inline-flex items-center gap-1 text-white bg-amber-500/20 hover:bg-amber-500/30 px-3 py-1 rounded-lg border border-amber-500/30"
+                                                            >
+                                                                <span>Pay Mercury Invoice</span>
+                                                                <ExternalLink className="w-3 h-3" />
+                                                            </a>
+                                                        )}
+                                                    </div>
+                                                )}
+                                            </div>
+
+                                            {/* Live ETA Box */}
                                             {!isComplete ? (
                                                 <div className="bg-white/[0.02] border border-white/5 rounded-2xl p-3.5 mb-4 flex items-center justify-between text-xs">
                                                     <div className="flex items-center gap-2 text-slate-400">
