@@ -3,7 +3,7 @@ import { NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
 
 const OVERTIME_RATE_ZAR = 400 // R400 per hour
-const DEFAULT_MONTHLY_HOURS = 1.0
+const DEFAULT_MONTHLY_HOURS = 5.0
 
 // Categories that DO NOT deduct hours from client retainers
 const EXEMPT_CATEGORIES = ["bug", "automation_failure", "general"]
@@ -27,19 +27,19 @@ async function estimateHoursWithGemini(ticket: {
 
   if (!apiKey) {
     const fallbackEstimates: Record<string, number> = {
-      bug: 2.0,
-      automation_failure: 2.0,
-      feature_request: 4.0,
-      integration: 4.5,
-      maintenance: 2.0,
-      general: 2.0,
+      bug: 1.0,
+      automation_failure: 1.0,
+      feature_request: 2.0,
+      integration: 2.25,
+      maintenance: 1.0,
+      general: 1.0,
     }
     const base = fallbackEstimates[ticket.category] || 2.0
     const multiplier = ticket.priority === "urgent" ? 1.5 : ticket.priority === "high" ? 1.25 : 1.0
-    const est = Math.max(2.0, Math.round(base * multiplier * 2) / 2)
+    const est = Math.max(1.0, Math.round(base * multiplier * 2) / 2)
     return {
       estimated_hours: est,
-      reasoning: "Heuristic baseline estimate based on category and priority (minimum 2.0 hours applied).",
+      reasoning: "Heuristic baseline estimate based on category and priority (minimum 1.0 hours applied).",
     }
   }
 

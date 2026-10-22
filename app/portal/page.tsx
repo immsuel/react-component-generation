@@ -276,7 +276,7 @@ export default function ClientPortalPage() {
                                 Submit a Support Request
                             </h1>
                             <p className="text-slate-400 text-sm max-w-lg mx-auto">
-                                Need an issue resolved, an automation modified, or new system logic deployed? Log your ticket directly with our engineering desk.
+                                Need an issue resolved, an automation modified, or new system logic deployed? Log your ticket directly to our developers.
                             </p>
                         </div>
 
