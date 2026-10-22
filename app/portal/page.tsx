@@ -525,7 +525,7 @@ export default function ClientPortalPage() {
                         </div>
 
                         {/* Overtime & Mercury Payment Link */}
-                        {submittedData.overtimeHours > 0 && submittedData.paymentLink && (
+                        {submittedData.overtimeHours > 0 && (
                             <div className="bg-amber-500/10 border border-amber-500/20 rounded-2xl p-6 max-w-xl mx-auto mb-8 text-left">
                                 <div className="flex items-center gap-2 text-amber-400 font-semibold text-sm mb-2">
                                     <AlertTriangle className="w-4 h-4" />
@@ -537,15 +537,22 @@ export default function ClientPortalPage() {
                                     <strong>R400 / hr</strong> (Total:{" "}
                                     <strong className="text-white">R{submittedData.overtimeAmount}</strong>).
                                 </p>
-                                <a
-                                    href={submittedData.paymentLink}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="inline-flex items-center justify-center gap-2 w-full py-3.5 bg-amber-400 hover:bg-amber-300 text-black font-bold text-xs uppercase tracking-widest rounded-xl transition-all shadow-lg"
-                                >
-                                    <span>Pay R{submittedData.overtimeAmount} via Mercury</span>
-                                    <ExternalLink className="w-3.5 h-3.5" />
-                                </a>
+
+                                {submittedData.paymentLink ? (
+                                    <a
+                                        href={submittedData.paymentLink}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="inline-flex items-center justify-center gap-2 w-full py-3.5 bg-amber-400 hover:bg-amber-300 text-black font-bold text-xs uppercase tracking-widest rounded-xl transition-all shadow-lg"
+                                    >
+                                        <span>Pay R{submittedData.overtimeAmount} via Mercury</span>
+                                        <ExternalLink className="w-3.5 h-3.5" />
+                                    </a>
+                                ) : (
+                                    <div className="text-[11px] text-amber-300/80 bg-black/20 p-3 rounded-xl border border-amber-500/20">
+                                        An invoice for <strong>R{submittedData.overtimeAmount}</strong> will be sent to your email address shortly.
+                                    </div>
+                                )}
                             </div>
                         )}
 
