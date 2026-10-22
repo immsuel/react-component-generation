@@ -51,11 +51,11 @@ Ticket details:
 - Priority: "${ticket.priority}"
 
 Please provide a realistic development time estimate. Account for code review, testing, debugging, and deployment.
-IMPORTANT: The minimum possible estimate for any ticket is 2.0 hours. Estimates should realistically range from 2.0 to 12.0+ hours in 0.5 hour increments.
+IMPORTANT: The minimum possible estimate for any ticket is 1.0 hours. Estimates should realistically range from 1.0 to 8+ hours in 0.5 hour increments.
 
 Return ONLY a valid JSON object matching this schema:
 {
-  "estimated_hours": <number >= 2.0>,
+  "estimated_hours": <number >= 1.0>,
   "reasoning": "<1-2 sentence concise explanation of required work>"
 }`
 
