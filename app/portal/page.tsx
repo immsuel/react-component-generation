@@ -489,7 +489,7 @@ export default function ClientPortalPage() {
                         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 max-w-xl mx-auto mb-6 text-left">
                             <div className="bg-white/[0.02] border border-white/10 rounded-2xl p-4">
                                 <div className="text-[10px] uppercase font-bold tracking-widest text-slate-500 mb-1">
-                                    AI Estimated Time
+                                    Estimated Time
                                 </div>
                                 <div className="font-mono text-xl font-bold text-white">
                                     {submittedData.estimatedHours} hrs
