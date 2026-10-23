@@ -8,13 +8,163 @@ const DEFAULT_MONTHLY_HOURS = 12.0
 // Categories that DO NOT deduct hours from client retainers
 const EXEMPT_CATEGORIES = ["bug", "automation_failure", "general"]
 
-// Server-side Supabase client
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ""
+// Server-side Supabase client with safe fallback
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://placeholder-project.supabase.co"
 const supabaseKey =
   process.env.SUPABASE_SERVICE_ROLE_KEY ||
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
-  ""
+  "placeholder-key"
 const supabase = createClient(supabaseUrl, supabaseKey)
+
+// Discord Webhook for broadcasting customer portal tickets
+const DISCORD_TICKET_WEBHOOK_URL =
+  process.env.DISCORD_TICKET_WEBHOOK_URL ||
+  "https://discord.com/api/webhooks/1563079716158570551/32RILGC7u03QE0zzNUwb9WILP11g1_FTkz9f64cakNGuP-Lp6A3JTBZ9eMCmksQRSO3Z"
+
+const PRIORITY_CONFIG: Record<string, { color: number; label: string; emoji: string }> = {
+  urgent: { color: 0xef4444, label: "URGENT", emoji: "🚨" },
+  high: { color: 0xf97316, label: "High", emoji: "🔥" },
+  medium: { color: 0x3b82f6, label: "Medium", emoji: "⚡" },
+  low: { color: 0x64748b, label: "Low", emoji: "🟢" },
+}
+
+const CATEGORY_CONFIG: Record<string, string> = {
+  bug: "🐛 Bug Report",
+  automation_failure: "⚠️ Automation Failure",
+  feature_request: "✨ Feature Request",
+  integration: "🔌 Integration",
+  maintenance: "🛠️ Maintenance",
+  general: "💬 General Question",
+}
+
+async function broadcastTicketToDiscord(params: {
+  ticketCode: string
+  title: string
+  description: string
+  category: string
+  priority: string
+  contactName: string
+  contactEmail: string
+  companyName?: string | null
+  phone?: string | null
+  estimatedHours: number
+  geminiReasoning?: string | null
+  hoursDeducted: number
+  remainingHours: number
+  overtimeHours: number
+  overtimeAmount: number
+  paymentLink?: string | null
+  isExempt: boolean
+}) {
+  try {
+    const priorityKey = (params.priority || "medium").toLowerCase()
+    const priorityInfo = PRIORITY_CONFIG[priorityKey] || PRIORITY_CONFIG.medium
+    const categoryLabel = CATEGORY_CONFIG[params.category] || params.category
+
+    const fields: Array<{ name: string; value: string; inline?: boolean }> = [
+      {
+        name: "👤 Contact Name",
+        value: params.contactName || "Unknown",
+        inline: true,
+      },
+      {
+        name: "🏢 Company",
+        value: params.companyName || "Not specified",
+        inline: true,
+      },
+      {
+        name: "📧 Email",
+        value: params.contactEmail || "Not provided",
+        inline: true,
+      },
+      {
+        name: "📞 Phone",
+        value: params.phone || "Not provided",
+        inline: true,
+      },
+      {
+        name: "📂 Category",
+        value: categoryLabel,
+        inline: true,
+      },
+      {
+        name: "⚡ Priority",
+        value: `${priorityInfo.emoji} **${priorityInfo.label}**`,
+        inline: true,
+      },
+      {
+        name: "⏱️ AI Time Estimate",
+        value: `**${params.estimatedHours} hrs**`,
+        inline: true,
+      },
+      {
+        name: "📉 Retainer Deducted",
+        value: params.isExempt
+          ? "0.0 hrs *(Covered / Exempt)*"
+          : `${params.hoursDeducted} hrs`,
+        inline: true,
+      },
+      {
+        name: "💼 Retainer Remaining",
+        value: `${params.remainingHours} hrs`,
+        inline: true,
+      },
+    ]
+
+    if (params.overtimeHours > 0) {
+      fields.push({
+        name: "💰 Overtime Required",
+        value: `**${params.overtimeHours} hrs** (R${params.overtimeAmount.toLocaleString()})`,
+        inline: true,
+      })
+    }
+
+    if (params.paymentLink) {
+      fields.push({
+        name: "💳 Mercury Payment Invoice",
+        value: `[👉 Click here to pay invoice](${params.paymentLink})`,
+        inline: false,
+      })
+    }
+
+    if (params.geminiReasoning) {
+      fields.push({
+        name: "🤖 AI Estimation Reasoning",
+        value: params.geminiReasoning.slice(0, 1000),
+        inline: false,
+      })
+    }
+
+    const payload = {
+      content: `🔔 **New Portal Ticket Received:** \`${params.ticketCode}\` | **${params.companyName || params.contactName}**`,
+      embeds: [
+        {
+          title: `🎫 [${params.ticketCode}] ${params.title.slice(0, 200)}`,
+          description: params.description ? params.description.slice(0, 2000) : "*No description provided*",
+          color: priorityInfo.color,
+          fields,
+          footer: {
+            text: "StellarCode Customer Portal • Live Ticket Broadcast",
+          },
+          timestamp: new Date().toISOString(),
+        },
+      ],
+    }
+
+    const res = await fetch(DISCORD_TICKET_WEBHOOK_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    })
+
+    if (!res.ok) {
+      const errText = await res.text()
+      console.error(`Discord webhook returned status ${res.status}:`, errText)
+    }
+  } catch (err) {
+    console.error("Error broadcasting ticket to Discord webhook:", err)
+  }
+}
 
 // ── 1. Call Google Gemini to estimate hours (Minimum 2.0 Hours) ──────────────
 async function estimateHoursWithGemini(ticket: {
@@ -422,37 +572,67 @@ export async function POST(req: Request) {
       mercury_invoice_id: mercuryInvoiceId,
     }
 
-    let finalTicket = null
-    const { data: ticket, error: ticketErr } = await supabase
-      .from("stellarcode_tickets")
-      .insert([fullTicketPayload])
-      .select("*")
-      .single()
-
-    if (ticketErr) {
-      // Safe fallback for legacy schemas
-      const baseTicketPayload = {
-        ticket_code: ticketCode,
-        client_id: clientRecord?.id || null,
-        title,
-        description: `${description}\n\n[Hours: Est ${estimated_hours}h | Deducted: ${hoursDeducted}h | Overtime: ${overtimeHours}h]`,
-        category,
-        priority,
-        status: "open",
-        contact_name: contactName,
-        contact_email: cleanEmail,
-        contact_phone: phone || null,
-      }
-      const { data: fallbackTicket, error: fallbackErr } = await supabase
+    let finalTicket: any = null
+    try {
+      const { data: ticket, error: ticketErr } = await supabase
         .from("stellarcode_tickets")
-        .insert([baseTicketPayload])
+        .insert([fullTicketPayload])
         .select("*")
         .single()
 
-      if (fallbackErr) throw fallbackErr
-      finalTicket = fallbackTicket
-    } else {
-      finalTicket = ticket
+      if (ticketErr) {
+        // Safe fallback for legacy schemas
+        const baseTicketPayload = {
+          ticket_code: ticketCode,
+          client_id: clientRecord?.id || null,
+          title,
+          description: `${description}\n\n[Hours: Est ${estimated_hours}h | Deducted: ${hoursDeducted}h | Overtime: ${overtimeHours}h]`,
+          category,
+          priority,
+          status: "open",
+          contact_name: contactName,
+          contact_email: cleanEmail,
+          contact_phone: phone || null,
+        }
+        const { data: fallbackTicket, error: fallbackErr } = await supabase
+          .from("stellarcode_tickets")
+          .insert([baseTicketPayload])
+          .select("*")
+          .single()
+
+        if (fallbackErr) throw fallbackErr
+        finalTicket = fallbackTicket
+      } else {
+        finalTicket = ticket
+      }
+    } catch (dbErr) {
+      console.warn("Database notice during ticket save:", dbErr)
+      finalTicket = { id: ticketCode, ticket_code: ticketCode }
+    }
+
+    // Step E: Broadcast Ticket Details to Discord Webhook
+    try {
+      await broadcastTicketToDiscord({
+        ticketCode: finalTicket?.ticket_code || ticketCode,
+        title,
+        description,
+        category,
+        priority,
+        contactName,
+        contactEmail: cleanEmail,
+        companyName: companyName || clientRecord?.company_name,
+        phone: phone || clientRecord?.phone,
+        estimatedHours: estimated_hours,
+        geminiReasoning: reasoning,
+        hoursDeducted,
+        remainingHours: remainingHoursAfter,
+        overtimeHours,
+        overtimeAmount,
+        paymentLink,
+        isExempt,
+      })
+    } catch (discordErr) {
+      console.error("Failed to broadcast ticket to Discord:", discordErr)
     }
 
     return NextResponse.json({
