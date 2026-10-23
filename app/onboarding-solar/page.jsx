@@ -1079,11 +1079,11 @@ export default function SolarOnboarding() {
         {submitted && (
           <div className="success-screen">
             <div className="success-icon">✓</div>
-            <h2>Solar Automation Configured!</h2>
+            <h2>Setup Request Received!</h2>
             <p>Your business profile, packages, qualification criteria, and FAQs have been submitted.</p>
             <hr className="divider" style={{ maxWidth: 220, margin: "32px auto" }} />
             <p style={{ fontSize: "14px", color: "var(--accent-bright)" }}>
-              Next step: Check your WhatsApp line for the pairing QR code and test lead sequence.
+              Next step: Once set up, we will send you a link where you'll be able to pair your WhatsApp.
             </p>
           </div>
         )}
