@@ -654,7 +654,7 @@ export default function SolarOnboarding() {
     const messages = sections.map((embed) => ({ embeds: [{ ...embed, timestamp: now }] }));
 
     const logo = branding.logoFile;
-    messages[0].content = `🚀 **New Solar Installer Onboarding:** **${business.companyName || "Unnamed Installer"}**`;
+    messages[0].content = `**New StellarCode Onboarding:** **${business.companyName || "Unnamed Installer"}**`;
     if (logo) {
       messages[0].embeds[0].thumbnail = { url: `attachment://${safeFileName(logo.name)}` };
     }
