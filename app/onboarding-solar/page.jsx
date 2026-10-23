@@ -53,15 +53,15 @@ const PACKAGE_CATEGORIES = [
 const SUGGESTED_FAQS = [
   {
     q: "Do you assist with municipality SSEG registration and CoC?",
-    a: "Yes, all our turnkey installations include a certified Certificate of Compliance (CoC) and registration assistance.",
+    a: "",
   },
   {
     q: "How long does installation take once ordered?",
-    a: "A typical residential installation takes 1 to 2 days on-site after component delivery.",
+    a: "",
   },
   {
     q: "Do you offer financing or rent-to-own?",
-    a: "Yes, we work with major financial institutions to offer flexible financing terms.",
+    a: "",
   },
 ];
 
@@ -177,7 +177,7 @@ function FieldGroup({ label, required, hint, children }) {
   );
 }
 
-function TextInput({ id, type = "text", placeholder, value, onChange, style }) {
+function TextInput({ id, type = "text", placeholder, value, onChange, style, step }) {
   return (
     <input
       id={id}
@@ -187,6 +187,7 @@ function TextInput({ id, type = "text", placeholder, value, onChange, style }) {
       onChange={(e) => onChange(e.target.value)}
       className="field-input"
       style={style}
+      step={step}
     />
   );
 }
@@ -326,7 +327,7 @@ function MemberEntry({ member, index, onChange, onRemove, showRemove }) {
   );
 }
 
-// ─── Cleaned Up Package Entry ─────────────────────────────────────────────────
+// ─── Package Entry ────────────────────────────────────────────────────────────
 
 function PackageEntry({ pkg, index, onChange, onRemove, canRemove }) {
   const update = (field) => (value) => onChange(pkg.id, field, value);
@@ -456,43 +457,20 @@ export default function SolarOnboarding() {
     notes: "",
   });
 
-  // Step 4: Packages & Equipment
-  const [packages, setPackages] = useState([
-    {
-      id: 1,
-      name: "Essential Hybrid (5kW)",
-      category: "Hybrid (Solar + Battery)",
-      price: "95000",
-      inverter: "5kW Hybrid Inverter",
-      battery: "5.12kWh LiFePO4 Battery",
-      panels: "6x 550W Tier-1 Panels",
-      bestForBill: "R1,500 – R2,500/mo",
-      warranty: "10yr Inverter & Battery, 5yr Workmanship",
-    },
-    {
-      id: 2,
-      name: "Family Complete Hybrid (8kW)",
-      category: "Hybrid (Solar + Battery)",
-      price: "155000",
-      inverter: "8kW Hybrid Inverter",
-      battery: "10kWh LiFePO4 Battery",
-      panels: "10x 550W Tier-1 Panels",
-      bestForBill: "R3,000 – R5,000/mo",
-      warranty: "10yr Inverter & Battery, 5yr Workmanship",
-    },
-  ]);
+  // Step 4: Packages & Equipment (Empty initial template)
+  const [packages, setPackages] = useState([makePackage(0)]);
 
   const [pricing, setPricing] = useState({
     financing: ["Cash / Direct EFT", "Bank Solar Financing (e.g., Absa, Nedbank, Standard Bank)"],
     ssegAssistance: "Yes - Full CoC & Municipality SSEG submission included",
-    tariff: "3.20",
+    tariff: "",
     preferredBrands: "Sunsynk / Deye inverters, Hubble / Dyness batteries, JA Solar panels",
     leadTime: "1 to 3 weeks",
-    paymentTerms: "60% deposit on order, 40% upon CoC commissioning",
+    paymentTerms: "",
     pricingNotes: "",
   });
 
-  // Step 5: Communication & Knowledge Base (Tone + FAQs)
+  // Step 5: Communication & Knowledge Base (Tone + FAQs - Answers blank)
   const [comms, setComms] = useState({
     aiTone: "friendly",
     languages: ["English", "Afrikaans"],
@@ -500,17 +478,17 @@ export default function SolarOnboarding() {
     followUpMessage:
       "Hi [name], thanks for reaching out to [company]. Your solar calculation and package proposal are ready! Would you like us to schedule a free 15-minute roof & site audit? Reply YES to book or STOP to opt out.",
     faqs: [
-      makeFaq(0, SUGGESTED_FAQS[0].q, SUGGESTED_FAQS[0].a),
-      makeFaq(1, SUGGESTED_FAQS[1].q, SUGGESTED_FAQS[1].a),
+      makeFaq(0, SUGGESTED_FAQS[0].q, ""),
+      makeFaq(1, SUGGESTED_FAQS[1].q, ""),
     ],
   });
 
-  // Step 6: Branding & Final
+  // Step 6: Branding & Final (Accreditations blank)
   const [branding, setBranding] = useState({
     brandColor: "#0f62fe",
     logoFile: null,
     aboutUs: "",
-    certifications: "SAPVIA GreenCard certified, Registered Electrical Contractor (DoL CoC)",
+    certifications: "",
     extraNotes: "",
   });
   const [logoError, setLogoError] = useState("");
@@ -621,13 +599,16 @@ export default function SolarOnboarding() {
       ], color)
     );
 
-    // Step 4: Packages & Pricing
-    const pkgFields = packages.map((p, i) =>
-      fld(
-        `${i + 1}. [${p.category}] ${p.name || "Custom Tier"}`,
-        `💵 R${p.price || "—"} (Target: ${p.bestForBill || "Any"})\n⚡ Inverter: ${p.inverter || "—"} | 🔋 Battery: ${p.battery || "—"}\n☀️ Panels: ${p.panels || "—"}\n🛡️ Warranty: ${p.warranty || "—"}`
+    // Step 4: Packages & Pricing (filter unconfigured packages)
+    const validPackages = packages.filter((p) => p.name.trim() || p.price.trim());
+    const pkgFields = validPackages.length > 0
+      ? validPackages.map((p, i) =>
+        fld(
+          `${i + 1}. [${p.category}] ${p.name || "Custom Tier"}`,
+          `💵 R${p.price || "—"} (Target: ${p.bestForBill || "Any"})\n⚡ Inverter: ${p.inverter || "—"} | 🔋 Battery: ${p.battery || "—"}\n☀️ Panels: ${p.panels || "—"}\n🛡️ Warranty: ${p.warranty || "—"}`
+        )
       )
-    );
+      : [fld("Packages", "None specified / bespoke quoting required")];
 
     sections.push(
       ...makeEmbeds("4. Turnkey Packages & Pricing Specs", [
@@ -636,16 +617,17 @@ export default function SolarOnboarding() {
         fld("SSEG & CoC", pricing.ssegAssistance),
         fld("Equipment Brands", pricing.preferredBrands),
         fld("Turnaround Lead Time", pricing.leadTime, true),
-        fld("Tariff Used for ROI (R/kWh)", pricing.tariff, true),
-        fld("Payment Terms", pricing.paymentTerms),
+        fld("Tariff Used for ROI (R/kWh)", pricing.tariff || "Not specified", true),
+        fld("Payment Terms", pricing.paymentTerms || "Not specified"),
         fld("Pricing Fine-print", pricing.pricingNotes),
       ], color)
     );
 
-    // Step 5: Communication & FAQs
-    const faqFields = comms.faqs.filter((f) => f.question.trim()).map((f, i) =>
-      fld(`FAQ ${i + 1}: ${f.question}`, f.answer || "No answer provided")
-    );
+    // Step 5: Communication & FAQs (only include FAQs that have been filled out)
+    const answeredFaqs = comms.faqs.filter((f) => f.question.trim() && f.answer.trim());
+    const faqFields = answeredFaqs.length > 0
+      ? answeredFaqs.map((f, i) => fld(`FAQ ${i + 1}: ${f.question}`, f.answer))
+      : [fld("FAQs", "No custom answers provided")];
 
     sections.push(
       ...makeEmbeds("5. WhatsApp Assistant & FAQs", [
@@ -662,7 +644,7 @@ export default function SolarOnboarding() {
       ...makeEmbeds("6. Brand Identity & Accreditations", [
         fld("Hex Color", branding.brandColor, true),
         fld("Uploaded Logo", branding.logoFile ? branding.logoFile.name : "None", true),
-        fld("Accreditations / CoC", branding.certifications),
+        fld("Accreditations / CoC", branding.certifications || "None specified"),
         fld("Company Bio", branding.aboutUs),
         fld("Extra Requirements", branding.extraNotes),
       ], color)
@@ -944,7 +926,13 @@ export default function SolarOnboarding() {
                 <TextInput value={pricing.ssegAssistance} onChange={(v) => setPricing((p) => ({ ...p, ssegAssistance: v }))} />
               </FieldGroup>
               <FieldGroup label="Electricity Tariff Rate (R/kWh)" hint="Used in instant savings forecasts.">
-                <TextInput type="number" step="0.1" value={pricing.tariff} onChange={(v) => setPricing((p) => ({ ...p, tariff: v }))} />
+                <TextInput
+                  type="number"
+                  step="0.01"
+                  placeholder="e.g. 3.20"
+                  value={pricing.tariff}
+                  onChange={(v) => setPricing((p) => ({ ...p, tariff: v }))}
+                />
               </FieldGroup>
             </div>
 
@@ -958,7 +946,11 @@ export default function SolarOnboarding() {
             </div>
 
             <FieldGroup label="Deposit & Payment Milestones">
-              <TextInput placeholder="e.g. 50% deposit, 40% on delivery, 10% post-commissioning" value={pricing.paymentTerms} onChange={(v) => setPricing((p) => ({ ...p, paymentTerms: v }))} />
+              <TextInput
+                placeholder="e.g. 50% deposit, 40% on delivery, 10% post-commissioning"
+                value={pricing.paymentTerms}
+                onChange={(v) => setPricing((p) => ({ ...p, paymentTerms: v }))}
+              />
             </FieldGroup>
 
             <NavRow onBack={goBack} onNext={goNext} />
@@ -1050,7 +1042,11 @@ export default function SolarOnboarding() {
             {logoError && <div className="error-msg">{logoError}</div>}
 
             <FieldGroup label="Accreditations & Registered Contractor Numbers" hint="Crucial for trust badges on proposals.">
-              <TextInput placeholder="e.g. SAPVIA GreenCard, ECB/DoL Registered Contractor, ECSA PR Eng" value={branding.certifications} onChange={(v) => setBranding((b) => ({ ...b, certifications: v }))} />
+              <TextInput
+                placeholder="e.g. SAPVIA GreenCard, ECB/DoL Registered Contractor, ECSA PR Eng"
+                value={branding.certifications}
+                onChange={(v) => setBranding((b) => ({ ...b, certifications: v }))}
+              />
             </FieldGroup>
 
             <FieldGroup label="Short Company Bio (About Us)" hint="1-2 sentences displayed on bottom of proposals.">
