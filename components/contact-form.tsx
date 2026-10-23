@@ -6,12 +6,12 @@ import { User, Mail, MessageSquare, Briefcase, Loader2, Phone, Globe } from "luc
 import { Button } from "@/components/ui/button"
 
 const SERVICE_OPTIONS = [
-  "Handle Customer Chats",
+  "Custom Web App or Portal",
   "Automate Repetitive Tasks",
-  "Sales & Lead Follow-up",
+  "AI Customer Support Bot",
   "Connect My Current Apps",
-  "Data Reports & Insights",
-  "Custom AI Strategy"
+  "Internal Tools & Dashboards",
+  "Sales & Lead Automation"
 ]
 
 export function ContactForm() {
@@ -47,7 +47,7 @@ export function ContactForm() {
     e.preventDefault()
     
     if (selectedServices.length === 0) {
-      alert("Please select at least one automation goal.")
+      alert("Please select at least one service or goal.")
       return
     }
 
@@ -102,10 +102,10 @@ export function ContactForm() {
       <div className="max-w-2xl mx-auto relative z-10">
         <div className="text-center mb-12">
           <h2 className="text-3xl md:text-4xl font-semibold mb-4 text-white tracking-tight">
-            Let’s Put Your Business on <span className="text-slate-500">Autopilot</span>
+            Let’s Build Your Next <span className="text-slate-500">Project</span>
           </h2>
-          <p className="text-gray-500 max-w-xl mx-auto text-sm md:text-base">
-            Tell us what's slowing you down. We'll show you how AI can handle it in 72 hours.
+          <p className="text-gray-400 max-w-xl mx-auto text-sm md:text-base">
+            Tell us about the software you need or the manual tasks eating up your team's time. We'll get back to you with a clear roadmap and estimate.
           </p>
         </div>
 
@@ -191,7 +191,7 @@ export function ContactForm() {
           {/* Service Selection */}
           <div className="space-y-4">
             <label className="text-[10px] font-bold text-slate-500 flex items-center gap-2 ml-1 uppercase tracking-[0.2em]">
-              Primary Automation Goals
+              What do you need help with?
             </label>
             <div className="grid grid-cols-2 gap-3">
               {SERVICE_OPTIONS.map((service) => (
@@ -215,7 +215,7 @@ export function ContactForm() {
           <div className="relative">
             <MessageSquare className="absolute left-4 top-4 w-4 h-4 text-slate-500" />
             <textarea
-              placeholder="Tell us about the biggest bottleneck in your company..."
+              placeholder="Tell us about the software you want to build or the manual tasks eating up your team's time..."
               value={formData.message}
               onChange={(e) => setFormData({ ...formData, message: e.target.value })}
               rows={4}
@@ -238,11 +238,11 @@ export function ContactForm() {
             {status === "loading" ? (
               <Loader2 className="w-5 h-5 animate-spin" />
             ) : status === "success" ? (
-              "Message Logged"
+              "Inquiry Sent!"
             ) : status === "error" ? (
               "Try Again"
             ) : (
-              "Request Free AI Audit"
+              "Send Project Inquiry"
             )}
           </Button>
         </form>

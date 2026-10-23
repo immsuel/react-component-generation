@@ -5,11 +5,10 @@ import Link from "next/link" // Import Link for internal routing
 
 const footerLinks = {
   main: [
-    { label: "Preview", href: "#hero" },
-    { label: "Engine", href: "#stats" },
-    { label: "Portfolio", href: "#projects" },
+    { label: "Home", href: "#hero" },
+    { label: "Results", href: "#stats" },
+    { label: "How It Works", href: "#phases" },
     { label: "Pricing", href: "#pricing" },
-    { label: "Process", href: "#phases" },
   ],
   secondary: [
     { label: "About Us", href: "#" },
@@ -78,8 +77,8 @@ export function Footer() {
                 StellarCode
               </span>
             </div>
-            <p className="text-gray-600 text-[11px] uppercase tracking-widest leading-relaxed max-w-[200px]">
-              Merging AI speed with human precision. Deployed in 72h.
+            <p className="text-gray-600 text-[11px] uppercase tracking-widest leading-relaxed max-w-[220px]">
+              Custom software development & AI automation for growing businesses.
             </p>
           </div>
 
@@ -114,11 +113,11 @@ export function Footer() {
         {/* Bottom Bar */}
         <div className="mt-20 pt-8 border-t border-white/[0.03] flex flex-col sm:flex-row justify-between items-center gap-4">
           <p className="text-[10px] text-gray-700 uppercase tracking-widest">
-            © 2026 StellarCode Intelligence. All rights reserved.
+            © 2026 StellarCode. All rights reserved.
           </p>
           <div className="flex items-center gap-2">
             <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-            <span className="text-[9px] text-slate-500 uppercase tracking-[0.2em]">Systems Fully Operational</span>
+            <span className="text-[9px] text-slate-500 uppercase tracking-[0.2em]">Available for New Projects</span>
           </div>
         </div>
       </div>

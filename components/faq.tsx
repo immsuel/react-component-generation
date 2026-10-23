@@ -5,29 +5,34 @@ import { ChevronDown, HelpCircle } from "lucide-react"
 
 const faqs = [
   {
-    question: "How is a 72-hour turnaround for AI possible?",
+    question: "What kind of software and automations do you build?",
     answer:
-      "We don't start from zero. We use our proprietary library of pre-built automation logic and API middleware. This allows us to focus 100% of the time on your specific data mapping and agent prompting rather than basic infrastructure.",
+      "We design and build custom web applications, internal tools, customer portals, and AI automations. That includes AI customer support assistants, lead qualification systems, CRM integrations, automated billing pipelines, and custom dashboards tailored to your exact workflow.",
   },
   {
-    question: "Is my data secure when using your AI agents?",
+    question: "How fast can you deliver a project?",
     answer:
-      "Absolutely. We primarily build using Enterprise-grade APIs from OpenAI and Anthropic that do not train on your business data. We also implement custom encryption layers for any sensitive API handshakes.",
+      "Most automation workflows and AI assistants are built, tested, and live within 72 hours. For custom software applications and full-scale web platforms, we work in rapid sprints, delivering working software in days rather than waiting months.",
   },
   {
-    question: "What exactly do I 'own' after the 72 hours?",
+    question: "Is our business data secure with AI?",
     answer:
-      "You own the full logic architecture. Whether we build it in a custom Next.js environment or an automation platform like Make.com, you have full administrative control and ownership of the accounts and code.",
+      "Yes, absolutely. We use enterprise-tier APIs from providers like OpenAI and Anthropic with zero-data-retention policies, meaning your data is never used to train public AI models. We also apply end-to-end encryption and strict security standards to all custom software.",
   },
   {
-    question: "Can your automations handle complex legacy systems?",
+    question: "Can you connect with our existing tools and software?",
     answer:
-      "Yes. If your software has an API, we can connect to it. If it doesn't, we can often use browser-based automation or custom webhooks to bridge the gap between your old tools and new AI logic.",
+      "Yes. If your software has an API or webhook, we can connect it. We regularly integrate with tools like HubSpot, Salesforce, Airtable, Google Workspace, Slack, WhatsApp, Xero, Stripe, and custom databases.",
   },
   {
-    question: "What happens if the AI makes a mistake?",
+    question: "Do we own the software and automations you build?",
     answer:
-      "We build 'Human-in-the-loop' systems for sensitive tasks. You can set confidence thresholds where the AI will flag a task for your approval rather than executing it autonomously, ensuring 100% oversight.",
+      "Yes, 100%. You own all the source code, automation accounts, and intellectual property. When the project is complete, you have complete administrative access and control over everything.",
+  },
+  {
+    question: "What happens if an automation fails or needs changes?",
+    answer:
+      "We build robust error handling and notifications into every system so you are alerted immediately if anything needs attention. We also provide ongoing support to monitor, optimize, and update your software and workflows as your business evolves.",
   },
 ]
 
@@ -46,10 +51,10 @@ export function FAQ() {
         </div>
         
         <h2 className="text-3xl md:text-4xl font-semibold text-center mb-4 text-white tracking-tight">
-          System <span className="text-slate-500">Architecture</span> FAQs
+          Frequently Asked <span className="text-slate-500">Questions</span>
         </h2>
-        <p className="text-gray-500 text-center mb-16 text-sm md:text-base max-w-xl mx-auto">
-          Technical insights into our 72-hour delivery, data security protocols, and the autonomous logic layers we deploy.
+        <p className="text-gray-400 text-center mb-16 text-sm md:text-base max-w-xl mx-auto">
+          Clear answers about how we build software, set up AI automations, and keep your business running smoothly.
         </p>
 
         <div className="space-y-3">

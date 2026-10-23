@@ -79,11 +79,11 @@ export function Projects() {
             </div>
             
             <h2 className="text-3xl md:text-4xl font-semibold mb-6 text-white tracking-tight">
-              Deployed <span className="text-slate-500">Logic.</span>
+              Featured <span className="text-slate-500">Work.</span>
             </h2>
             
-            <p className="text-gray-500 mb-16 max-w-sm leading-relaxed text-sm">
-              We don&apos;t just build interfaces; we build engines. Explore how we&apos;ve automated operations for global industry leaders.
+            <p className="text-gray-400 mb-16 max-w-sm leading-relaxed text-sm">
+              Explore how we build custom software and intelligent automations to solve real-world operational challenges.
             </p>
 
             <div className="space-y-10">

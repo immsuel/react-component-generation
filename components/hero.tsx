@@ -23,27 +23,32 @@ export function Hero() {
       <div className="relative z-10 w-full max-w-5xl mx-auto flex flex-col items-center">
         
         <div className="mb-8 px-4 py-2 rounded-full border border-white/10 bg-white/[0.03] backdrop-blur-md">
-          <span className="text-[9px] md:text-[11px] uppercase tracking-[0.3em] md:tracking-[0.5em] text-slate-400 font-semibold">
-            Intelligence at the Speed of Light
+          <span className="text-[9px] md:text-[11px] uppercase tracking-[0.3em] md:tracking-[0.4em] text-slate-400 font-semibold">
+            Custom Software & AI Automation
           </span>
         </div>
 
         <h1 className="text-[2.5rem] leading-[1.1] md:text-[clamp(2rem,5vw,3.8rem)] font-semibold tracking-tight text-white md:leading-[1.2] mb-6 max-w-4xl">
-          Automate the <span className="text-white">Routine.</span><br className="md:hidden" />{" "}
-          <span className="text-slate-500">
-            Scale the Reality.
+          We build custom software and<br className="hidden sm:inline" />{" "}
+          <span className="text-slate-400">
+            automate your business with AI.
           </span>
         </h1>
 
-        <p className="text-gray-400 text-sm md:text-base max-w-[500px] leading-relaxed mb-12 px-2 md:px-0">
-          Manual operations are the ceiling to your growth. We build autonomous AI agents 
-          that reclaim your team's time in <span className="text-white font-medium">72 hours.</span>
+        <p className="text-gray-400 text-sm md:text-base max-w-[560px] leading-relaxed mb-12 px-2 md:px-0">
+          From custom web apps and internal tools to intelligent AI workflows that take over repetitive tasks. We design, code, and deploy solutions that help your business move faster.
         </p>
 
         <div className="w-full sm:w-auto px-4 sm:px-0">
-          <button className="group relative flex items-center justify-center gap-3 w-full sm:w-fit px-10 py-5 rounded-full bg-white text-black hover:bg-slate-200 transition-all duration-300 shadow-2xl shadow-white/5 active:scale-95">
+          <button 
+            onClick={() => {
+              const el = document.querySelector("#contact")
+              if (el) el.scrollIntoView({ behavior: "smooth" })
+            }}
+            className="group relative flex items-center justify-center gap-3 w-full sm:w-fit px-10 py-5 rounded-full bg-white text-black hover:bg-slate-200 transition-all duration-300 shadow-2xl shadow-white/5 active:scale-95"
+          >
             <span className="text-[11px] font-black tracking-[0.2em] uppercase">
-              Audit My Workflows
+              Start a Project
             </span>
             <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
           </button>

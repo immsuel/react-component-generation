@@ -12,8 +12,8 @@ export function TrustedBy() {
   return (
     <section className="py-12 bg-black/95 ">
       <div className="max-w-5xl mx-auto px-6">
-        <p className="text-center text-gray-600 text-[10px] font-medium uppercase tracking-[0.4em] mb-12">
-          Powering Automations with Industry Leaders
+        <p className="text-center text-gray-600 text-[10px] font-medium uppercase tracking-[0.3em] mb-12">
+          Technologies We Build & Automate With
         </p>
         
         {/* Changed flex-wrap to flex-nowrap and used justify-between for a clean single row */}

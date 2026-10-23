@@ -5,43 +5,43 @@ import { Button } from "@/components/ui/button"
 
 const plans = [
   {
-    name: "Workflow Starter",
+    name: "Workflow Automation",
     price: "R 6,250",
     period: "pm",
-    description: "Perfect for local SMEs looking to eliminate repetitive manual tasks.",
+    description: "Ideal for businesses looking to eliminate manual data entry and connect their daily apps.",
     features: [
-      "2 Custom Zapier/Make Automations",
-      "Lead Capture & CRM Integration",
-      "Auto-Reply Email Systems",
-      "72-hour Priority Support",
+      "Custom Zapier / Make Automations",
+      "Lead Capture & CRM Sync",
+      "Automated Email & WhatsApp Alerts",
+      "Fast Setup & Priority Support",
     ],
     highlighted: false,
   },
   {
-    name: "AI Scaling Partner",
+    name: "Software & AI Growth",
     price: "R 16,500",
     period: "pm",
-    description: "Deep AI integration to handle customer service and internal operations.",
+    description: "For growing teams that need custom web apps, customer support bots, and automated workflows.",
     features: [
-      "Custom Trained AI Chatbot (GPT-4o)",
-      "Knowledge Base Synchronization",
-      "Advanced Multi-step Workflows",
-      "Weekly Performance Optimization",
-      "Slack/Discord Team Integration",
+      "Custom Web App or Internal Portal",
+      "Smart AI Chatbot (GPT-4o)",
+      "CRM & Database Synchronization",
+      "Multi-Step Automated Workflows",
+      "Slack & Team Notifications",
     ],
     highlighted: true,
   },
   {
-    name: "Enterprise Intelligence",
+    name: "Custom Software & Enterprise AI",
     price: "R 32,000",
     period: "pm",
-    description: "Full-scale AI transformation for data-heavy organizations.",
+    description: "Full-scale custom software development and end-to-end AI automation tailored to your business.",
     features: [
-      "Custom LLM Fine-tuning",
-      "Proprietary Data Vectorization",
-      "Automated Monthly ROI Reports",
-      "Dedicated Solutions Architect",
-      "Unlimited Workflow Revisions",
+      "Full-Stack Custom Software Development",
+      "AI Document & Data Processing",
+      "Custom API & Legacy Integrations",
+      "Dedicated Software & AI Specialist",
+      "Continuous Updates & Maintenance",
     ],
     highlighted: false,
   },
@@ -63,11 +63,10 @@ export function Pricing() {
       <div className="max-w-6xl mx-auto relative z-10">
         <div className="text-center mb-16">
           <h2 className="text-3xl md:text-4xl font-semibold mb-4 text-white tracking-tight">
-            Buy Back Your Time. <span className="text-slate-500">Automate Everything.</span>
+            Simple, Transparent Pricing. <span className="text-slate-500">Built for Growth.</span>
           </h2>
-          <p className="text-gray-500 max-w-2xl mx-auto text-sm md:text-base">
-            Stop wasting hours on manual work. Our AI systems operate 24/7, 
-            letting your team focus on high-leverage strategy.
+          <p className="text-gray-400 max-w-2xl mx-auto text-sm md:text-base">
+            Whether you need targeted AI automations, custom internal software, or a full digital platform, choose the plan that fits your business.
           </p>
         </div>
 
@@ -93,14 +92,14 @@ export function Pricing() {
                   <span className="text-4xl font-bold text-white tracking-tighter">{plan.price}</span>
                   <span className="text-gray-600 text-xs font-semibold">{plan.period}</span>
                 </div>
-                <p className="text-xs text-gray-500 leading-relaxed min-h-[40px]">
+                <p className="text-xs text-gray-400 leading-relaxed min-h-[40px]">
                   {plan.description}
                 </p>
               </div>
 
               <div className="flex-1 border-t border-white/5 pt-8 mb-10">
-                <p className="text-gray-600 text-[10px] font-semibold uppercase tracking-[0.2em] mb-6">
-                  System Capabilities:
+                <p className="text-gray-500 text-[10px] font-semibold uppercase tracking-[0.2em] mb-6">
+                  What's Included:
                 </p>
                 <ul className="space-y-4">
                   {plan.features.map((feature, i) => (
@@ -120,7 +119,7 @@ export function Pricing() {
                     : "bg-white/5 border border-white/10 text-white hover:bg-white/10"
                 }`}
               >
-                Start Automating
+                Get Started
               </Button>
             </div>
           ))}

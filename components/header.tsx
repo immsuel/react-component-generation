@@ -6,9 +6,8 @@ import Link from "next/link" // Added for internal routing
 
 const navItems = [
   { label: "Team", href: "/team" },
-  { label: "Performance", href: "#stats" },
-  { label: "Process", href: "#phases" },
-  { label: "Portfolio", href: "#projects" },
+  { label: "Results", href: "#stats" },
+  { label: "How It Works", href: "#phases" },
   { label: "Pricing", href: "#pricing" },
   { label: "Client Portal", href: "/portal" },
 ]
@@ -82,7 +81,7 @@ export function Header() {
             onClick={() => scrollToSection("#contact")}
             className="flex items-center gap-2 px-5 py-2.5 bg-white text-black rounded-full text-[10px] font-bold uppercase tracking-widest hover:bg-slate-200 transition-all active:scale-95"
           >
-            Start Audit
+            Start a Project
             <ArrowRight className="w-3 h-3" />
           </button>
         </div>
@@ -109,7 +108,7 @@ export function Header() {
               onClick={() => scrollToSection("#contact")}
               className="mt-4 w-full py-5 bg-white text-black rounded-2xl text-[10px] font-bold uppercase tracking-widest text-center"
             >
-              Free AI Audit
+              Start a Project
             </button>
           </nav>
         </div>
