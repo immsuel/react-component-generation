@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 const plans = [
   {
     name: "Workflow Starter",
-    price: "R 6,250",
+    price: "R 3,000",
     period: "pm",
     description: "Perfect for local SMEs looking to eliminate repetitive manual tasks.",
     features: [
@@ -19,7 +19,7 @@ const plans = [
   },
   {
     name: "AI Scaling Partner",
-    price: "R 16,500",
+    price: "R 5,000",
     period: "pm",
     description: "Deep AI integration to handle customer service and internal operations.",
     features: [
@@ -33,7 +33,7 @@ const plans = [
   },
   {
     name: "Enterprise Intelligence",
-    price: "R 32,000",
+    price: "R 12,000",
     period: "pm",
     description: "Full-scale AI transformation for data-heavy organizations.",
     features: [
@@ -59,14 +59,14 @@ export function Pricing() {
     <section id="pricing" className="px-4 py-24 relative overflow-visible bg-black/95 backdrop-blur-md">
       {/* Neutralized Background Glow */}
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-slate-500/5 blur-[140px] pointer-events-none" />
-      
+
       <div className="max-w-6xl mx-auto relative z-10">
         <div className="text-center mb-16">
           <h2 className="text-3xl md:text-4xl font-semibold mb-4 text-white tracking-tight">
             Buy Back Your Time. <span className="text-slate-500">Automate Everything.</span>
           </h2>
           <p className="text-gray-500 max-w-2xl mx-auto text-sm md:text-base">
-            Stop wasting hours on manual work. Our AI systems operate 24/7, 
+            Stop wasting hours on manual work. Our AI systems operate 24/7,
             letting your team focus on high-leverage strategy.
           </p>
         </div>
@@ -75,11 +75,10 @@ export function Pricing() {
           {plans.map((plan, index) => (
             <div
               key={index}
-              className={`flex flex-col rounded-[2.5rem] p-10 backdrop-blur-md transition-all duration-500 ${
-                plan.highlighted
+              className={`flex flex-col rounded-[2.5rem] p-10 backdrop-blur-md transition-all duration-500 ${plan.highlighted
                   ? "bg-white/[0.04] border border-white/20 shadow-2xl shadow-white/5 relative z-20 md:scale-105"
                   : "bg-white/[0.02] border border-white/5 opacity-80"
-              }`}
+                }`}
             >
               {plan.highlighted && (
                 <div className="absolute -top-4 left-1/2 -translate-x-1/2 px-4 py-1 bg-white text-black text-[9px] font-bold uppercase tracking-[0.2em] rounded-full">
@@ -114,18 +113,17 @@ export function Pricing() {
 
               <Button
                 onClick={scrollToContact}
-                className={`w-full py-7 rounded-2xl text-[11px] font-bold uppercase tracking-[0.2em] transition-all duration-300 ${
-                  plan.highlighted
+                className={`w-full py-7 rounded-2xl text-[11px] font-bold uppercase tracking-[0.2em] transition-all duration-300 ${plan.highlighted
                     ? "bg-white text-black hover:bg-slate-200"
                     : "bg-white/5 border border-white/10 text-white hover:bg-white/10"
-                }`}
+                  }`}
               >
                 Start Automating
               </Button>
             </div>
           ))}
         </div>
-        
+
         {/* Value Add for SA Context */}
         <div className="mt-12 text-center">
           <p className="text-[10px] text-gray-600 uppercase tracking-widest italic">
