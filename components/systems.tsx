@@ -10,109 +10,105 @@ import {
     ArrowRight,
     Sparkles,
     CheckCircle2,
-    Bot,
-    Layers,
-    FileText,
     ExternalLink
 } from "lucide-react"
-import { Button } from "@/components/ui/button"
 import Link from "next/link"
 
 const systems = [
     {
-        id: "solar-engine",
-        badge: "AI Spatial & Quoting",
-        category: "Renewable Energy & Solar EPC",
-        title: "Solar Engine & SolarPoint",
-        tagline: "Turnkey Solar Feasibility & Photorealistic Rooftop Proposals in < 60s",
+        id: "solar-quote-generator",
+        badge: "For Solar Companies",
+        category: "Solar & Clean Energy",
+        title: "Solar Proposal & Quote Generator",
+        tagline: "Instant rooftop estimates & realistic solar proposals sent straight to WhatsApp",
         description:
-            "An autonomous solar quoting infrastructure that geolocates properties via Google Solar API, analyzes 3D roof irradiance, and uses Gemini vision models to paint realistic solar panel layouts on satellite and street-view photos before dispatching customized 3-tier ZAR proposals via WhatsApp and email.",
+            "A fast quoting tool for solar installers. When a homeowner enters their address and monthly power bill, the system analyzes their roof from satellite imagery, places realistic solar panels on their roof, and sends a complete 3-option price quote straight to their WhatsApp and email in under 60 seconds.",
         icon: Sun,
         accentColor: "text-amber-400 bg-amber-400/10 border-amber-400/20",
         glowColor: "from-amber-500/10",
         features: [
-            "Google Solar 3D roof mesh & irradiance mapping",
-            "Multimodal Gemini visual panel overlay on satellite imagery",
-            "Automated 3-tier ZAR turnkey quote compilation (Day, Hybrid, Off-grid)",
-            "48-hour cooldown WhatsApp lead nurturing and human takeover detection"
+            "Calculates solar panel requirements from the customer's power bill",
+            "Shows a real satellite picture of their home with solar panels fitted",
+            "Automatically creates 3 pricing packages (Daytime, Battery Backup, Off-Grid)",
+            "Follows up with leads on WhatsApp without being pushy or spammy"
         ],
-        tech: ["Google Solar API", "Gemini Vision", "PDFShift", "Evolution API", "n8n"]
+        tech: ["Google Solar API", "Satellite Imagery", "Instant PDF Generator", "WhatsApp Integration"]
     },
     {
-        id: "bitepoint",
-        badge: "Multi-Tenant SaaS",
-        category: "Driving Academies & Fleet Ops",
-        title: "Bitepoint SA Academy OS",
-        tagline: "Complete Multi-Tenant Booking Portal & Operations Platform",
+        id: "driving-school-system",
+        badge: "For Driving Schools",
+        category: "Driving Academies & Instructors",
+        title: "Driving School Automation Package",
+        tagline: "Complete student booking, instructor scheduling, and payment platform",
         description:
-            "A domain-isolated operations platform for driving academies across South Africa and Namibia. Features student hour ledgers, a 5-hour cancellation rule engine, instructor fleet dispatch, live Leaflet GPS pickup mapping, automated PDF invoice/payslip generation, and Meta CAPI ad tracking.",
+            "An all-in-one platform built specifically for driving schools. Students can choose packages and book lesson slots online with map pickup pins. Instructors get their daily schedules delivered automatically to WhatsApp every morning, and school owners can track student hours, vehicle fuel, and instructor payroll.",
         icon: Car,
         accentColor: "text-rose-400 bg-rose-400/10 border-rose-400/20",
         glowColor: "from-rose-500/10",
         features: [
-            "Host and subdomain-driven multi-tenancy with custom school branding",
-            "Self-service student portal with 5-hour forfeiture cancellation logic",
-            "Daily instructor schedule PDF generation & WhatsApp dispatch",
-            "Fleet fuel tracking, vehicle maintenance logs, and NaTIS exam scheduling"
+            "Online student portal to book, reschedule, or cancel lessons",
+            "Automatic daily lesson schedules sent to instructors on WhatsApp",
+            "Instant invoice and student payment receipt generation",
+            "Tracks vehicle fuel expenses and warns when licenses/disks expire"
         ],
-        tech: ["Next.js 16", "Supabase RLS", "PDFKit", "Leaflet Maps", "Meta CAPI"]
+        tech: ["Next.js Booking Portal", "Secure Student Database", "PDF Invoices", "WhatsApp Gateway"]
     },
     {
-        id: "dental-receptionist",
-        badge: "Healthcare Agent",
-        category: "Clinical & Dental Operations",
-        title: "MedPoint Dental AI Receptionist",
-        tagline: "24/7 WhatsApp Virtual Front-Desk with Dual Role Routing",
+        id: "clinic-ai-receptionist",
+        badge: "For Medical & Dental",
+        category: "Dentists & Medical Clinics",
+        title: "Clinic & Dental AI Receptionist",
+        tagline: "24/7 WhatsApp receptionist that books patients and brings back past clients",
         description:
-            "A clinical WhatsApp virtual receptionist ('Mia') that detects whether the sender is a patient or staff member. Autonomously handles triage, emergency bookings, and reschedules while running a scheduled patient retention pipeline that triggers 7-day review requests and 6-month dental recalls.",
+            "A smart 24/7 virtual assistant for your clinic's WhatsApp line. It answers patient questions instantly, checks dentist availability, books appointments, and prioritizes urgent emergencies. When an appointment gets canceled, it immediately messages waitlisted patients to keep your calendar full.",
         icon: Stethoscope,
         accentColor: "text-sky-400 bg-sky-400/10 border-sky-400/20",
         glowColor: "from-sky-500/10",
         features: [
-            "Staff vs. Patient routing: unlocks internal agenda controls for clinicians",
-            "Real-time appointment booking, rescheduling, and conflict resolution",
-            "Automated cancellation waitlist broadcast to fill open slots instantly",
-            "Automated 7-day post-op reviews and 6-month checkup recall sequences"
+            "Answers patient questions and schedules appointments 24 hours a day",
+            "Recognizes clinic staff to give them quick schedule and patient overviews",
+            "Fills last-minute canceled slots by automatically alerting waitlisted patients",
+            "Sends Google review requests and 6-month routine checkup reminders"
         ],
-        tech: ["Gemini 3.8 Flash", "LangChain Memory", "Supabase", "Evolution API"]
+        tech: ["Smart AI Assistant", "Calendar Synchronization", "Waitlist Automation", "WhatsApp Business"]
     },
     {
-        id: "pool-engine",
-        badge: "Civil & 3D Spatial AI",
-        category: "Residential Construction",
-        title: "Pool Installation Engine",
-        tagline: "AI Backyard Feasibility & 3D Swimming Pool Quoting",
+        id: "pool-quote-builder",
+        badge: "For Pool Contractors",
+        category: "Pool Builders & Landscapers",
+        title: "Pool Visualizer & Quote Builder",
+        tagline: "Show clients what a pool looks like in their backyard with instant pricing",
         description:
-            "A turnkey feasibility and quoting engine for pool builders. Ingests backyard photos and dimensions, applies civil engineering formulas to size pumps, water volume, and excavation requirements, and uses generative AI to embed photorealistic pools directly into customer yard photos.",
+            "An interactive tool for swimming pool builders that turns casual website visitors into signed contracts. Homeowners pick their pool size, upload a backyard photo, and receive a realistic picture of the pool in their lawn alongside an itemized equipment, excavation, and installation quote.",
         icon: Waves,
         accentColor: "text-cyan-400 bg-cyan-400/10 border-cyan-400/20",
         glowColor: "from-cyan-500/10",
         features: [
-            "Automated civil engineering sizing (volume, pump wattage, soil excavation)",
-            "Satellite backyard analysis and ground-level perspective 3D pool rendering",
-            "Dynamic 3-tier quotation generation (Plunge, Family Oasis, Resort & Spa)",
-            "Automated contractor SMS/email lead alerts and PDF customer delivery"
+            "Shows realistic images of the pool placed directly in the customer's yard",
+            "Calculates pool volume, pump/filter requirements, and excavation timelines",
+            "Sends itemized 3-tier proposals (Entry, Family, Luxury) to the client's phone",
+            "Notifies your sales team the moment a qualified quote is created"
         ],
-        tech: ["Google Static Maps", "Gemini Vision", "PDFShift", "Supabase", "ImgBB"]
+        tech: ["Satellite Mapping", "AI Image Generation", "Turnkey Cost Calculator", "PDF & WhatsApp"]
     },
     {
-        id: "client-portal",
-        badge: "Autonomous Ops",
-        category: "Support & Retainer Billing",
-        title: "Client Portal & Ticketing Infrastructure",
-        tagline: "AI-Scoped Support Desk with Automated Overtime Billing",
+        id: "client-support-portal",
+        badge: "For Agencies & Consultants",
+        category: "Client Support & Retainers",
+        title: "Client Support & Task Portal",
+        tagline: "Central hub for client requests, project updates, and overtime billing",
         description:
-            "A client support portal that estimates task hours via Gemini AI, tracks monthly client retainers, generates automated overtime invoices via Mercury, and broadcasts urgent alerts to developer Discord channels with zero human triage needed.",
+            "A simple, professional client portal where your clients can submit support tickets, request new features, and track project status. It automatically estimates the hours required for each task, deducts hours from their monthly retainer, and sends payment links if work goes out of scope.",
         icon: Cpu,
         accentColor: "text-purple-400 bg-purple-400/10 border-purple-400/20",
         glowColor: "from-purple-500/10",
         features: [
-            "Automated task duration scoping with realistic AI heuristic rules",
-            "Warranty vs. billable categorization (bugs/failures are 100% exempt)",
-            "Dynamic Mercury payment link creation for out-of-retainer overtime",
-            "Real-time ticket tracking, queue estimation, and Discord notification hooks"
+            "Gives your clients a clean, branded portal to submit and track requests",
+            "Automatically scopes task time and shows realistic completion windows",
+            "Tracks monthly retainer hours and generates invoices for extra work",
+            "Alerts your developers on Discord or Slack as soon as tickets arrive"
         ],
-        tech: ["Next.js App Router", "Gemini AI", "Mercury API", "Discord Webhooks"]
+        tech: ["Client Portal Web App", "Automated Task Scoping", "Online Invoicing", "Team Notifications"]
     }
 ]
 
@@ -139,16 +135,16 @@ export function Systems() {
                 <div className="text-center max-w-3xl mx-auto mb-16">
                     <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-white/[0.03] border border-white/10 text-slate-400 text-[10px] font-bold uppercase tracking-[0.3em] mb-4">
                         <Sparkles className="w-3 h-3 text-slate-400" />
-                        <span>Turnkey Systems &amp; Platforms</span>
+                        <span>Turnkey Systems &amp; Packages</span>
                     </div>
 
                     <h2 className="text-3xl md:text-5xl font-semibold tracking-tight text-white mb-6">
-                        Production Software &amp; <br />
-                        <span className="text-slate-500">Autonomous Engines.</span>
+                        Software We Build &amp; <br />
+                        <span className="text-slate-500">Automations Ready to Deploy.</span>
                     </h2>
 
                     <p className="text-gray-400 text-sm md:text-base leading-relaxed">
-                        We don&apos;t build disposable prototypes. We engineer battle-tested platforms, multimodal AI estimators, and automated WhatsApp operations for businesses that require reliability at scale.
+                        We don&apos;t just write code from scratch every time. We build proven, ready-to-customize systems that solve sales, booking, and operational bottlenecks for specific industries.
                     </p>
                 </div>
 
@@ -203,7 +199,7 @@ export function Systems() {
                                     {/* Feature Highlights */}
                                     <div className="border-t border-white/5 pt-6 mb-8 space-y-2.5">
                                         <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-3">
-                                            Architectural Capabilities:
+                                            What This System Does:
                                         </p>
                                         {sys.features.map((feat, fIdx) => (
                                             <div key={fIdx} className="flex items-start gap-2.5 text-xs text-slate-300">
@@ -228,12 +224,12 @@ export function Systems() {
                                     </div>
 
                                     <div className="flex items-center gap-3 w-full sm:w-auto">
-                                        {sys.id === "client-portal" ? (
+                                        {sys.id === "client-support-portal" ? (
                                             <Link
                                                 href="/portal"
                                                 className="inline-flex items-center gap-1.5 text-xs font-semibold text-white hover:text-slate-300 transition-colors"
                                             >
-                                                <span>Open Live Portal</span>
+                                                <span>View Live Demo</span>
                                                 <ExternalLink className="w-3 h-3" />
                                             </Link>
                                         ) : (
@@ -241,7 +237,7 @@ export function Systems() {
                                                 onClick={scrollToContact}
                                                 className="inline-flex items-center gap-1.5 text-xs font-semibold text-white hover:text-slate-300 transition-colors"
                                             >
-                                                <span>Deploy This System</span>
+                                                <span>Build For My Business</span>
                                                 <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-1" />
                                             </button>
                                         )}
@@ -252,17 +248,17 @@ export function Systems() {
                     })}
                 </div>
 
-                {/* Bottom Banner */}
+                {/* Bottom Callout Banner */}
                 <div className="mt-16 p-8 rounded-3xl bg-gradient-to-r from-white/[0.02] via-white/[0.04] to-white/[0.02] border border-white/10 flex flex-col md:flex-row items-center justify-between gap-6">
                     <div className="space-y-1 text-center md:text-left">
-                        <h4 className="text-base font-bold text-white tracking-tight">Need a customized system built for your operations?</h4>
-                        <p className="text-xs text-slate-400">We design bespoke backends, multimodal pipelines, and WhatsApp bots in 72-hour development sprints.</p>
+                        <h4 className="text-base font-bold text-white tracking-tight">Need a custom system built for your specific workflow?</h4>
+                        <p className="text-xs text-slate-400">Tell us what manual tasks are slowing your team down, and we&apos;ll propose an automated solution.</p>
                     </div>
                     <button
                         onClick={scrollToContact}
                         className="px-8 py-4 bg-white text-black hover:bg-slate-200 rounded-full text-xs font-black uppercase tracking-[0.2em] transition-transform hover:scale-105 active:scale-95 whitespace-nowrap shadow-xl"
                     >
-                        Schedule System Audit
+                        Ask About a System
                     </button>
                 </div>
 
@@ -271,5 +267,4 @@ export function Systems() {
     )
 }
 
-// Export both names to satisfy either usage
 export { Systems as Products }
