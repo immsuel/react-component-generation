@@ -1,14 +1,16 @@
-import { Header } from "@/components/header"
+import { Header } from "@/components/header" // This looks for 'export function Header'
 import { Hero } from "@/components/hero"
 import { CTA } from "@/components/cta"
 import { TrustedBy } from "@/components/trusted-by"
+import { Testimonials } from "@/components/testimonials"
 import { Stats } from "@/components/stats"
 import { Phases } from "@/components/phases"
-import { Systems } from "@/components/systems"
+import { Projects } from "@/components/projects"
 import { Pricing } from "@/components/pricing"
 import { FAQ } from "@/components/faq"
 import { ContactForm } from "@/components/contact-form"
 import { Footer } from "@/components/footer"
+import { StarsLayer } from "@/components/stars-layer"
 import { CustomCursor } from "@/components/custom-cursor"
 
 export default function Home() {
@@ -26,6 +28,8 @@ export default function Home() {
 
       <CTA />
 
+      {/*<Testimonials />*/}
+
       <div id="stats">
         <Stats />
       </div>
@@ -34,9 +38,9 @@ export default function Home() {
         <Phases />
       </div>
 
-      <div id="systems">
-        <Systems />
-      </div>
+      {/*<div id="projects">
+        <Projects />
+      </div>*/}
 
       <div id="pricing">
         <Pricing />

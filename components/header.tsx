@@ -2,14 +2,13 @@
 
 import { useState } from "react"
 import { Menu, X, ArrowRight } from "lucide-react"
-import Link from "next/link"
+import Link from "next/link" // Added for internal routing
 
 const navItems = [
-  { label: "Systems", href: "#systems" },
-  { label: "How It Works", href: "#phases" },
-  { label: "Results", href: "#stats" },
-  { label: "Pricing", href: "#pricing" },
   { label: "Team", href: "/team" },
+  { label: "Results", href: "#stats" },
+  { label: "How It Works", href: "#phases" },
+  { label: "Pricing", href: "#pricing" },
   { label: "Client Portal", href: "/portal" },
 ]
 
@@ -17,6 +16,7 @@ export function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
   const scrollToSection = (href: string) => {
+    // If it's a page route (starts with /), let the Link component handle it
     if (href.startsWith('/')) {
       setMobileMenuOpen(false)
       return
@@ -29,6 +29,7 @@ export function Header() {
     setMobileMenuOpen(false)
   }
 
+  // Helper to render either a Link or a Button
   const NavLink = ({ item, mobile = false }: { item: typeof navItems[0], mobile?: boolean }) => {
     const baseStyles = mobile
       ? "px-6 py-4 text-xs font-bold uppercase tracking-widest text-slate-400 hover:text-white hover:bg-white/[0.03] rounded-2xl text-left transition-all border border-transparent hover:border-white/5"
