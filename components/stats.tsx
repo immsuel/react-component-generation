@@ -39,14 +39,14 @@ function CountUp({ value }: { value: string }) {
 }
 
 const stats = [
-  { value: "72", label: "Hours", sublabel: "From Audit to Live Agent" },
-  { value: "85%", label: "Op-Ex Reduction", sublabel: "Average labor cost savings" },
-  { value: "10x", label: "Workflow Velocity", sublabel: "Faster task completion" },
+  { value: "72", label: "Hours", sublabel: "To First Working Build" },
+  { value: "85%", label: "Manual Work Cut", sublabel: "Less time spent on repetitive tasks" },
+  { value: "10x", label: "Faster Turnaround", sublabel: "In lead handling & routine workflows" },
 ]
 
 const bottomStats = [
-  { value: "5k+", label: "Tasks Automated", sublabel: "Manual actions eliminated for our clients", icon: Zap },
-  { value: "24/7", label: "Autonomous Uptime", sublabel: "Systems that never sleep or fatigue", icon: Cpu },
+  { value: "5k+", label: "Tasks Automated", sublabel: "Hours of repetitive admin eliminated every month", icon: Zap },
+  { value: "24/7", label: "Always On", sublabel: "Software & automations working around the clock", icon: Cpu },
 ]
 
 export function Stats() {
@@ -56,8 +56,8 @@ export function Stats() {
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-slate-500/5 blur-[140px] pointer-events-none" />
 
       <div className="max-w-5xl mx-auto relative z-10">
-        <h2 className="text-center text-gray-600 mb-16 uppercase tracking-[0.4em] text-[10px] font-medium">
-          Proven Efficiency Metrics
+        <h2 className="text-center text-gray-500 mb-16 uppercase tracking-[0.3em] text-[10px] font-medium">
+          Real Impact For Growing Businesses
         </h2>
 
         {/* Top Stats: Grid with matte cards */}

@@ -7,29 +7,29 @@ const phases = [
   {
     number: 1,
     title: "Step 01",
-    subtitle: "Intelligence",
+    subtitle: "Plan & Scope",
     icon: Brain,
     description:
-      "We audit your manual workflows to identify high-impact automation gaps and design the custom LLM logic for your system.",
-    details: ["Workflow Audit", "Data Strategy", "Model Selection", "Logic Mapping"],
+      "We review your daily workflows and software requirements to pinpoint exactly what to build and what tasks can be automated with AI.",
+    details: ["Process Review", "Software Spec", "Tool Connections", "Clear Roadmap"],
   },
   {
     number: 2,
     title: "Step 02",
-    subtitle: "Integration",
+    subtitle: "Code & Connect",
     icon: Network,
     description:
-      "We build the connective tissue. Your AI agents are integrated into your existing stack—CRM, Slack, and internal tools.",
-    details: ["API Architecture", "Custom Webhooks", "Agent Prompting", "Middleware Dev"],
+      "We build your custom web app or internal tool and connect AI directly into your existing software—like your CRM, email, and Slack.",
+    details: ["Custom Web Apps", "API Integrations", "AI Assistants", "Automated Triggers"],
   },
   {
     number: 3,
     title: "Step 03",
-    subtitle: "Deployment",
+    subtitle: "Launch & Support",
     icon: Zap,
     description:
-      "Full system launch with rigorous stress testing. We optimize for 99.9% accuracy, ensuring your agency runs on autopilot.",
-    details: ["Stress Testing", "Error Handling", "Live Scaling", "Performance Tuning"],
+      "We test thoroughly, train your team, and deploy reliable software and automations that run smoothly around the clock.",
+    details: ["Thorough Testing", "Team Handover", "Live Monitoring", "Ongoing Support"],
   },
 ] 
 
@@ -40,11 +40,10 @@ export function Phases() {
     <section className="px-4 py-24 bg-black/95 backdrop-blur-md">
       <div className="max-w-5xl mx-auto text-center">
         <h2 className="text-3xl md:text-4xl font-semibold mb-4 text-white tracking-tight">
-          From Manual to <span className="text-slate-400">Autonomous</span> in 72 Hours.
+          How We Build <span className="text-slate-400">Software & Automations</span>
         </h2>
-        <p className="text-gray-500 max-w-2xl mx-auto mb-16 text-sm md:text-base">
-          Our specialized forge replaces outdated manual processes with hyper-efficient AI workflows. 
-          We move from audit to fully integrated system at the speed of thought.
+        <p className="text-gray-400 max-w-2xl mx-auto mb-16 text-sm md:text-base">
+          No endless meetings or tech buzzwords. We understand how your business works, write clean code, and set up automations that save your team hours every day.
         </p>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">

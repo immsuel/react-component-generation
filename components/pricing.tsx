@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 const plans = [
   {
     name: "Workflow Starter",
-    price: "R 3,000",
+    price: "R 6,250",
     period: "pm",
     description: "Perfect for local SMEs looking to eliminate repetitive manual tasks.",
     features: [
@@ -19,7 +19,7 @@ const plans = [
   },
   {
     name: "AI Scaling Partner",
-    price: "R 5,000",
+    price: "R 16,500",
     period: "pm",
     description: "Deep AI integration to handle customer service and internal operations.",
     features: [
@@ -33,7 +33,7 @@ const plans = [
   },
   {
     name: "Enterprise Intelligence",
-    price: "R 12,000",
+    price: "R 32,000",
     period: "pm",
     description: "Full-scale AI transformation for data-heavy organizations.",
     features: [

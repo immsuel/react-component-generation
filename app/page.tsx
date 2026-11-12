@@ -28,7 +28,7 @@ export default function Home() {
 
       <CTA />
 
-      <Testimonials />
+      {/*<Testimonials />*/}
 
       <div id="stats">
         <Stats />
@@ -38,9 +38,9 @@ export default function Home() {
         <Phases />
       </div>
 
-      <div id="projects">
+      {/*<div id="projects">
         <Projects />
-      </div>
+      </div>*/}
 
       <div id="pricing">
         <Pricing />

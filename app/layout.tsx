@@ -8,9 +8,9 @@ const _geist = Geist({ subsets: ["latin"] })
 const _geistMono = Geist_Mono({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "StellarCode - See the Magic. Own the Reality.",
+  title: "StellarCode - Custom Software & AI Automation",
   description:
-    "Custom-coded websites delivered in 72 hours. High-performance digital experiences for ambitious brands.",
+    "We build custom software, web applications, and AI automations that save your team hours and streamline your operations.",
   generator: "v0.app",
   icons: {
     icon: [

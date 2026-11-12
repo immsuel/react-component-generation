@@ -23,23 +23,28 @@ import {
     Layers,
     Check,
     ArrowUpDown,
-    ArrowUp,
-    ArrowDown,
     Calendar,
     Ticket as TicketIcon,
     Clock,
     AlertTriangle,
     Tag,
     UserCheck,
-    MessageSquare
+    ExternalLink
 } from "lucide-react"
 import { supabase, type StellarLead } from "@/lib/supabase"
 import Link from "next/link"
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
+export type LeadBrand = "bitepoint" | "stellarcode"
+
+export interface LeadItem extends StellarLead {
+    brand?: LeadBrand | string
+}
+
 export interface StellarTicket {
     id?: string
+    ticket_code?: string
     created_at?: string
     updated_at?: string
     title: string
@@ -51,6 +56,16 @@ export interface StellarTicket {
     contact_phone?: string
     assigned_to?: string
     lead_id?: string
+    // Hours & Billing
+    estimated_hours?: number
+    gemini_reasoning?: string
+    hours_deducted?: number
+    remaining_hours_after?: number
+    overtime_hours?: number
+    overtime_amount?: number
+    payment_status?: "not_required" | "pending" | "paid"
+    payment_link?: string
+    mercury_invoice_id?: string
 }
 
 type LeadSortKey =
@@ -98,11 +113,10 @@ function formatDate(dateStr?: string | null): string {
 export default function CRMPage() {
     const router = useRouter()
 
-    // Active Dashboard Tab
-    const [activeTab, setActiveTab] = useState<"leads" | "tickets">("leads")
+    const [activeTab, setActiveTab] = useState<"bitepoint" | "stellarcode" | "tickets">("bitepoint")
 
     // ── LEADS STATE ──────────────────────────────────────────────────────────
-    const [leads, setLeads] = useState<StellarLead[]>([])
+    const [leads, setLeads] = useState<LeadItem[]>([])
     const [loadingLeads, setLoadingLeads] = useState(true)
     const [leadSearch, setLeadSearch] = useState("")
     const [filterStage, setFilterStage] = useState<"ALL" | "Contacted" | "Responded" | "Interested" | "Closed">("ALL")
@@ -112,11 +126,11 @@ export default function CRMPage() {
     })
 
     const [isLeadModalOpen, setIsLeadModalOpen] = useState(false)
-    const [editingLead, setEditingLead] = useState<StellarLead | null>(null)
+    const [editingLead, setEditingLead] = useState<LeadItem | null>(null)
     const [duplicateWarning, setDuplicateWarning] = useState<string | null>(null)
     const [isSubmittingLead, setIsSubmittingLead] = useState(false)
 
-    const emptyLeadForm: StellarLead = {
+    const emptyLeadForm: LeadItem = {
         "Business Name": "",
         Contact: "",
         "Phone Number": "",
@@ -128,8 +142,9 @@ export default function CRMPage() {
         Interested: null,
         Closed: null,
         Value: 600,
+        brand: "bitepoint",
     }
-    const [leadFormData, setLeadFormData] = useState<StellarLead>(emptyLeadForm)
+    const [leadFormData, setLeadFormData] = useState<LeadItem>(emptyLeadForm)
 
     // ── TICKETS STATE ────────────────────────────────────────────────────────
     const [tickets, setTickets] = useState<StellarTicket[]>([])
@@ -155,10 +170,15 @@ export default function CRMPage() {
         contact_email: "",
         contact_phone: "",
         assigned_to: "",
+        estimated_hours: 1.0,
+        hours_deducted: 1.0,
+        overtime_hours: 0,
+        overtime_amount: 0,
+        payment_status: "not_required",
+        payment_link: "",
     }
     const [ticketFormData, setTicketFormData] = useState<StellarTicket>(emptyTicketForm)
 
-    // Auth Guard
     useEffect(() => {
         const auth = sessionStorage.getItem("stellar_crm_auth")
         if (!auth) {
@@ -201,14 +221,14 @@ export default function CRMPage() {
     }
 
     const refreshAll = () => {
-        if (activeTab === "leads") fetchLeads()
-        else fetchTickets()
+        if (activeTab === "tickets") fetchTickets()
+        else fetchLeads()
     }
 
     // ── LEADS HANDLERS ───────────────────────────────────────────────────────
     const isChecked = (val: any) => val === "checked" || val === true || val === "true"
 
-    const toggleStatus = async (lead: StellarLead, field: "Contacted" | "Responded" | "Interested" | "Closed") => {
+    const toggleStatus = async (lead: LeadItem, field: "Contacted" | "Responded" | "Interested" | "Closed") => {
         const nextVal = isChecked(lead[field]) ? null : "checked"
         const updated = { ...lead, [field]: nextVal }
 
@@ -238,15 +258,20 @@ export default function CRMPage() {
         phone: string | number | null,
         email: string | null,
         business: string,
+        brand?: string,
         currentId?: string | number
     ) => {
         const cleanContact = normalizeStr(contact)
         const cleanPhone = normalizePhone(phone)
         const cleanEmail = normalizeStr(email)
         const cleanBiz = normalizeStr(business)
+        const targetBrand = brand?.toLowerCase() || "bitepoint"
 
         return leads.find((l) => {
             if (currentId && l.id === currentId) return false
+            const lBrand = l.brand?.toLowerCase() || "bitepoint"
+            if (lBrand !== targetBrand) return false
+
             const existingPhone = normalizePhone(l["Phone Number"])
             if (cleanPhone.length >= 7 && existingPhone.length >= 7 && cleanPhone === existingPhone) return true
             const existingContact = normalizeStr(l.Contact)
@@ -268,19 +293,26 @@ export default function CRMPage() {
 
     const handleOpenAddLead = () => {
         setEditingLead(null)
-        setLeadFormData(emptyLeadForm)
+        setLeadFormData({
+            ...emptyLeadForm,
+            brand: activeTab === "stellarcode" ? "stellarcode" : "bitepoint",
+        })
         setDuplicateWarning(null)
         setIsLeadModalOpen(true)
     }
 
-    const handleOpenEditLead = (lead: StellarLead) => {
+    const handleOpenEditLead = (lead: LeadItem) => {
         setEditingLead(lead)
-        setLeadFormData({ ...lead, Value: lead.Value || 600 })
+        setLeadFormData({
+            ...lead,
+            brand: lead.brand?.toLowerCase() || "bitepoint",
+            Value: lead.Value || 600,
+        })
         setDuplicateWarning(null)
         setIsLeadModalOpen(true)
     }
 
-    const handleDeleteLead = async (lead: StellarLead) => {
+    const handleDeleteLead = async (lead: LeadItem) => {
         if (!confirm(`Are you sure you want to delete ${lead.Contact || lead["Business Name"] || "this lead"}?`)) return
         setLeads((prev) => prev.filter((l) => l !== lead))
 
@@ -301,17 +333,20 @@ export default function CRMPage() {
         setIsSubmittingLead(true)
         setDuplicateWarning(null)
 
+        const targetBrand = leadFormData.brand || "bitepoint"
+
         const dup = checkForDuplicates(
             leadFormData.Contact,
             leadFormData["Phone Number"],
             leadFormData.Email,
             leadFormData["Business Name"],
+            targetBrand,
             editingLead?.id
         )
 
         if (dup && !editingLead) {
             setDuplicateWarning(
-                `This lead already exists: matches "${dup.Contact || "Unnamed"}" (${dup["Phone Number"] || dup.Email || "No phone"}).`
+                `This lead already exists in ${targetBrand === "stellarcode" ? "StellarCode" : "BitePoint"}: matches "${dup.Contact || "Unnamed"}" (${dup["Phone Number"] || dup.Email || "No phone"}).`
             )
             setIsSubmittingLead(false)
             return
@@ -320,6 +355,7 @@ export default function CRMPage() {
         try {
             const payload = {
                 ...leadFormData,
+                brand: targetBrand,
                 created_at: editingLead?.created_at || new Date().toISOString(),
             }
 
@@ -343,11 +379,13 @@ export default function CRMPage() {
     }
 
     const exportCSV = () => {
+        const brandName = activeTab === "stellarcode" ? "StellarCode" : "BitePoint"
         const headers = [
-            "Date Added,Business Name,Contact,Phone Number,Email,Website,Contacted,Responded,Interested,Closed,Value,Comments\n",
+            "Brand,Date Added,Business Name,Contact,Phone Number,Email,Website,Contacted,Responded,Interested,Closed,Value,Comments\n",
         ]
         const rows = sortedAndFilteredLeads.map((l) =>
             [
+                `"${l.brand || "bitepoint"}"`,
                 `"${formatDate(l.created_at)}"`,
                 `"${l["Business Name"] || ""}"`,
                 `"${l.Contact || ""}"`,
@@ -367,7 +405,7 @@ export default function CRMPage() {
         const url = URL.createObjectURL(blob)
         const link = document.createElement("a")
         link.href = url
-        link.download = `leads_${new Date().toISOString().slice(0, 10)}.csv`
+        link.download = `${brandName.toLowerCase()}_leads_${new Date().toISOString().slice(0, 10)}.csv`
         document.body.appendChild(link)
         link.click()
         document.body.removeChild(link)
@@ -444,8 +482,25 @@ export default function CRMPage() {
     }
 
     // ── COMPUTED DATA ────────────────────────────────────────────────────────
+
+    const currentBrandLeads = useMemo(() => {
+        if (activeTab === "tickets") return []
+        return leads.filter((lead) => {
+            const leadBrand = lead.brand?.toLowerCase() || "bitepoint"
+            return leadBrand === activeTab
+        })
+    }, [leads, activeTab])
+
+    const bitepointLeadCount = useMemo(() => {
+        return leads.filter((l) => (l.brand?.toLowerCase() || "bitepoint") === "bitepoint").length
+    }, [leads])
+
+    const stellarcodeLeadCount = useMemo(() => {
+        return leads.filter((l) => l.brand?.toLowerCase() === "stellarcode").length
+    }, [leads])
+
     const sortedAndFilteredLeads = useMemo(() => {
-        const filtered = leads.filter((lead) => {
+        const filtered = currentBrandLeads.filter((lead) => {
             const matchSearch =
                 (lead.Contact || "").toLowerCase().includes(leadSearch.toLowerCase()) ||
                 (lead["Business Name"] || "").toLowerCase().includes(leadSearch.toLowerCase()) ||
@@ -484,7 +539,7 @@ export default function CRMPage() {
             const strB = (b[key] ? String(b[key]) : "").toLowerCase()
             return strA.localeCompare(strB) * mod
         })
-    }, [leads, leadSearch, filterStage, leadSortConfig])
+    }, [currentBrandLeads, leadSearch, filterStage, leadSortConfig])
 
     const sortedAndFilteredTickets = useMemo(() => {
         const filtered = tickets.filter((t) => {
@@ -492,7 +547,8 @@ export default function CRMPage() {
                 (t.title || "").toLowerCase().includes(ticketSearch.toLowerCase()) ||
                 (t.description || "").toLowerCase().includes(ticketSearch.toLowerCase()) ||
                 (t.contact_name || "").toLowerCase().includes(ticketSearch.toLowerCase()) ||
-                (t.contact_email || "").toLowerCase().includes(ticketSearch.toLowerCase())
+                (t.contact_email || "").toLowerCase().includes(ticketSearch.toLowerCase()) ||
+                (t.ticket_code || "").toLowerCase().includes(ticketSearch.toLowerCase())
 
             if (!matchSearch) return false
             if (filterTicketStatus !== "ALL" && t.status !== filterTicketStatus) return false
@@ -518,10 +574,10 @@ export default function CRMPage() {
 
     // Lead Metrics
     const leadMetrics = useMemo(() => {
-        const total = leads.length
-        const contacted = leads.filter((l) => isChecked(l.Contacted)).length
-        const responded = leads.filter((l) => isChecked(l.Responded)).length
-        const closedLeads = leads.filter((l) => isChecked(l.Closed))
+        const total = currentBrandLeads.length
+        const contacted = currentBrandLeads.filter((l) => isChecked(l.Contacted)).length
+        const responded = currentBrandLeads.filter((l) => isChecked(l.Responded)).length
+        const closedLeads = currentBrandLeads.filter((l) => isChecked(l.Closed))
         const closed = closedLeads.length
 
         const closedAnnualValue = closedLeads.reduce(
@@ -533,9 +589,9 @@ export default function CRMPage() {
         const conversionRate = total > 0 ? Math.round((closed / total) * 100) : 0
 
         return { total, contacted, responded, closed, closedAnnualValue, responseRate, conversionRate }
-    }, [leads])
+    }, [currentBrandLeads])
 
-    // Ticket Metrics
+    // Ticket Metrics + Total Overtime Billed calculation
     const ticketMetrics = useMemo(() => {
         const total = tickets.length
         const open = tickets.filter((t) => t.status === "open").length
@@ -543,10 +599,14 @@ export default function CRMPage() {
         const resolved = tickets.filter((t) => t.status === "resolved" || t.status === "closed").length
         const urgent = tickets.filter((t) => (t.priority === "urgent" || t.priority === "high") && t.status !== "closed").length
 
-        return { total, open, inProgress, resolved, urgent }
+        const totalOvertimeBilled = tickets.reduce(
+            (acc, t) => acc + (Number(t.overtime_amount) || 0),
+            0
+        )
+
+        return { total, open, inProgress, resolved, urgent, totalOvertimeBilled }
     }, [tickets])
 
-    // Helper Badges
     const renderPriorityBadge = (priority: StellarTicket["priority"]) => {
         switch (priority) {
             case "urgent":
@@ -561,19 +621,7 @@ export default function CRMPage() {
         }
     }
 
-    const renderStatusBadge = (status: StellarTicket["status"]) => {
-        switch (status) {
-            case "open":
-                return <span className="px-2.5 py-1 rounded-full text-[10px] font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">Open</span>
-            case "in_progress":
-                return <span className="px-2.5 py-1 rounded-full text-[10px] font-semibold bg-sky-500/10 text-sky-400 border border-sky-500/20">In Progress</span>
-            case "resolved":
-                return <span className="px-2.5 py-1 rounded-full text-[10px] font-semibold bg-purple-500/10 text-purple-400 border border-purple-500/20">Resolved</span>
-            case "closed":
-            default:
-                return <span className="px-2.5 py-1 rounded-full text-[10px] font-semibold bg-white/5 text-slate-400 border border-white/10">Closed</span>
-        }
-    }
+    const currentBrandTitle = activeTab === "stellarcode" ? "StellarCode" : "BitePoint"
 
     return (
         <main className="min-h-screen bg-black text-white selection:bg-white/10 font-sans pb-24">
@@ -590,13 +638,31 @@ export default function CRMPage() {
                         {/* Navigation Tab Switcher */}
                         <div className="flex items-center bg-white/[0.04] p-1 rounded-full border border-white/10">
                             <button
-                                onClick={() => setActiveTab("leads")}
-                                className={`flex items-center gap-1.5 px-3.5 py-1 rounded-full text-xs font-medium transition-all ${activeTab === "leads" ? "bg-white text-black shadow-md font-semibold" : "text-slate-400 hover:text-white"
+                                onClick={() => setActiveTab("bitepoint")}
+                                className={`flex items-center gap-1.5 px-3.5 py-1 rounded-full text-xs font-medium transition-all ${activeTab === "bitepoint" ? "bg-white text-black shadow-md font-semibold" : "text-slate-400 hover:text-white"
                                     }`}
                             >
                                 <Layers className="w-3.5 h-3.5" />
-                                <span>Leads</span>
+                                <span>BitePoint</span>
+                                <span className={`ml-1 px-1.5 py-0.2 rounded-full text-[10px] font-semibold ${activeTab === "bitepoint" ? "bg-black/10 text-black" : "bg-white/10 text-slate-300"
+                                    }`}>
+                                    {bitepointLeadCount}
+                                </span>
                             </button>
+
+                            <button
+                                onClick={() => setActiveTab("stellarcode")}
+                                className={`flex items-center gap-1.5 px-3.5 py-1 rounded-full text-xs font-medium transition-all ${activeTab === "stellarcode" ? "bg-white text-black shadow-md font-semibold" : "text-slate-400 hover:text-white"
+                                    }`}
+                            >
+                                <Layers className="w-3.5 h-3.5" />
+                                <span>StellarCode</span>
+                                <span className={`ml-1 px-1.5 py-0.2 rounded-full text-[10px] font-semibold ${activeTab === "stellarcode" ? "bg-black/10 text-black" : "bg-white/10 text-slate-300"
+                                    }`}>
+                                    {stellarcodeLeadCount}
+                                </span>
+                            </button>
+
                             <button
                                 onClick={() => setActiveTab("tickets")}
                                 className={`flex items-center gap-1.5 px-3.5 py-1 rounded-full text-xs font-medium transition-all ${activeTab === "tickets" ? "bg-white text-black shadow-md font-semibold" : "text-slate-400 hover:text-white"
@@ -619,7 +685,7 @@ export default function CRMPage() {
                             className="p-2 text-slate-400 hover:text-white rounded-xl bg-white/[0.02] border border-white/5 hover:bg-white/5 transition-all"
                             title="Refresh data"
                         >
-                            <RefreshCw className={`w-4 h-4 ${(activeTab === "leads" ? loadingLeads : loadingTickets) ? "animate-spin text-white" : ""}`} />
+                            <RefreshCw className={`w-4 h-4 ${(activeTab === "tickets" ? loadingTickets : loadingLeads) ? "animate-spin text-white" : ""}`} />
                         </button>
                         <button
                             onClick={() => {
@@ -636,19 +702,19 @@ export default function CRMPage() {
             </nav>
 
             {/* ═══════════════════════════════════════════════════════════════════ */}
-            {/* TAB 1: LEADS VIEW                                                  */}
+            {/* TAB: LEADS VIEW                                                     */}
             {/* ═══════════════════════════════════════════════════════════════════ */}
-            {activeTab === "leads" && (
+            {activeTab !== "tickets" && (
                 <section className="pt-32 pb-8 px-6">
                     <div className="max-w-7xl mx-auto">
                         <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 mb-12">
                             <div>
                                 <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-slate-400 text-xs font-medium mb-4">
                                     <Layers className="w-3.5 h-3.5" />
-                                    Leads Overview
+                                    {currentBrandTitle} Pipeline
                                 </div>
                                 <h1 className="text-4xl md:text-5xl font-semibold tracking-tight">
-                                    Client Pipeline
+                                    {currentBrandTitle} Leads
                                 </h1>
                             </div>
 
@@ -665,7 +731,7 @@ export default function CRMPage() {
                                     className="flex items-center gap-2 px-6 py-2.5 rounded-full bg-white text-black hover:bg-slate-200 text-xs font-semibold transition-transform hover:scale-105 active:scale-95"
                                 >
                                     <Plus className="w-4 h-4" />
-                                    Add Lead
+                                    Add Lead ({currentBrandTitle})
                                 </button>
                             </div>
                         </div>
@@ -725,7 +791,7 @@ export default function CRMPage() {
                                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
                                 <input
                                     type="text"
-                                    placeholder="Search by contact, business, phone, or email..."
+                                    placeholder={`Search ${currentBrandTitle} leads by contact, business, phone...`}
                                     value={leadSearch}
                                     onChange={(e) => setLeadSearch(e.target.value)}
                                     className="w-full bg-white/[0.02] border border-white/10 rounded-full pl-11 pr-4 py-2.5 text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-white/30 transition-all"
@@ -802,7 +868,7 @@ export default function CRMPage() {
                                         ) : sortedAndFilteredLeads.length === 0 ? (
                                             <tr>
                                                 <td colSpan={10} className="text-center py-20 text-xs text-slate-500">
-                                                    No leads found matching your search.
+                                                    No {currentBrandTitle} leads found.
                                                 </td>
                                             </tr>
                                         ) : (
@@ -914,7 +980,7 @@ export default function CRMPage() {
             )}
 
             {/* ═══════════════════════════════════════════════════════════════════ */}
-            {/* TAB 2: TICKETS VIEW                                                */}
+            {/* TAB: TICKETS VIEW                                                  */}
             {/* ═══════════════════════════════════════════════════════════════════ */}
             {activeTab === "tickets" && (
                 <section className="pt-32 pb-8 px-6">
@@ -940,7 +1006,7 @@ export default function CRMPage() {
                         </div>
 
                         {/* Ticket Metric Cards */}
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-12">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-12">
                             <div className="p-6 rounded-3xl bg-white/[0.02] border border-white/5 hover:bg-white/[0.04] transition-colors">
                                 <div className="flex justify-between items-center text-slate-400 mb-4 text-xs font-medium">
                                     <span>Total Tickets</span>
@@ -948,7 +1014,7 @@ export default function CRMPage() {
                                 </div>
                                 <div className="text-3xl font-bold tracking-tight text-white mb-1">{ticketMetrics.total}</div>
                                 <div className="text-xs text-slate-500">
-                                    All support and feature requests
+                                    All support and requests
                                 </div>
                             </div>
 
@@ -959,7 +1025,7 @@ export default function CRMPage() {
                                 </div>
                                 <div className="text-3xl font-bold tracking-tight text-white mb-1">{ticketMetrics.open}</div>
                                 <div className="text-xs text-slate-500">
-                                    Awaiting initial action
+                                    Awaiting resolution
                                 </div>
                             </div>
 
@@ -970,18 +1036,32 @@ export default function CRMPage() {
                                 </div>
                                 <div className="text-3xl font-bold tracking-tight text-white mb-1">{ticketMetrics.inProgress}</div>
                                 <div className="text-xs text-slate-500">
-                                    Currently being worked on
+                                    Active development
                                 </div>
                             </div>
 
                             <div className="p-6 rounded-3xl bg-white/[0.02] border border-white/5 hover:bg-white/[0.04] transition-colors">
                                 <div className="flex justify-between items-center text-slate-400 mb-4 text-xs font-medium">
-                                    <span>High / Urgent Priority</span>
+                                    <span>Urgent Priority</span>
                                     <AlertTriangle className="w-4 h-4 text-rose-400" />
                                 </div>
                                 <div className="text-3xl font-bold tracking-tight text-rose-400 mb-1">{ticketMetrics.urgent}</div>
                                 <div className="text-xs text-slate-500">
-                                    Requires immediate attention
+                                    High / urgent attention
+                                </div>
+                            </div>
+
+                            {/* Overtime Metric Card */}
+                            <div className="p-6 rounded-3xl bg-white/[0.02] border border-white/5 hover:bg-white/[0.04] transition-colors">
+                                <div className="flex justify-between items-center text-slate-400 mb-4 text-xs font-medium">
+                                    <span>Overtime Billed</span>
+                                    <DollarSign className="w-4 h-4 text-amber-400" />
+                                </div>
+                                <div className="text-3xl font-bold tracking-tight text-amber-400 mb-1">
+                                    R{ticketMetrics.totalOvertimeBilled.toLocaleString()}
+                                </div>
+                                <div className="text-xs text-slate-500">
+                                    Billed @ R400/hr via Mercury
                                 </div>
                             </div>
                         </div>
@@ -992,7 +1072,7 @@ export default function CRMPage() {
                                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
                                 <input
                                     type="text"
-                                    placeholder="Search tickets by title, description, or contact..."
+                                    placeholder="Search tickets by title, code, description, or contact..."
                                     value={ticketSearch}
                                     onChange={(e) => setTicketSearch(e.target.value)}
                                     className="w-full bg-white/[0.02] border border-white/10 rounded-full pl-11 pr-4 py-2.5 text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-white/30 transition-all"
@@ -1000,7 +1080,6 @@ export default function CRMPage() {
                             </div>
 
                             <div className="flex flex-wrap items-center gap-2">
-                                {/* Status Pills */}
                                 <div className="flex items-center gap-1 p-1 bg-white/[0.02] border border-white/5 rounded-full">
                                     {(["ALL", "open", "in_progress", "resolved", "closed"] as const).map((st) => {
                                         const isActive = filterTicketStatus === st
@@ -1017,7 +1096,6 @@ export default function CRMPage() {
                                     })}
                                 </div>
 
-                                {/* Priority Filter Dropdown */}
                                 <select
                                     value={filterTicketPriority}
                                     onChange={(e: any) => setFilterTicketPriority(e.target.value)}
@@ -1040,7 +1118,7 @@ export default function CRMPage() {
                                         <tr>
                                             <th onClick={() => handleTicketSort("title")} className="py-4 px-6 cursor-pointer group hover:text-white select-none">
                                                 <div className="flex items-center">
-                                                    <span>Ticket Title & Details</span>
+                                                    <span>Ticket & Details</span>
                                                     <ArrowUpDown className="w-3 h-3 text-slate-600 opacity-40 group-hover:opacity-100 ml-1.5 shrink-0" />
                                                 </div>
                                             </th>
@@ -1055,6 +1133,9 @@ export default function CRMPage() {
                                                     <span>Status</span>
                                                     <ArrowUpDown className="w-3 h-3 text-slate-600 opacity-40 group-hover:opacity-100 ml-1.5 shrink-0" />
                                                 </div>
+                                            </th>
+                                            <th className="py-4 px-4">
+                                                <span>Hours &amp; Billing</span>
                                             </th>
                                             <th onClick={() => handleTicketSort("contact_name")} className="py-4 px-4 cursor-pointer group hover:text-white select-none">
                                                 <span>Contact / Client</span>
@@ -1075,23 +1156,29 @@ export default function CRMPage() {
                                     <tbody className="divide-y divide-white/[0.03]">
                                         {loadingTickets ? (
                                             <tr>
-                                                <td colSpan={7} className="text-center py-20 text-xs text-slate-500">
+                                                <td colSpan={8} className="text-center py-20 text-xs text-slate-500">
                                                     Loading tickets from Supabase...
                                                 </td>
                                             </tr>
                                         ) : sortedAndFilteredTickets.length === 0 ? (
                                             <tr>
-                                                <td colSpan={7} className="text-center py-20 text-xs text-slate-500">
+                                                <td colSpan={8} className="text-center py-20 text-xs text-slate-500">
                                                     No tickets found.
                                                 </td>
                                             </tr>
                                         ) : (
                                             sortedAndFilteredTickets.map((ticket) => (
                                                 <tr key={ticket.id} className="hover:bg-white/[0.02] transition-colors group">
-                                                    {/* Title & Desc */}
                                                     <td className="py-4 px-6 max-w-sm">
-                                                        <div className="font-semibold text-white text-sm">
-                                                            {ticket.title}
+                                                        <div className="flex items-center gap-2">
+                                                            {ticket.ticket_code && (
+                                                                <span className="font-mono text-[10px] text-slate-500 bg-white/5 px-2 py-0.5 rounded border border-white/5">
+                                                                    {ticket.ticket_code}
+                                                                </span>
+                                                            )}
+                                                            <span className="font-semibold text-white text-sm">
+                                                                {ticket.title}
+                                                            </span>
                                                         </div>
                                                         {ticket.description && (
                                                             <div className="text-xs text-slate-400 mt-1 line-clamp-1">
@@ -1099,13 +1186,9 @@ export default function CRMPage() {
                                                             </div>
                                                         )}
                                                     </td>
-
-                                                    {/* Priority */}
                                                     <td className="py-4 px-4 whitespace-nowrap">
                                                         {renderPriorityBadge(ticket.priority)}
                                                     </td>
-
-                                                    {/* Quick Status Dropdown */}
                                                     <td className="py-4 px-4 whitespace-nowrap">
                                                         <select
                                                             value={ticket.status}
@@ -1119,7 +1202,36 @@ export default function CRMPage() {
                                                         </select>
                                                     </td>
 
-                                                    {/* Contact / Client */}
+                                                    {/* Hours & Mercury Payment Column */}
+                                                    <td className="py-4 px-4 whitespace-nowrap">
+                                                        <div className="font-mono text-slate-300">
+                                                            Est: {ticket.estimated_hours || 0}h (Deducted: -{ticket.hours_deducted || 0}h)
+                                                        </div>
+                                                        {(ticket.overtime_hours || 0) > 0 ? (
+                                                            <div className="flex items-center gap-2 mt-1">
+                                                                <span className="text-amber-400 font-semibold font-mono">
+                                                                    +R{ticket.overtime_amount} ({ticket.overtime_hours}h)
+                                                                </span>
+                                                                {ticket.payment_link && (
+                                                                    <a
+                                                                        href={ticket.payment_link}
+                                                                        target="_blank"
+                                                                        rel="noreferrer"
+                                                                        className="inline-flex items-center gap-1 text-[10px] text-sky-400 hover:text-sky-300 underline"
+                                                                        title="Open Mercury Payment Link"
+                                                                    >
+                                                                        <span>Mercury</span>
+                                                                        <ExternalLink className="w-2.5 h-2.5" />
+                                                                    </a>
+                                                                )}
+                                                            </div>
+                                                        ) : (
+                                                            <span className="text-[10px] text-emerald-400 font-medium">
+                                                                Covered (Monthly 2h)
+                                                            </span>
+                                                        )}
+                                                    </td>
+
                                                     <td className="py-4 px-4">
                                                         <div className="text-white font-medium">
                                                             {ticket.contact_name || "—"}
@@ -1130,8 +1242,6 @@ export default function CRMPage() {
                                                             </div>
                                                         )}
                                                     </td>
-
-                                                    {/* Assigned To */}
                                                     <td className="py-4 px-4 text-slate-300">
                                                         {ticket.assigned_to ? (
                                                             <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/[0.03] border border-white/10 text-[11px]">
@@ -1142,13 +1252,9 @@ export default function CRMPage() {
                                                             <span className="text-slate-600">—</span>
                                                         )}
                                                     </td>
-
-                                                    {/* Created Date */}
                                                     <td className="py-4 px-4 font-mono text-slate-400 whitespace-nowrap">
                                                         {formatDate(ticket.created_at)}
                                                     </td>
-
-                                                    {/* Actions */}
                                                     <td className="py-4 px-6 text-right">
                                                         <div className="flex items-center justify-end gap-2 opacity-60 group-hover:opacity-100 transition-opacity">
                                                             <button
@@ -1196,7 +1302,7 @@ export default function CRMPage() {
                                 {editingLead ? "Edit Lead" : "Add New Lead"}
                             </h2>
                             <p className="text-xs text-slate-400">
-                                Fill in the details below. Existing phone numbers and contact names will be checked to prevent duplicates.
+                                Fill in the details below. Leads are split between BitePoint and StellarCode pipelines.
                             </p>
                         </div>
 
@@ -1208,6 +1314,42 @@ export default function CRMPage() {
                         )}
 
                         <form onSubmit={handleSaveLead} className="space-y-5">
+                            <div>
+                                <label className="block text-xs font-medium text-slate-300 mb-1.5">
+                                    Lead Category / Brand *
+                                </label>
+                                <div className="grid grid-cols-2 gap-2">
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            setLeadFormData({ ...leadFormData, brand: "bitepoint" })
+                                            setDuplicateWarning(null)
+                                        }}
+                                        className={`py-2.5 px-4 rounded-2xl text-xs font-semibold border transition-all flex items-center justify-center gap-2 ${(leadFormData.brand || "bitepoint") === "bitepoint"
+                                                ? "bg-white text-black border-white shadow-md"
+                                                : "bg-white/[0.02] border-white/10 text-slate-400 hover:text-white"
+                                            }`}
+                                    >
+                                        <span>BitePoint</span>
+                                        {(leadFormData.brand || "bitepoint") === "bitepoint" && <Check className="w-3.5 h-3.5 stroke-[3]" />}
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            setLeadFormData({ ...leadFormData, brand: "stellarcode" })
+                                            setDuplicateWarning(null)
+                                        }}
+                                        className={`py-2.5 px-4 rounded-2xl text-xs font-semibold border transition-all flex items-center justify-center gap-2 ${leadFormData.brand === "stellarcode"
+                                                ? "bg-white text-black border-white shadow-md"
+                                                : "bg-white/[0.02] border-white/10 text-slate-400 hover:text-white"
+                                            }`}
+                                    >
+                                        <span>StellarCode</span>
+                                        {leadFormData.brand === "stellarcode" && <Check className="w-3.5 h-3.5 stroke-[3]" />}
+                                    </button>
+                                </div>
+                            </div>
+
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <div>
                                     <label className="block text-xs font-medium text-slate-300 mb-1.5">
@@ -1227,7 +1369,7 @@ export default function CRMPage() {
                                 </div>
                                 <div>
                                     <label className="block text-xs font-medium text-slate-300 mb-1.5">
-                                        Business / Driving School Name
+                                        Business / Client Name
                                     </label>
                                     <input
                                         type="text"
@@ -1351,7 +1493,7 @@ export default function CRMPage() {
                                     disabled={isSubmittingLead}
                                     className="px-7 py-3 bg-white text-black hover:bg-slate-200 rounded-full text-xs font-semibold uppercase tracking-wider transition-transform hover:scale-105 active:scale-95 disabled:opacity-50"
                                 >
-                                    {isSubmittingLead ? "Saving..." : editingLead ? "Save Changes" : "Add Lead"}
+                                    {isSubmittingLead ? "Saving..." : editingLead ? "Save Changes" : `Add Lead (${(leadFormData.brand || "bitepoint") === "stellarcode" ? "StellarCode" : "BitePoint"})`}
                                 </button>
                             </div>
                         </form>
@@ -1427,6 +1569,47 @@ export default function CRMPage() {
                                         <option value="closed">Closed</option>
                                     </select>
                                 </div>
+                            </div>
+
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-xs font-medium text-slate-300 mb-1.5">
+                                        Estimated Hours
+                                    </label>
+                                    <input
+                                        type="number"
+                                        step="0.25"
+                                        placeholder="1.0"
+                                        value={ticketFormData.estimated_hours || ""}
+                                        onChange={(e) => setTicketFormData({ ...ticketFormData, estimated_hours: Number(e.target.value) })}
+                                        className="w-full bg-white/[0.02] border border-white/10 rounded-2xl px-4 py-3 text-xs text-white placeholder:text-slate-600 focus:outline-none focus:border-white/30 transition-all font-mono"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-medium text-slate-300 mb-1.5">
+                                        Overtime Amount (ZAR / R400 hr)
+                                    </label>
+                                    <input
+                                        type="number"
+                                        placeholder="0"
+                                        value={ticketFormData.overtime_amount || ""}
+                                        onChange={(e) => setTicketFormData({ ...ticketFormData, overtime_amount: Number(e.target.value) })}
+                                        className="w-full bg-white/[0.02] border border-white/10 rounded-2xl px-4 py-3 text-xs text-white placeholder:text-slate-600 focus:outline-none focus:border-white/30 transition-all font-mono"
+                                    />
+                                </div>
+                            </div>
+
+                            <div>
+                                <label className="block text-xs font-medium text-slate-300 mb-1.5">
+                                    Mercury Payment Link (Optional)
+                                </label>
+                                <input
+                                    type="url"
+                                    placeholder="https://mercury.com/pay/..."
+                                    value={ticketFormData.payment_link || ""}
+                                    onChange={(e) => setTicketFormData({ ...ticketFormData, payment_link: e.target.value })}
+                                    className="w-full bg-white/[0.02] border border-white/10 rounded-2xl px-4 py-3 text-xs text-white placeholder:text-slate-600 focus:outline-none focus:border-white/30 transition-all font-mono text-[11px]"
+                                />
                             </div>
 
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
