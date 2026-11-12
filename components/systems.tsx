@@ -225,13 +225,15 @@ export function Systems() {
 
                                     <div className="flex items-center gap-3 w-full sm:w-auto">
                                         {sys.id === "client-support-portal" ? (
-                                            <Link
-                                                href="/portal"
-                                                className="inline-flex items-center gap-1.5 text-xs font-semibold text-white hover:text-slate-300 transition-colors"
-                                            >
-                                                <span>View Live Demo</span>
-                                                <ExternalLink className="w-3 h-3" />
-                                            </Link>
+                                            <div>
+                                                <button
+                                                    onClick={scrollToContact}
+                                                    className="inline-flex items-center gap-1.5 text-xs font-semibold text-white hover:text-slate-300 transition-colors"
+                                                >
+                                                    <span>Build For My Business</span>
+                                                    <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-1" />
+                                                </button>
+                                            </div>
                                         ) : (
                                             <button
                                                 onClick={scrollToContact}
