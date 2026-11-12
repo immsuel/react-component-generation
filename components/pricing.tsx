@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 const plans = [
   {
     name: "Workflow Starter",
-    price: "R 6,250",
+    price: "R 3,000",
     period: "pm",
     description: "Perfect for local SMEs looking to eliminate repetitive manual tasks.",
     features: [
@@ -19,7 +19,7 @@ const plans = [
   },
   {
     name: "AI Scaling Partner",
-    price: "R 16,500",
+    price: "R 5,500",
     period: "pm",
     description: "Deep AI integration to handle customer service and internal operations.",
     features: [
@@ -33,7 +33,7 @@ const plans = [
   },
   {
     name: "Enterprise Intelligence",
-    price: "R 32,000",
+    price: "R 12,000",
     period: "pm",
     description: "Full-scale AI transformation for data-heavy organizations.",
     features: [
@@ -76,8 +76,8 @@ export function Pricing() {
             <div
               key={index}
               className={`flex flex-col rounded-[2.5rem] p-10 backdrop-blur-md transition-all duration-500 ${plan.highlighted
-                  ? "bg-white/[0.04] border border-white/20 shadow-2xl shadow-white/5 relative z-20 md:scale-105"
-                  : "bg-white/[0.02] border border-white/5 opacity-80"
+                ? "bg-white/[0.04] border border-white/20 shadow-2xl shadow-white/5 relative z-20 md:scale-105"
+                : "bg-white/[0.02] border border-white/5 opacity-80"
                 }`}
             >
               {plan.highlighted && (
@@ -114,8 +114,8 @@ export function Pricing() {
               <Button
                 onClick={scrollToContact}
                 className={`w-full py-7 rounded-2xl text-[11px] font-bold uppercase tracking-[0.2em] transition-all duration-300 ${plan.highlighted
-                    ? "bg-white text-black hover:bg-slate-200"
-                    : "bg-white/5 border border-white/10 text-white hover:bg-white/10"
+                  ? "bg-white text-black hover:bg-slate-200"
+                  : "bg-white/5 border border-white/10 text-white hover:bg-white/10"
                   }`}
               >
                 Start Automating
